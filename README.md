@@ -57,3 +57,26 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+# AngularSav
+
+This project was generated using Angular CLI version 22.2.3.
+
+## Development server
+
+To start a local development server, run:
+```bash
+ng serve
+
+---
+
+## Pull Requests, CI/CD & Code Quality Rules
+
+### Pull Requests (PR) & Code Review
+* **Main Branch Protection:** No changes can be merged into the main branch without an approved Pull Request.
+* **Human Peer Review:** Every PR requires at least one approved code review from a teammate.
+* **Automated Review:** Team members must address or justify any findings flagged by CodeRabbit.
+
+### Continuous Integration & Quality (CI/CD)
+* **GitHub Actions:** Every PR must successfully pass the GitHub Actions pipeline (compilation and automated tests).
+* **SonarCloud:** Code must pass the SonarCloud Quality Gate before the merge can be authorized.
