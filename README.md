@@ -65,10 +65,10 @@ This project was generated using Angular CLI version 22.2.3.
 ## Development server
 
 To start a local development server, run:
+
 ```bash
 ng serve
-
----
+```
 
 ## Pull Requests, CI/CD & Code Quality Rules
 
