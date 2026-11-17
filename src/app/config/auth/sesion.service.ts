@@ -3,10 +3,6 @@ import { DatosToken, Rol } from './sesion.models';
 
 const CLAVE_TOKEN = 'marketplace.token';
 
-/**
- * Guarda el JWT y expone quién está conectado.
- * Es el equivalente en el frontend de usuario/security del backend.
- */
 @Injectable({ providedIn: 'root' })
 export class SesionService {
   private readonly tokenActual = signal<string | null>(this.leerTokenGuardado());
@@ -36,7 +32,6 @@ export class SesionService {
     return localStorage.getItem(CLAVE_TOKEN);
   }
 
-  /** Lee el contenido del JWT. Devuelve null si no hay token, está dañado o venció. */
   private decodificar(token: string | null): DatosToken | null {
     if (!token) {
       return null;

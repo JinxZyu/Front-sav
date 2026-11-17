@@ -5,10 +5,6 @@ import { catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SesionService } from '../auth/sesion.service';
 
-/**
- * Agrega "Authorization: Bearer <token>" a las peticiones al backend
- * y cierra la sesión si el backend responde 401 (token inválido o vencido).
- */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const sesion = inject(SesionService);
   const router = inject(Router);
