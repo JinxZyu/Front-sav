@@ -27,7 +27,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Lint
         run: npm run lint --if-present
@@ -41,4 +41,4 @@ jobs:
       - name: Analyze with SonarQube Cloud
         uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
         env:
-          SONAR_TOKEN: 32533149b017c65f34639f42406febf56af88316
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
