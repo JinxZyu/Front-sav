@@ -280,6 +280,22 @@ describe('RecuperarContrasena (HU-005)', () => {
     backend.expectOne(urlSolicitar).flush({ mensaje: 'Revisa tu correo.' });
   });
 
+  it('no marca el código como rechazado si el servidor falla', async () => {
+    await llegarAlCodigo();
+    llenarCodigo();
+    componente.restablecer();
+    backend
+      .expectOne(urlRestablecer)
+      .flush(null, { status: 500, statusText: 'Internal Server Error' });
+    await fixture.whenStable();
+
+    expect(componente.codigoRechazado()).toBe(false);
+    expect(componente.formularioCodigo.controls.codigo.value).toBe('123456');
+    expect(componente.error()).toContain('No pudimos cambiar tu contraseña');
+    expect(texto()).toContain('Enviar otro código');
+    expect(texto()).toContain('Cambiar contraseña');
+  });
+
   it('libera el formulario si el servidor no responde a tiempo', async () => {
     await llegarAlCodigo();
     llenarCodigo();

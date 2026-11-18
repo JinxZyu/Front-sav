@@ -1,3 +1,4 @@
+import { HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -8,7 +9,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TimeoutError, finalize } from 'rxjs';
+import { finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
@@ -118,9 +119,16 @@ export class RecuperarContrasena {
           this.paso.set('listo');
         },
         error: (error: unknown) => {
-          this.codigoRechazado.set(!(error instanceof TimeoutError));
+          const rechazado =
+            error instanceof HttpErrorResponse && error.status === HttpStatusCode.BadRequest;
+          this.codigoRechazado.set(rechazado);
           this.error.set(
-            mensajeDeError(error, 'El código es inválido o ya venció. Solicita uno nuevo.'),
+            rechazado
+              ? mensajeDeError(error, 'El código es inválido o ya venció. Solicita uno nuevo.')
+              : mensajeDeError(
+                  error,
+                  'No pudimos cambiar tu contraseña. Intenta de nuevo en un momento.',
+                ),
           );
         },
       });
