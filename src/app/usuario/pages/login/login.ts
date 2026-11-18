@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
@@ -11,7 +11,7 @@ type EstadoCuenta = 'normal' | 'desactivada' | 'sin-verificar';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: '../../../shared/styles/formulario.css',
 })

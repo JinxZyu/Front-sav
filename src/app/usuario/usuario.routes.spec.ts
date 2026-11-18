@@ -19,6 +19,6 @@ describe('rutas del módulo usuario', () => {
     for (const ruta of USUARIO_ROUTES) {
       total += await cargar(ruta);
     }
-    expect(total).toBe(4);
+    expect(total).toBe(5);
   });
 });

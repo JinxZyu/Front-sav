@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 
-export type ModoAcceso = 'registro' | 'login' | 'verificar';
+export type ModoAcceso = 'registro' | 'login' | 'verificar' | 'recuperar';
 
 @Component({
   selector: 'app-panel-acceso',
@@ -29,6 +29,9 @@ export class PanelAcceso {
     }
     if (url.includes('/verificar-correo')) {
       return 'verificar';
+    }
+    if (url.includes('/recuperar-contrasena')) {
+      return 'recuperar';
     }
     return 'registro';
   });

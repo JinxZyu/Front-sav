@@ -51,7 +51,9 @@ describe('AutenticacionService', () => {
 
   it('iniciarSesion envía las credenciales y recibe el token', () => {
     let token = '';
-    servicio.iniciarSesion({ correo: 'a@b.co', contrasena: 'x' }).subscribe((r) => (token = r.token));
+    servicio
+      .iniciarSesion({ correo: 'a@b.co', contrasena: 'x' })
+      .subscribe((r) => (token = r.token));
 
     const peticion = backend.expectOne(`${api}/autenticacion/login`);
     expect(peticion.request.body).toEqual({ correo: 'a@b.co', contrasena: 'x' });
@@ -61,9 +63,30 @@ describe('AutenticacionService', () => {
 
   it('reactivarCuenta envía las credenciales y recibe el texto del backend', () => {
     let respuesta = '';
-    servicio.reactivarCuenta({ correo: 'a@b.co', contrasena: 'x' }).subscribe((r) => (respuesta = r));
+    servicio
+      .reactivarCuenta({ correo: 'a@b.co', contrasena: 'x' })
+      .subscribe((r) => (respuesta = r));
 
     backend.expectOne(`${api}/autenticacion/reactivar`).flush('Cuenta reactivada.');
     expect(respuesta).toBe('Cuenta reactivada.');
+  });
+
+  it('solicitarRecuperacion envía el correo', () => {
+    let mensaje = '';
+    servicio.solicitarRecuperacion('a@b.co').subscribe((r) => (mensaje = r.mensaje));
+
+    const peticion = backend.expectOne(`${api}/recuperacion-contrasena/solicitar`);
+    expect(peticion.request.body).toEqual({ correo: 'a@b.co' });
+    peticion.flush({ mensaje: 'Revisa tu correo.' });
+    expect(mensaje).toBe('Revisa tu correo.');
+  });
+
+  it('restablecerContrasena envía correo, código y contraseña nueva', () => {
+    const datos = { correo: 'a@b.co', codigo: '123456', nuevaContrasena: 'nueva-clave' };
+    servicio.restablecerContrasena(datos).subscribe();
+
+    const peticion = backend.expectOne(`${api}/recuperacion-contrasena/restablecer`);
+    expect(peticion.request.body).toEqual(datos);
+    peticion.flush({ mensaje: 'La contraseña se ha actualizado correctamente.' });
   });
 });

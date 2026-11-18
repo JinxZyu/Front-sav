@@ -13,10 +13,12 @@ export function mensajeDeError(error: unknown, porDefecto = MENSAJE_GENERICO): s
   if (typeof cuerpo === 'string' && cuerpo.trim() !== '') {
     return cuerpo;
   }
-  if (cuerpo && typeof cuerpo === 'object' && 'message' in cuerpo) {
-    const mensaje = (cuerpo as { message: unknown }).message;
-    if (typeof mensaje === 'string' && mensaje.trim() !== '') {
-      return mensaje;
+  if (cuerpo && typeof cuerpo === 'object') {
+    const { mensaje, message } = cuerpo as { mensaje?: unknown; message?: unknown };
+    for (const texto of [mensaje, message]) {
+      if (typeof texto === 'string' && texto.trim() !== '') {
+        return texto;
+      }
     }
   }
   return porDefecto;

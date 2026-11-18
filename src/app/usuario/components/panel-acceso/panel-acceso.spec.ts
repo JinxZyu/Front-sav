@@ -55,4 +55,11 @@ describe('PanelAcceso', () => {
     expect(fixture.componentInstance.modo()).toBe('login');
     expect(elemento(fixture, '.pestanas.en-registro')).toBeNull();
   });
+
+  it('en la recuperación de contraseña oculta las pestañas', async () => {
+    const fixture = await abrir('/usuario/recuperar-contrasena');
+
+    expect(fixture.componentInstance.modo()).toBe('recuperar');
+    expect(elemento(fixture, '.pestanas')).toBeNull();
+  });
 });

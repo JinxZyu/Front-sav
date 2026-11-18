@@ -22,3 +22,13 @@ export interface CredencialesRequest {
   correo: string;
   contrasena: string;
 }
+
+export interface RestablecerContrasenaRequest {
+  correo: string;
+  codigo: string;
+  nuevaContrasena: string;
+}
+
+export interface RespuestaMensaje {
+  mensaje: string;
+}

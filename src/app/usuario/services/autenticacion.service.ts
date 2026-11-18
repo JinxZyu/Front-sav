@@ -3,7 +3,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AutenticacionResponse } from '../../config/auth/sesion.models';
-import { CredencialesRequest, RegistroRequest } from '../models/usuario.models';
+import {
+  CredencialesRequest,
+  RegistroRequest,
+  RespuestaMensaje,
+  RestablecerContrasenaRequest,
+} from '../models/usuario.models';
 
 @Injectable({ providedIn: 'root' })
 export class AutenticacionService {
@@ -38,5 +43,18 @@ export class AutenticacionService {
     return this.http.post(`${this.api}/autenticacion/reactivar`, credenciales, {
       responseType: 'text',
     });
+  }
+
+  solicitarRecuperacion(correo: string): Observable<RespuestaMensaje> {
+    return this.http.post<RespuestaMensaje>(`${this.api}/recuperacion-contrasena/solicitar`, {
+      correo,
+    });
+  }
+
+  restablecerContrasena(datos: RestablecerContrasenaRequest): Observable<RespuestaMensaje> {
+    return this.http.post<RespuestaMensaje>(
+      `${this.api}/recuperacion-contrasena/restablecer`,
+      datos,
+    );
   }
 }

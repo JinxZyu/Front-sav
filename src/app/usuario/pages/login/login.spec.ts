@@ -266,4 +266,16 @@ describe('Login (HU-002)', () => {
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/');
   });
+
+  it('ofrece recuperar la contraseña llevando el correo escrito', async () => {
+    await crear();
+    componente.formulario.controls.correo.setValue('ana@correo.com');
+    await fixture.whenStable();
+
+    const enlace = (fixture.nativeElement as HTMLElement).querySelector('a.enlace-secundario');
+    expect(enlace?.textContent).toContain('¿Olvidaste tu contraseña?');
+    expect(enlace?.getAttribute('href')).toContain(
+      '/usuario/recuperar-contrasena?correo=ana@correo.com',
+    );
+  });
 });
