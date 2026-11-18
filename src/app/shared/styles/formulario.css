@@ -3,9 +3,7 @@
   display: block;
   width: 100%;
   padding: 1.75rem 3rem 2.25rem;
-  font-family: system-ui, sans-serif;
   color: #1e1b4b;
-  animation: aparecer 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 * {
@@ -54,7 +52,7 @@ select {
   padding: 0.7rem 0.9rem;
   border: 1.5px solid transparent;
   border-radius: 0.75rem;
-  background: #eef2ff;
+  background: rgb(255 255 255 / 72%);
   color: #1e1b4b;
   font: inherit;
   font-weight: 400;
@@ -99,7 +97,7 @@ fieldset {
   padding: 0.3rem;
   border: none;
   border-radius: 999px;
-  background: #eef2ff;
+  background: rgb(255 255 255 / 55%);
 }
 
 fieldset label {
@@ -194,13 +192,6 @@ button.secundario {
 .pie a {
   color: #4f46e5;
   font-weight: 600;
-}
-
-@keyframes aparecer {
-  from {
-    opacity: 0;
-    transform: translateX(var(--entrada, 2rem));
-  }
 }
 
 @media (width < 30rem) {

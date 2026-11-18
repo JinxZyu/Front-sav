@@ -1,10 +1,12 @@
-<div class="tarjeta" [class.desde-izquierda]="modo() === 'login'">
+<div class="tarjeta">
   @if (modo() !== 'verificar') {
     <nav class="pestanas" [class.en-registro]="modo() === 'registro'" aria-label="Acceso">
       <span class="indicador"></span>
-      <a routerLink="/usuario/login" [class.activa]="modo() === 'login'">Iniciar sesión</a>
-      <a routerLink="/usuario/registro" [class.activa]="modo() === 'registro'">Crear cuenta</a>
+      <a routerLink="/usuario/login" class="pestana-login" [class.activa]="modo() === 'login'">Iniciar sesión</a>
+      <a routerLink="/usuario/registro" class="pestana-registro" [class.activa]="modo() === 'registro'">Crear cuenta</a>
     </nav>
   }
-  <router-outlet />
+  <div class="contenido">
+    <router-outlet />
+  </div>
 </div>

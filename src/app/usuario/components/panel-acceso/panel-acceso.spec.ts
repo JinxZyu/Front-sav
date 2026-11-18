@@ -29,16 +29,14 @@ describe('PanelAcceso', () => {
     expect(fixture.componentInstance.modo()).toBe('registro');
     expect(elemento(fixture, '.pestanas.en-registro')).not.toBeNull();
     expect(elemento(fixture, 'a.activa')?.textContent).toContain('Crear cuenta');
-    expect(elemento(fixture, '.tarjeta.desde-izquierda')).toBeNull();
   });
 
-  it('en el login marca la pestaña de iniciar sesión y entra desde la izquierda', async () => {
+  it('en el login marca la pestaña de iniciar sesión', async () => {
     const fixture = await abrir('/usuario/login');
 
     expect(fixture.componentInstance.modo()).toBe('login');
     expect(elemento(fixture, '.pestanas.en-registro')).toBeNull();
     expect(elemento(fixture, 'a.activa')?.textContent).toContain('Iniciar sesión');
-    expect(elemento(fixture, '.tarjeta.desde-izquierda')).not.toBeNull();
   });
 
   it('en la verificación oculta las pestañas', async () => {

@@ -5,12 +5,19 @@
 }
 
 :host {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 4.5rem);
   padding: 2.5rem 1rem;
-  font-family: system-ui, sans-serif;
+}
+
+:host::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     linear-gradient(rgb(30 27 75 / 35%), rgb(30 27 75 / 35%)),
     url('/fondo-acceso.jpg') center / cover no-repeat,
@@ -18,29 +25,30 @@
 }
 
 .tarjeta {
-  --entrada: 2rem;
   width: min(34rem, 100%);
   overflow: hidden;
   padding-top: 1.75rem;
-  border: 1px solid rgb(255 255 255 / 45%);
+  border: 1px solid rgb(255 255 255 / 55%);
   border-radius: 1.5rem;
-  background: rgb(255 255 255 / 88%);
-  box-shadow: 0 2rem 5rem rgb(15 23 42 / 50%);
-  backdrop-filter: blur(18px);
+  background: rgb(255 255 255 / 62%);
+  box-shadow: 0 2rem 5rem rgb(15 23 42 / 40%);
+  backdrop-filter: blur(22px) saturate(140%);
+  view-transition-name: tarjeta-acceso;
 }
 
-.tarjeta.desde-izquierda {
-  --entrada: -2rem;
+.contenido {
+  view-transition-name: contenido-acceso;
 }
 
 .pestanas {
   position: relative;
+  view-transition-name: pestanas-acceso;
   display: grid;
   grid-template-columns: 1fr 1fr;
   margin: 0 3rem;
   padding: 0.3rem;
   border-radius: 999px;
-  background: #eef2ff;
+  background: rgb(255 255 255 / 55%);
 }
 
 .indicador {
@@ -52,7 +60,7 @@
   border-radius: 999px;
   background: linear-gradient(90deg, #3b82f6, #8b5cf6);
   box-shadow: 0 0.4rem 1rem rgb(99 102 241 / 35%);
-  transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+  view-transition-name: indicador-acceso;
 }
 
 .pestanas.en-registro .indicador {
@@ -67,7 +75,14 @@
   font-weight: 600;
   text-align: center;
   text-decoration: none;
-  transition: color 0.3s;
+}
+
+.pestana-login {
+  view-transition-name: pestana-login;
+}
+
+.pestana-registro {
+  view-transition-name: pestana-registro;
 }
 
 .pestanas a.activa {

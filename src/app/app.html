@@ -1,7 +1,10 @@
 <header class="encabezado">
-  <a routerLink="/" class="marca">Marketplace</a>
+  <a routerLink="/" class="marca" aria-label="SAV, ir al inicio">
+    <img src="/logo-sav.png" alt="SAV" width="86" height="36" />
+  </a>
   <nav>
-    <a routerLink="/usuario/login">Iniciar sesión</a>
+    <a routerLink="/publicaciones" routerLinkActive="activo">Alojamientos</a>
+    <a routerLink="/usuario/login" routerLinkActive="activo" class="opcional">Iniciar sesión</a>
     <a routerLink="/usuario/registro" class="destacado">Registrarse</a>
   </nav>
 </header>

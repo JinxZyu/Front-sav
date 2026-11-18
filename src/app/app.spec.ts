@@ -7,12 +7,14 @@ describe('App', () => {
     TestBed.configureTestingModule({ providers: [provideRouter([])] });
   });
 
-  it('muestra el encabezado con las opciones de cuenta', async () => {
+  it('muestra el logo y las opciones de navegación', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    const elemento = fixture.nativeElement as HTMLElement;
+    const texto = elemento.textContent ?? '';
 
-    expect(texto).toContain('Marketplace');
+    expect((elemento.querySelector('.marca img') as HTMLImageElement).alt).toBe('SAV');
+    expect(texto).toContain('Alojamientos');
     expect(texto).toContain('Iniciar sesión');
     expect(texto).toContain('Registrarse');
   });
