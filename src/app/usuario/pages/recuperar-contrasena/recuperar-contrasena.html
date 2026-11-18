@@ -33,7 +33,7 @@
 
         <label>
           Código
-          <input formControlName="codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" [class.invalido]="invalido(formularioCodigo.controls.codigo)" [attr.aria-invalid]="invalido(formularioCodigo.controls.codigo)" />
+          <input formControlName="codigo" [readonly]="enviando()" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" [class.invalido]="invalido(formularioCodigo.controls.codigo)" [attr.aria-invalid]="invalido(formularioCodigo.controls.codigo)" />
           @if (invalido(formularioCodigo.controls.codigo)) {
             <span class="error-campo">El código tiene 6 números.</span>
           }
@@ -41,7 +41,7 @@
 
         <label>
           Contraseña nueva
-          <input type="password" formControlName="nuevaContrasena" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.nuevaContrasena)" [attr.aria-invalid]="invalido(formularioCodigo.controls.nuevaContrasena)" />
+          <input type="password" formControlName="nuevaContrasena" [readonly]="enviando()" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.nuevaContrasena)" [attr.aria-invalid]="invalido(formularioCodigo.controls.nuevaContrasena)" />
           @if (invalido(formularioCodigo.controls.nuevaContrasena)) {
             <span class="error-campo">La contraseña debe tener al menos 8 caracteres.</span>
           }
@@ -49,7 +49,7 @@
 
         <label>
           Confirma la contraseña nueva
-          <input type="password" formControlName="confirmacion" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" [attr.aria-invalid]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" />
+          <input type="password" formControlName="confirmacion" [readonly]="enviando()" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" [attr.aria-invalid]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" />
           @if (noCoinciden()) {
             <span class="error-campo">Las contraseñas no coinciden.</span>
           } @else if (invalido(formularioCodigo.controls.confirmacion)) {

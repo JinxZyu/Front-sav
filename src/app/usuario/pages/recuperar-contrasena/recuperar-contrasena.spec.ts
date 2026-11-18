@@ -252,6 +252,30 @@ describe('RecuperarContrasena (HU-005)', () => {
     expect(componente.paso()).toBe('codigo');
   });
 
+  it('bloquea el código y las contraseñas mientras se guarda', async () => {
+    await llegarAlCodigo();
+    llenarCodigo();
+    componente.restablecer();
+    await fixture.whenStable();
+
+    const campos = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>(
+      'input',
+    );
+    expect([...campos].every((campo) => campo.readOnly)).toBe(true);
+
+    componente.restablecer();
+    componente.pedirOtroCodigo();
+    backend.expectOne(urlRestablecer).flush({ mensaje: 'Listo.' });
+  });
+
+  it('ignora una segunda solicitud mientras la primera está en curso', async () => {
+    await crear('ana@correo.com');
+    componente.solicitarCodigo();
+    componente.solicitarCodigo();
+
+    backend.expectOne(urlSolicitar).flush({ mensaje: 'Revisa tu correo.' });
+  });
+
   it('cancela la petición si el usuario sale de la pantalla', async () => {
     await crear('ana@correo.com');
     componente.solicitarCodigo();

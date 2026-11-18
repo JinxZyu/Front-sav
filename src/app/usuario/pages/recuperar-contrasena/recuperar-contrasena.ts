@@ -66,6 +66,9 @@ export class RecuperarContrasena {
   }
 
   solicitarCodigo(): void {
+    if (this.enviando()) {
+      return;
+    }
     this.limpiarMensajes();
     if (this.formularioCorreo.invalid) {
       this.formularioCorreo.markAllAsTouched();
@@ -75,6 +78,9 @@ export class RecuperarContrasena {
   }
 
   pedirOtroCodigo(): void {
+    if (this.enviando()) {
+      return;
+    }
     this.limpiarMensajes();
     this.formularioCodigo.controls.codigo.reset();
     this.enviarSolicitud(this.correoSolicitado());
@@ -90,6 +96,9 @@ export class RecuperarContrasena {
   }
 
   restablecer(): void {
+    if (this.enviando()) {
+      return;
+    }
     this.limpiarMensajes();
     if (this.formularioCodigo.invalid) {
       this.formularioCodigo.markAllAsTouched();
