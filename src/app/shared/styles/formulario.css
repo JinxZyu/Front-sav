@@ -46,6 +46,24 @@ label {
   color: #475569;
 }
 
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.etiqueta {
+  font-weight: 600;
+  color: #475569;
+}
+
+.telefono {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
 input,
 select {
   width: 100%;

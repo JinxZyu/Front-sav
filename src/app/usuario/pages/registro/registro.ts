@@ -1,13 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import {
+  INDICATIVOS_TELEFONO,
+  INDICATIVO_POR_DEFECTO,
+  ejemploTelefono,
+  telefonoInternacional,
+  telefonoValido,
+} from '../../../shared/utils/telefono';
 import { RegistroRequest, TIPOS_DOCUMENTO } from '../../models/usuario.models';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
-const PATRON_TELEFONO = /^\+?\d{7,15}$/;
 const PATRON_CON_TEXTO = /\S/;
 const PATRON_DOCUMENTO = /^[A-Za-z0-9]{5,20}$/;
 
@@ -23,6 +29,7 @@ export class Registro {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly tiposDocumento = TIPOS_DOCUMENTO;
+  readonly indicativos = INDICATIVOS_TELEFONO;
   readonly enviando = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -38,10 +45,22 @@ export class Registro {
     correo: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     tipoDocumento: ['CC', [Validators.required]],
     documentoIdentidad: ['', [Validators.required, Validators.pattern(PATRON_DOCUMENTO)]],
-    telefono: ['', [Validators.required, Validators.pattern(PATRON_TELEFONO)]],
+    indicativo: [INDICATIVO_POR_DEFECTO, [Validators.required]],
+    telefono: ['', [Validators.required, telefonoValido('indicativo')]],
     contrasena: ['', [Validators.required, Validators.minLength(8)]],
     rol: ['HUESPED' as RegistroRequest['rol'], [Validators.required]],
   });
+
+  private readonly indicativo = toSignal(this.formulario.controls.indicativo.valueChanges, {
+    initialValue: this.formulario.controls.indicativo.value,
+  });
+  readonly ejemplo = computed(() => ejemploTelefono(this.indicativo()));
+
+  constructor() {
+    this.formulario.controls.indicativo.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.formulario.controls.telefono.updateValueAndValidity());
+  }
 
   invalido(campo: keyof typeof this.formulario.controls): boolean {
     const control = this.formulario.controls[campo];
@@ -55,13 +74,13 @@ export class Registro {
       return;
     }
 
-    const datos = this.formulario.getRawValue();
+    const { indicativo, ...datos } = this.formulario.getRawValue();
     const solicitud: RegistroRequest = {
       ...datos,
       nombre: datos.nombre.trim(),
       apellido: datos.apellido.trim(),
       correo: datos.correo.trim().toLowerCase(),
-      telefono: datos.telefono.trim(),
+      telefono: telefonoInternacional(datos.telefono, indicativo) ?? datos.telefono.trim(),
       documentoIdentidad: datos.documentoIdentidad.trim(),
     };
 
@@ -89,6 +108,9 @@ export class Registro {
         'No se pudo crear la cuenta. Es posible que el correo, el teléfono o el documento ' +
         'ya estén registrados. Usa otros datos o inicia sesión.'
       );
+    }
+    if (error instanceof HttpErrorResponse && error.status === 401) {
+      return 'No pudimos crear la cuenta por un problema del servidor. Intenta de nuevo en un momento.';
     }
     return mensajeDeError(error);
   }
