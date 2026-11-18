@@ -125,7 +125,10 @@ describe('VerificarCorreo (HU-001)', () => {
     componente.reenviar();
     backend
       .expectOne((r) => r.url === `${api}/verificacion-correo/reenviar`)
-      .flush('Alcanzaste el máximo de 3 reenvíos por hora.', { status: 400, statusText: 'Bad Request' });
+      .flush('Alcanzaste el máximo de 3 reenvíos por hora.', {
+        status: 400,
+        statusText: 'Bad Request',
+      });
 
     expect(componente.error()).toBe('Alcanzaste el máximo de 3 reenvíos por hora.');
   });
@@ -143,5 +146,53 @@ describe('VerificarCorreo (HU-001)', () => {
     fixture.destroy();
     vi.advanceTimersByTime(10_000);
     expect(componente.segundosParaReenviar()).toBe(ESPERA_REENVIO_SEGUNDOS);
+  });
+
+  it('ignora un segundo clic en reenviar mientras la primera solicitud sigue pendiente', async () => {
+    await crear('ana@correo.com');
+    vi.advanceTimersByTime(60_000);
+
+    componente.reenviar();
+    componente.reenviar();
+
+    const peticiones = backend.match((r) => r.url === `${api}/verificacion-correo/reenviar`);
+    expect(peticiones.length).toBe(1);
+    expect(componente.reenviando()).toBe(true);
+
+    peticiones[0].flush('Se envió un nuevo código.');
+    expect(componente.reenviando()).toBe(false);
+  });
+
+  it('libera el botón de reenviar si la solicitud falla', async () => {
+    await crear('ana@correo.com');
+    componente.reenviar();
+    backend
+      .expectOne((r) => r.url === `${api}/verificacion-correo/reenviar`)
+      .flush('Error', { status: 500, statusText: 'Error' });
+
+    expect(componente.reenviando()).toBe(false);
+  });
+
+  it('marca el código inválido como aria-invalid', async () => {
+    await crear('ana@correo.com');
+    componente.formulario.controls.codigo.setValue('12');
+    componente.verificar();
+    await fixture.whenStable();
+
+    const codigo = (fixture.nativeElement as HTMLElement).querySelector(
+      'input[formControlName="codigo"]',
+    );
+    expect(codigo?.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('cancela la verificación si el usuario sale de la pantalla', async () => {
+    await crear('ana@correo.com');
+    componente.formulario.controls.codigo.setValue('123456');
+    componente.verificar();
+    const peticion = backend.expectOne((r) => r.url === `${api}/verificacion-correo/confirmar`);
+
+    fixture.destroy();
+
+    expect(peticion.cancelled).toBe(true);
   });
 });

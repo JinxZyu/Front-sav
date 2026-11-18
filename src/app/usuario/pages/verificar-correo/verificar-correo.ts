@@ -1,6 +1,8 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
@@ -14,9 +16,11 @@ export const ESPERA_REENVIO_SEGUNDOS = 60;
 })
 export class VerificarCorreo {
   private readonly autenticacion = inject(AutenticacionService);
+  private readonly destroyRef = inject(DestroyRef);
   private intervalo: ReturnType<typeof setInterval> | null = null;
 
   readonly enviando = signal(false);
+  readonly reenviando = signal(false);
   readonly verificado = signal(false);
   readonly error = signal<string | null>(null);
   readonly aviso = signal<string | null>(null);
@@ -32,7 +36,7 @@ export class VerificarCorreo {
 
   constructor() {
     this.iniciarCuentaRegresiva();
-    inject(DestroyRef).onDestroy(() => this.detenerCuentaRegresiva());
+    this.destroyRef.onDestroy(() => this.detenerCuentaRegresiva());
   }
 
   invalido(campo: 'correo' | 'codigo'): boolean {
@@ -50,20 +54,26 @@ export class VerificarCorreo {
 
     const { correo, codigo } = this.formulario.getRawValue();
     this.enviando.set(true);
-    this.autenticacion.confirmarCodigo(correo.trim(), codigo).subscribe({
-      next: () => {
-        this.enviando.set(false);
-        this.verificado.set(true);
-        this.detenerCuentaRegresiva();
-      },
-      error: (error: unknown) => {
-        this.enviando.set(false);
-        this.error.set(mensajeDeError(error, 'El código no es válido o ya venció.'));
-      },
-    });
+    this.autenticacion
+      .confirmarCodigo(correo.trim(), codigo)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.enviando.set(false);
+          this.verificado.set(true);
+          this.detenerCuentaRegresiva();
+        },
+        error: (error: unknown) => {
+          this.enviando.set(false);
+          this.error.set(mensajeDeError(error, 'El código no es válido o ya venció.'));
+        },
+      });
   }
 
   reenviar(): void {
+    if (this.reenviando()) {
+      return;
+    }
     this.error.set(null);
     this.aviso.set(null);
     const correo = this.formulario.controls.correo;
@@ -72,14 +82,21 @@ export class VerificarCorreo {
       return;
     }
 
-    this.autenticacion.reenviarCodigo(correo.value.trim()).subscribe({
-      next: (mensaje) => {
-        this.aviso.set(mensaje || 'Te enviamos un nuevo código.');
-        this.formulario.controls.codigo.reset();
-        this.iniciarCuentaRegresiva();
-      },
-      error: (error: unknown) => this.error.set(mensajeDeError(error)),
-    });
+    this.reenviando.set(true);
+    this.autenticacion
+      .reenviarCodigo(correo.value.trim())
+      .pipe(
+        finalize(() => this.reenviando.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (mensaje) => {
+          this.aviso.set(mensaje || 'Te enviamos un nuevo código.');
+          this.formulario.controls.codigo.reset();
+          this.iniciarCuentaRegresiva();
+        },
+        error: (error: unknown) => this.error.set(mensajeDeError(error)),
+      });
   }
 
   private iniciarCuentaRegresiva(): void {
