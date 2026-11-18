@@ -101,4 +101,34 @@ describe('Registro (HU-001)', () => {
 
     expect(componente.error()).toBe('Falla interna');
   });
+
+  it('no acepta un nombre o apellido hecho solo de espacios', () => {
+    componente.formulario.setValue({ ...datosValidos, nombre: '   ', apellido: '  ' });
+    componente.registrar();
+
+    backend.expectNone(url);
+    expect(componente.formulario.controls.nombre.invalid).toBe(true);
+    expect(componente.formulario.controls.apellido.invalid).toBe(true);
+  });
+
+  it('marca los campos con error como aria-invalid', async () => {
+    componente.registrar();
+    await fixture.whenStable();
+
+    const nombre = (fixture.nativeElement as HTMLElement).querySelector(
+      'input[formControlName="nombre"]',
+    );
+    expect(nombre?.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('cancela la petición si el usuario sale de la pantalla', () => {
+    componente.formulario.setValue(datosValidos);
+    componente.registrar();
+    const peticion = backend.expectOne(url);
+
+    fixture.destroy();
+
+    expect(peticion.cancelled).toBe(true);
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });

@@ -120,7 +120,7 @@ fieldset input {
 }
 
 fieldset label:has(input:checked) {
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
   color: #fff;
   box-shadow: 0 0.4rem 1rem rgb(99 102 241 / 35%);
 }
@@ -135,7 +135,7 @@ button {
   padding: 0.85rem;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
   color: #fff;
   font: inherit;
   font-weight: 700;

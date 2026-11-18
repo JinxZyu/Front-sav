@@ -10,7 +10,7 @@
     <form [formGroup]="formulario" (ngSubmit)="verificar()" novalidate>
       <label>
         Correo electrónico
-        <input type="email" formControlName="correo" autocomplete="email" [class.invalido]="invalido('correo')" />
+        <input type="email" formControlName="correo" autocomplete="email" [class.invalido]="invalido('correo')" [attr.aria-invalid]="invalido('correo')" />
         @if (invalido('correo')) {
           <span class="error-campo">Ingresa el correo con el que te registraste.</span>
         }
@@ -18,7 +18,7 @@
 
       <label>
         Código de verificación
-        <input formControlName="codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" [class.invalido]="invalido('codigo')" />
+        <input formControlName="codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" [class.invalido]="invalido('codigo')" [attr.aria-invalid]="invalido('codigo')" />
         @if (invalido('codigo')) {
           <span class="error-campo">El código tiene 6 números.</span>
         }
@@ -34,7 +34,7 @@
       <button type="submit" [disabled]="enviando()">
         {{ enviando() ? 'Verificando…' : 'Verificar' }}
       </button>
-      <button type="button" class="secundario" (click)="reenviar()" [disabled]="segundosParaReenviar() > 0">
+      <button type="button" class="secundario" (click)="reenviar()" [disabled]="segundosParaReenviar() > 0 || reenviando()">
         @if (segundosParaReenviar() > 0) {
           Reenviar código en {{ segundosParaReenviar() }} s
         } @else {
