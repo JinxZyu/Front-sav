@@ -32,6 +32,15 @@ export class Login {
     contrasena: ['', [Validators.required]],
   });
 
+  constructor() {
+    this.formulario.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      if (this.estadoCuenta() !== 'normal') {
+        this.estadoCuenta.set('normal');
+        this.error.set(null);
+      }
+    });
+  }
+
   invalido(campo: 'correo' | 'contrasena'): boolean {
     const control = this.formulario.controls[campo];
     return control.invalid && (control.touched || control.dirty);
@@ -44,20 +53,22 @@ export class Login {
       return;
     }
 
+    const usadas = this.credenciales();
     this.enviando.set(true);
     this.autenticacion
-      .iniciarSesion(this.credenciales())
+      .iniciarSesion(usadas)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ token }) => {
           this.enviando.set(false);
           this.sesion.iniciar(token);
-          const destino = this.ruta.snapshot.queryParamMap.get('volverA') ?? '/';
-          void this.router.navigateByUrl(destino);
+          void this.router.navigateByUrl(this.destinoSeguro());
         },
         error: (error: unknown) => {
           this.enviando.set(false);
-          this.manejarError(error);
+          if (this.siguenIguales(usadas)) {
+            this.manejarError(error);
+          }
         },
       });
   }
@@ -86,6 +97,16 @@ export class Login {
     void this.router.navigate(['/usuario/verificar-correo'], {
       queryParams: { correo: this.credenciales().correo },
     });
+  }
+
+  private destinoSeguro(): string {
+    const destino = this.ruta.snapshot.queryParamMap.get('volverA');
+    return destino?.startsWith('/') && !destino.startsWith('//') ? destino : '/';
+  }
+
+  private siguenIguales(usadas: { correo: string; contrasena: string }): boolean {
+    const actuales = this.credenciales();
+    return actuales.correo === usadas.correo && actuales.contrasena === usadas.contrasena;
   }
 
   private credenciales() {

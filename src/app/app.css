@@ -95,8 +95,26 @@ nav button {
 }
 
 @media (width < 40rem) {
+  .encabezado {
+    height: auto;
+    min-height: 4.5rem;
+    padding-block: 0.6rem;
+  }
+
+  nav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 0.3rem;
+  }
+
   .usuario {
-    display: none;
+    order: 3;
+    flex-basis: 100%;
+    overflow: hidden;
+    font-size: 0.78rem;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 

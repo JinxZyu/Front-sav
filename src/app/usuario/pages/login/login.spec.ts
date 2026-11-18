@@ -163,12 +163,10 @@ describe('Login (HU-002)', () => {
     await crear();
     llenar();
     componente.reactivar();
-    backend
-      .expectOne(urlReactivar)
-      .flush('Tu cuenta tiene una restricción administrativa.', {
-        status: 403,
-        statusText: 'Forbidden',
-      });
+    backend.expectOne(urlReactivar).flush('Tu cuenta tiene una restricción administrativa.', {
+      status: 403,
+      statusText: 'Forbidden',
+    });
 
     expect(componente.error()).toContain('restricción administrativa');
   });
@@ -232,5 +230,40 @@ describe('Login (HU-002)', () => {
     fixture.destroy();
 
     expect(peticion.cancelled).toBe(true);
+  });
+
+  it('vuelve a mostrar el botón de iniciar sesión si cambian las credenciales', async () => {
+    await crear();
+    llenar();
+    componente.iniciarSesion();
+    fallarLogin('Tu cuenta está desactivada.', 403);
+    expect(componente.estadoCuenta()).toBe('desactivada');
+
+    componente.formulario.controls.correo.setValue('otra@correo.com');
+    await fixture.whenStable();
+
+    expect(componente.estadoCuenta()).toBe('normal');
+    expect(textoPantalla()).not.toContain('Reactivar mi cuenta');
+  });
+
+  it('descarta la respuesta si las credenciales cambiaron mientras se esperaba', async () => {
+    await crear();
+    llenar();
+    componente.iniciarSesion();
+    componente.formulario.controls.correo.setValue('otra@correo.com');
+
+    fallarLogin('Tu cuenta está desactivada.', 403);
+
+    expect(componente.estadoCuenta()).toBe('normal');
+    expect(componente.error()).toBeNull();
+  });
+
+  it('no redirige a una dirección externa', async () => {
+    await crear('//sitio-malicioso.com');
+    llenar();
+    componente.iniciarSesion();
+    backend.expectOne(urlLogin).flush({ token, tipo: 'Bearer' });
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/');
   });
 });
