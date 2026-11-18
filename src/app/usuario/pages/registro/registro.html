@@ -1,0 +1,78 @@
+<section class="tarjeta">
+  <h1>Crear cuenta</h1>
+
+  <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
+    <p class="etiqueta-rol">Quiero registrarme como</p>
+    <fieldset aria-label="Tipo de cuenta">
+      <label><input type="radio" formControlName="rol" value="HUESPED" /> Huésped</label>
+      <label><input type="radio" formControlName="rol" value="ANFITRION" /> Anfitrión</label>
+    </fieldset>
+
+    <div class="fila">
+      <label>
+        Nombre
+        <input formControlName="nombre" autocomplete="given-name" [class.invalido]="invalido('nombre')" />
+        @if (invalido('nombre')) {
+          <span class="error-campo">El nombre es obligatorio (máx. 50 caracteres).</span>
+        }
+      </label>
+      <label>
+        Apellido
+        <input formControlName="apellido" autocomplete="family-name" [class.invalido]="invalido('apellido')" />
+        @if (invalido('apellido')) {
+          <span class="error-campo">El apellido es obligatorio (máx. 50 caracteres).</span>
+        }
+      </label>
+    </div>
+
+    <label>
+      Correo electrónico
+      <input type="email" formControlName="correo" autocomplete="email" [class.invalido]="invalido('correo')" />
+      @if (invalido('correo')) {
+        <span class="error-campo">Ingresa un correo válido, por ejemplo nombre&#64;correo.com.</span>
+      }
+    </label>
+
+    <div class="fila">
+      <label>
+        Tipo de documento
+        <select formControlName="tipoDocumento">
+          @for (tipo of tiposDocumento; track tipo.valor) {
+            <option [value]="tipo.valor">{{ tipo.etiqueta }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Número de documento
+        <input formControlName="documentoIdentidad" [class.invalido]="invalido('documentoIdentidad')" />
+        @if (invalido('documentoIdentidad')) {
+          <span class="error-campo">Solo letras y números, entre 5 y 20 caracteres.</span>
+        }
+      </label>
+    </div>
+
+    <label>
+      Teléfono
+      <input type="tel" formControlName="telefono" autocomplete="tel" placeholder="3001234567" [class.invalido]="invalido('telefono')" />
+      @if (invalido('telefono')) {
+        <span class="error-campo">Ingresa un teléfono válido: solo números, entre 7 y 15 dígitos.</span>
+      }
+    </label>
+
+    <label>
+      Contraseña
+      <input type="password" formControlName="contrasena" autocomplete="new-password" [class.invalido]="invalido('contrasena')" />
+      @if (invalido('contrasena')) {
+        <span class="error-campo">La contraseña debe tener al menos 8 caracteres.</span>
+      }
+    </label>
+
+    @if (error()) {
+      <p class="alerta error" role="alert">{{ error() }}</p>
+    }
+
+    <button type="submit" [disabled]="enviando()">
+      {{ enviando() ? 'Creando cuenta…' : 'Crear cuenta' }}
+    </button>
+  </form>
+</section>

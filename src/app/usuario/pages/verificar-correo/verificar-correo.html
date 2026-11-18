@@ -1,0 +1,46 @@
+<section class="tarjeta">
+  @if (verificado()) {
+    <h1>¡Correo verificado!</h1>
+    <p class="alerta exito" role="status">Tu cuenta quedó activa. Ya puedes iniciar sesión.</p>
+    <p class="pie"><a routerLink="/usuario/login">Ir a iniciar sesión</a></p>
+  } @else {
+    <h1>Verifica tu correo</h1>
+    <p class="subtitulo">Te enviamos un código de 6 dígitos. Escríbelo para activar tu cuenta.</p>
+
+    <form [formGroup]="formulario" (ngSubmit)="verificar()" novalidate>
+      <label>
+        Correo electrónico
+        <input type="email" formControlName="correo" autocomplete="email" [class.invalido]="invalido('correo')" />
+        @if (invalido('correo')) {
+          <span class="error-campo">Ingresa el correo con el que te registraste.</span>
+        }
+      </label>
+
+      <label>
+        Código de verificación
+        <input formControlName="codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" [class.invalido]="invalido('codigo')" />
+        @if (invalido('codigo')) {
+          <span class="error-campo">El código tiene 6 números.</span>
+        }
+      </label>
+
+      @if (error()) {
+        <p class="alerta error" role="alert">{{ error() }}</p>
+      }
+      @if (aviso()) {
+        <p class="alerta exito" role="status">{{ aviso() }}</p>
+      }
+
+      <button type="submit" [disabled]="enviando()">
+        {{ enviando() ? 'Verificando…' : 'Verificar' }}
+      </button>
+      <button type="button" class="secundario" (click)="reenviar()" [disabled]="segundosParaReenviar() > 0">
+        @if (segundosParaReenviar() > 0) {
+          Reenviar código en {{ segundosParaReenviar() }} s
+        } @else {
+          Reenviar código
+        }
+      </button>
+    </form>
+  }
+</section>
