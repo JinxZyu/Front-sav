@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { TIEMPO_ESPERA_RECUPERACION_MS } from '../../services/autenticacion.service';
 import { RecuperarContrasena } from './recuperar-contrasena';
 
 describe('RecuperarContrasena (HU-005)', () => {
@@ -258,10 +259,13 @@ describe('RecuperarContrasena (HU-005)', () => {
     componente.restablecer();
     await fixture.whenStable();
 
-    const campos = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>(
-      'input',
-    );
-    expect([...campos].every((campo) => campo.readOnly)).toBe(true);
+    for (const nombre of ['codigo', 'nuevaContrasena', 'confirmacion']) {
+      const campo = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+        `input[formControlName="${nombre}"]`,
+      );
+      expect(campo, nombre).not.toBeNull();
+      expect(campo?.readOnly, nombre).toBe(true);
+    }
 
     componente.restablecer();
     componente.pedirOtroCodigo();
@@ -274,6 +278,24 @@ describe('RecuperarContrasena (HU-005)', () => {
     componente.solicitarCodigo();
 
     backend.expectOne(urlSolicitar).flush({ mensaje: 'Revisa tu correo.' });
+  });
+
+  it('libera el formulario si el servidor no responde a tiempo', async () => {
+    await llegarAlCodigo();
+    llenarCodigo();
+    vi.useFakeTimers();
+    try {
+      componente.restablecer();
+      const peticion = backend.expectOne(urlRestablecer);
+      vi.advanceTimersByTime(TIEMPO_ESPERA_RECUPERACION_MS);
+
+      expect(peticion.cancelled).toBe(true);
+      expect(componente.enviando()).toBe(false);
+      expect(componente.codigoRechazado()).toBe(false);
+      expect(componente.error()).toContain('tardó demasiado');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('cancela la petición si el usuario sale de la pantalla', async () => {

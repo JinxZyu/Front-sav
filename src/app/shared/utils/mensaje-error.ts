@@ -1,8 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { TimeoutError } from 'rxjs';
 
 const MENSAJE_GENERICO = 'Ocurrió un error inesperado. Intenta de nuevo.';
 
 export function mensajeDeError(error: unknown, porDefecto = MENSAJE_GENERICO): string {
+  if (error instanceof TimeoutError) {
+    return 'El servidor tardó demasiado en responder. Intenta de nuevo.';
+  }
   if (!(error instanceof HttpErrorResponse)) {
     return porDefecto;
   }

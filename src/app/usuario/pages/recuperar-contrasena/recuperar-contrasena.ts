@@ -8,7 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { TimeoutError, finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
@@ -118,7 +118,7 @@ export class RecuperarContrasena {
           this.paso.set('listo');
         },
         error: (error: unknown) => {
-          this.codigoRechazado.set(true);
+          this.codigoRechazado.set(!(error instanceof TimeoutError));
           this.error.set(
             mensajeDeError(error, 'El código es inválido o ya venció. Solicita uno nuevo.'),
           );

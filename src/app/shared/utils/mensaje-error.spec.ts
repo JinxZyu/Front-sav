@@ -1,9 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { TimeoutError } from 'rxjs';
 import { mensajeDeError } from './mensaje-error';
 
 describe('mensajeDeError', () => {
   it('usa el mensaje por defecto si no es un error HTTP', () => {
     expect(mensajeDeError(new Error('x'), 'Por defecto')).toBe('Por defecto');
+  });
+
+  it('avisa cuando el servidor tarda demasiado', () => {
+    expect(mensajeDeError(new TimeoutError())).toContain('tardó demasiado');
   });
 
   it('avisa cuando no hay conexión con el servidor', () => {
