@@ -24,7 +24,7 @@ export const INDICATIVOS_TELEFONO: readonly IndicativoTelefono[] = Object.entrie
   .sort((a, b) => Number(a.indicativo) - Number(b.indicativo));
 
 export const telefonoInternacional = (numero: string, indicativo: string): string | null => {
-  const telefono = parsePhoneNumberFromString(numero, {
+  const telefono = parsePhoneNumberFromString(numero.trim(), {
     defaultCallingCode: indicativo,
     extract: false,
   });

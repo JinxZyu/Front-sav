@@ -134,6 +134,15 @@ describe('Registro (HU-001)', () => {
     peticion.flush('Usuario creado.', { status: 201, statusText: 'Created' });
   });
 
+  it('envía el número normalizado aunque tenga espacios alrededor', () => {
+    componente.formulario.setValue({ ...datosValidos, telefono: ' +57 300 123 4567 ' });
+    componente.registrar();
+
+    const peticion = backend.expectOne(url);
+    expect(peticion.request.body.telefono).toBe('+573001234567');
+    peticion.flush('Usuario creado.', { status: 201, statusText: 'Created' });
+  });
+
   it('vuelve a validar el número al cambiar de país', async () => {
     componente.formulario.patchValue({ telefono: '3001234567' });
     expect(componente.formulario.controls.telefono.valid).toBe(true);

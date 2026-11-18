@@ -21,6 +21,7 @@ describe('utilidades de teléfono', () => {
     expect(telefonoInternacional('323 724 1960', '57')).toBe('+573237241960');
     expect(telefonoInternacional('(213) 373-4253', '1')).toBe('+12133734253');
     expect(telefonoInternacional('+52 55 1234 5678', '57')).toBe('+525512345678');
+    expect(telefonoInternacional(' +57 300 123 4567 ', '57')).toBe('+573001234567');
     expect(telefonoInternacional('323724196', '57')).toBeNull();
     expect(telefonoInternacional('12ab', '57')).toBeNull();
   });
