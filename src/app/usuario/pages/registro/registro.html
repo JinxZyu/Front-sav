@@ -55,14 +55,14 @@
       <span class="etiqueta" id="etiqueta-telefono">Teléfono</span>
       <div class="telefono" role="group" aria-labelledby="etiqueta-telefono">
         <select formControlName="indicativo" aria-label="Indicativo del país">
-          @for (pais of paises; track pais.codigo) {
-            <option [value]="pais.codigo">{{ pais.nombre }} +{{ pais.indicativo }}</option>
+          @for (opcion of indicativos; track opcion.indicativo) {
+            <option [value]="opcion.indicativo">+{{ opcion.indicativo }}</option>
           }
         </select>
-        <input type="tel" formControlName="telefono" inputmode="numeric" autocomplete="tel-national" [placeholder]="ejemplo()" aria-label="Número de teléfono" [class.invalido]="invalido('telefono')" [attr.aria-invalid]="invalido('telefono')" />
+        <input type="tel" formControlName="telefono" inputmode="numeric" autocomplete="tel-national" [placeholder]="ejemplo()" aria-label="Número de teléfono" [class.invalido]="invalido('telefono')" [attr.aria-invalid]="invalido('telefono')" [attr.aria-describedby]="invalido('telefono') ? 'error-telefono' : null" />
       </div>
       @if (invalido('telefono')) {
-        <span class="error-campo">Ingresa un número válido para el país elegido.</span>
+        <span class="error-campo" id="error-telefono">Ingresa un número válido para el indicativo elegido.</span>
       }
     </div>
 

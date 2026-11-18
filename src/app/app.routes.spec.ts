@@ -20,7 +20,7 @@ describe('rutas de la aplicación', () => {
     });
   });
 
-  it('una ruta desconocida vuelve a la página principal', () => {
-    expect(routes.at(-1)).toEqual({ path: '**', redirectTo: '' });
+  it('una ruta desconocida lleva directo al inicio de sesión', () => {
+    expect(routes.at(-1)).toEqual({ path: '**', redirectTo: 'usuario/login' });
   });
 });

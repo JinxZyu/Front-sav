@@ -60,7 +60,7 @@ label {
 
 .telefono {
   display: grid;
-  grid-template-columns: minmax(8.5rem, 10rem) minmax(0, 1fr);
+  grid-template-columns: 6.5rem minmax(0, 1fr);
   gap: 0.5rem;
 }
 

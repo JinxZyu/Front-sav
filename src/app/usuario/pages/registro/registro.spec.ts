@@ -18,7 +18,7 @@ describe('Registro (HU-001)', () => {
     correo: 'Ana@Correo.com',
     tipoDocumento: 'CC',
     documentoIdentidad: '1012345678',
-    indicativo: 'CO' as const,
+    indicativo: '57',
     telefono: '3001234567',
     contrasena: 'clave-segura',
     rol: 'ANFITRION' as const,
@@ -58,7 +58,15 @@ describe('Registro (HU-001)', () => {
 
     expect(componente.invalido('correo')).toBe(true);
     expect(componente.invalido('telefono')).toBe(true);
-    expect(textoPantalla()).toContain('Ingresa un número válido para el país elegido');
+    expect(textoPantalla()).toContain('Ingresa un número válido para el indicativo elegido');
+    const campoTelefono = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      'input[formControlName="telefono"]',
+    );
+    const idError = campoTelefono?.getAttribute('aria-describedby');
+    expect(idError).toBe('error-telefono');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(`#${idError}`)?.textContent,
+    ).toContain('Ingresa un número válido');
   });
 
   it('registra con datos limpios y lleva a verificar el correo', () => {
@@ -108,8 +116,8 @@ describe('Registro (HU-001)', () => {
     expect(componente.error()).toBe('Falla interna');
   });
 
-  it('une el indicativo del país elegido con el número', () => {
-    componente.formulario.setValue({ ...datosValidos, indicativo: 'MX', telefono: '5512345678' });
+  it('une el indicativo elegido con el número', () => {
+    componente.formulario.setValue({ ...datosValidos, indicativo: '52', telefono: '5512345678' });
     componente.registrar();
 
     const peticion = backend.expectOne(url);
@@ -130,7 +138,7 @@ describe('Registro (HU-001)', () => {
     componente.formulario.patchValue({ telefono: '3001234567' });
     expect(componente.formulario.controls.telefono.valid).toBe(true);
 
-    componente.formulario.controls.indicativo.setValue('ES');
+    componente.formulario.controls.indicativo.setValue('34');
     await fixture.whenStable();
 
     expect(componente.formulario.controls.telefono.hasError('telefono')).toBe(true);
@@ -140,12 +148,12 @@ describe('Registro (HU-001)', () => {
     expect(campo?.placeholder).toMatch(/\d/);
   });
 
-  it('muestra Colombia como país por defecto en el teléfono', async () => {
+  it('muestra solo el indicativo, con +57 por defecto', async () => {
     await fixture.whenStable();
     const select = (fixture.nativeElement as HTMLElement).querySelector<HTMLSelectElement>(
       'select[formControlName="indicativo"]',
     );
-    expect(select?.selectedOptions[0]?.textContent?.trim()).toBe('Colombia +57');
+    expect(select?.selectedOptions[0]?.textContent?.trim()).toBe('+57');
   });
 
   it('explica un 401 del registro como un problema del servidor', () => {

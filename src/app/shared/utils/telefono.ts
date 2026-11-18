@@ -1,44 +1,48 @@
 import { ValidatorFn } from '@angular/forms';
 import {
   CountryCode,
-  getCountries,
-  getCountryCallingCode,
   getExampleNumber,
+  isSupportedCountry,
   parsePhoneNumberFromString,
-} from 'libphonenumber-js';
+} from 'libphonenumber-js/max';
+import metadatos from 'libphonenumber-js/max/metadata';
 import ejemplos from 'libphonenumber-js/mobile/examples';
 
-export interface PaisTelefono {
-  codigo: CountryCode;
-  nombre: string;
+export interface IndicativoTelefono {
   indicativo: string;
+  pais: CountryCode;
 }
 
-const nombres = new Intl.DisplayNames(['es'], { type: 'region' });
+export const INDICATIVO_POR_DEFECTO = '57';
 
-export const PAISES_TELEFONO: readonly PaisTelefono[] = getCountries()
-  .map((codigo) => ({
-    codigo,
-    nombre: nombres.of(codigo) ?? codigo,
-    indicativo: getCountryCallingCode(codigo),
-  }))
-  .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+export const INDICATIVOS_TELEFONO: readonly IndicativoTelefono[] = Object.entries(
+  metadatos.country_calling_codes,
+)
+  .flatMap(([indicativo, [pais]]) =>
+    pais && isSupportedCountry(pais) ? [{ indicativo, pais }] : [],
+  )
+  .sort((a, b) => Number(a.indicativo) - Number(b.indicativo));
 
-export const telefonoInternacional = (numero: string, pais: CountryCode): string | null => {
-  const telefono = parsePhoneNumberFromString(numero, pais);
+export const telefonoInternacional = (numero: string, indicativo: string): string | null => {
+  const telefono = parsePhoneNumberFromString(numero, {
+    defaultCallingCode: indicativo,
+    extract: false,
+  });
   return telefono?.isValid() ? telefono.number : null;
 };
 
-export const ejemploTelefono = (pais: CountryCode): string =>
-  getExampleNumber(pais, ejemplos)?.formatNational() ?? '';
+export const ejemploTelefono = (indicativo: string): string => {
+  const pais = INDICATIVOS_TELEFONO.find((opcion) => opcion.indicativo === indicativo)?.pais;
+  return pais ? (getExampleNumber(pais, ejemplos)?.formatNational() ?? '') : '';
+};
 
 export const telefonoValido =
-  (campoPais: string): ValidatorFn =>
+  (campoIndicativo: string): ValidatorFn =>
   (control) => {
-    const pais = control.parent?.get(campoPais)?.value as CountryCode | undefined;
+    const indicativo = control.parent?.get(campoIndicativo)?.value as string | undefined;
     const numero = String(control.value ?? '').trim();
-    if (!numero || !pais) {
+    if (!numero || !indicativo) {
       return null;
     }
-    return telefonoInternacional(numero, pais) ? null : { telefono: true };
+    return telefonoInternacional(numero, indicativo) ? null : { telefono: true };
   };

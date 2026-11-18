@@ -3,10 +3,10 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CountryCode } from 'libphonenumber-js';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import {
-  PAISES_TELEFONO,
+  INDICATIVOS_TELEFONO,
+  INDICATIVO_POR_DEFECTO,
   ejemploTelefono,
   telefonoInternacional,
   telefonoValido,
@@ -29,7 +29,7 @@ export class Registro {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly tiposDocumento = TIPOS_DOCUMENTO;
-  readonly paises = PAISES_TELEFONO;
+  readonly indicativos = INDICATIVOS_TELEFONO;
   readonly enviando = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -45,7 +45,7 @@ export class Registro {
     correo: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     tipoDocumento: ['CC', [Validators.required]],
     documentoIdentidad: ['', [Validators.required, Validators.pattern(PATRON_DOCUMENTO)]],
-    indicativo: ['CO' as CountryCode, [Validators.required]],
+    indicativo: [INDICATIVO_POR_DEFECTO, [Validators.required]],
     telefono: ['', [Validators.required, telefonoValido('indicativo')]],
     contrasena: ['', [Validators.required, Validators.minLength(8)]],
     rol: ['HUESPED' as RegistroRequest['rol'], [Validators.required]],
