@@ -84,4 +84,21 @@ describe('authInterceptor', () => {
     expect(sesion.autenticado()).toBe(true);
     expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
+
+  it('no cierra una sesión nueva por un 401 tardío de la sesión anterior', () => {
+    sesion.iniciar(token);
+    http.get(urlBackend).subscribe({ error: () => undefined });
+    const nuevoToken = crearToken({
+      sub: 'otro@b.co',
+      role: 'ANFITRION',
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+    sesion.iniciar(nuevoToken);
+
+    backend.expectOne(urlBackend).flush('No autorizado', { status: 401, statusText: 'Unauthorized' });
+
+    expect(sesion.token()).toBe(nuevoToken);
+    expect(sesion.autenticado()).toBe(true);
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
 });

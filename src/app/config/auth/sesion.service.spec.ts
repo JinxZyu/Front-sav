@@ -70,4 +70,48 @@ describe('SesionService', () => {
     servicio.iniciar('a.%%%.c');
     expect(servicio.autenticado()).toBe(false);
   });
+
+  it('deja de estar autenticado cuando el token vence durante el uso', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      servicio.iniciar(
+        crearToken({ sub: 'a@b.co', role: 'HUESPED', exp: Math.floor(Date.now() / 1000) + 60 }),
+      );
+      expect(servicio.autenticado()).toBe(true);
+
+      vi.setSystemTime(Date.now() + 61_000);
+
+      expect(servicio.autenticado()).toBe(false);
+      expect(servicio.rol()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each([
+    ['sin vencimiento', { sub: 'a@b.co', role: 'HUESPED' }],
+    ['vencimiento que no es número', { sub: 'a@b.co', role: 'HUESPED', exp: 'mañana' }],
+    ['sin correo', { role: 'HUESPED', exp: enUnaHora() }],
+    ['correo vacío', { sub: '', role: 'HUESPED', exp: enUnaHora() }],
+    ['rol desconocido', { sub: 'a@b.co', role: 'SUPERUSUARIO', exp: enUnaHora() }],
+    ['rol que no es texto', { sub: 'a@b.co', role: 1, exp: enUnaHora() }],
+  ])('rechaza un token %s', (_caso, datos) => {
+    servicio.iniciar(crearToken(datos));
+    expect(servicio.autenticado()).toBe(false);
+  });
+
+  it('rechaza un token cuyo contenido no es un objeto', () => {
+    servicio.iniciar(`a.${btoa('123')}.c`);
+    expect(servicio.autenticado()).toBe(false);
+  });
+
+  it('rechaza un token cuyo contenido es null', () => {
+    servicio.iniciar(`a.${btoa('null')}.c`);
+    expect(servicio.autenticado()).toBe(false);
+  });
+
+  it('lee correctamente un correo con tildes', () => {
+    servicio.iniciar(crearToken({ sub: 'josé.núñez@correo.com', role: 'HUESPED', exp: enUnaHora() }));
+    expect(servicio.correo()).toBe('josé.núñez@correo.com');
+  });
 });

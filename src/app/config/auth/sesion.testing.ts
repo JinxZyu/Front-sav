@@ -1,5 +1,6 @@
 export function crearToken(datos: object): string {
-  const base64 = btoa(JSON.stringify(datos))
+  const bytes = new TextEncoder().encode(JSON.stringify(datos));
+  const base64 = btoa(String.fromCodePoint(...bytes))
     .replaceAll('+', '-')
     .replaceAll('/', '_')
     .replaceAll('=', '');

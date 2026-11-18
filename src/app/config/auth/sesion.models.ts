@@ -1,4 +1,6 @@
-export type Rol = 'HUESPED' | 'ANFITRION' | 'ADMINISTRADOR';
+export const ROLES = ['HUESPED', 'ANFITRION', 'ADMINISTRADOR'] as const;
+
+export type Rol = (typeof ROLES)[number];
 
 export interface AutenticacionResponse {
   token: string;
