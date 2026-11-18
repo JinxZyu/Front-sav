@@ -20,6 +20,7 @@ export class VerificarCorreo {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private intervalo: ReturnType<typeof setInterval> | null = null;
+  private redireccion: ReturnType<typeof setInterval> | null = null;
 
   readonly enviando = signal(false);
   readonly reenviando = signal(false);
@@ -40,7 +41,10 @@ export class VerificarCorreo {
 
   constructor() {
     this.iniciarCuentaRegresiva();
-    this.destroyRef.onDestroy(() => this.detenerCuentaRegresiva());
+    this.destroyRef.onDestroy(() => {
+      this.detenerCuentaRegresiva();
+      this.detenerRedireccion();
+    });
   }
 
   invalido(campo: 'correo' | 'codigo'): boolean {
@@ -97,6 +101,9 @@ export class VerificarCorreo {
       .subscribe({
         next: (mensaje) => {
           this.aviso.set(mensaje || 'Te enviamos un nuevo código.');
+          if (this.verificado()) {
+            return;
+          }
           this.formulario.controls.codigo.reset();
           this.iniciarCuentaRegresiva();
         },
@@ -105,7 +112,7 @@ export class VerificarCorreo {
   }
 
   irAIniciarSesion(): void {
-    this.detenerCuentaRegresiva();
+    this.detenerRedireccion();
     void this.router.navigate(['/usuario/login'], {
       queryParams: { correo: this.correoVerificado() },
     });
@@ -113,8 +120,9 @@ export class VerificarCorreo {
 
   private iniciarRedireccion(): void {
     this.detenerCuentaRegresiva();
+    this.detenerRedireccion();
     this.segundosParaIniciarSesion.set(ESPERA_REDIRECCION_SEGUNDOS);
-    this.intervalo = setInterval(() => {
+    this.redireccion = setInterval(() => {
       const restantes = this.segundosParaIniciarSesion() - 1;
       this.segundosParaIniciarSesion.set(restantes);
       if (restantes <= 0) {
@@ -133,6 +141,13 @@ export class VerificarCorreo {
         this.detenerCuentaRegresiva();
       }
     }, 1000);
+  }
+
+  private detenerRedireccion(): void {
+    if (this.redireccion !== null) {
+      clearInterval(this.redireccion);
+      this.redireccion = null;
+    }
   }
 
   private detenerCuentaRegresiva(): void {

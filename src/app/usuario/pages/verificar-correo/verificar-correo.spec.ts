@@ -106,6 +106,47 @@ describe('VerificarCorreo (HU-001)', () => {
     expect(navegar).toHaveBeenCalledTimes(1);
   });
 
+  it('un reenvío que termina después de verificar no cancela la redirección', async () => {
+    await crear('ana@correo.com');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    vi.advanceTimersByTime(ESPERA_REENVIO_SEGUNDOS * 1000);
+
+    componente.reenviar();
+    const reenvio = backend.expectOne((r) => r.url === `${api}/verificacion-correo/reenviar`);
+
+    componente.formulario.controls.codigo.setValue('123456');
+    componente.verificar();
+    backend
+      .expectOne((r) => r.url === `${api}/verificacion-correo/confirmar`)
+      .flush('Correo verificado correctamente.');
+
+    reenvio.flush('Te enviamos un nuevo código.');
+    await fixture.whenStable();
+
+    vi.advanceTimersByTime(ESPERA_REDIRECCION_SEGUNDOS * 1000);
+    expect(navegar).toHaveBeenCalledTimes(1);
+    expect(navegar).toHaveBeenCalledWith(['/usuario/login'], {
+      queryParams: { correo: 'ana@correo.com' },
+    });
+
+    vi.advanceTimersByTime(ESPERA_REENVIO_SEGUNDOS * 1000);
+    expect(navegar).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancela la redirección al salir de la pantalla', async () => {
+    await crear('ana@correo.com');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    componente.formulario.controls.codigo.setValue('123456');
+    componente.verificar();
+    backend
+      .expectOne((r) => r.url === `${api}/verificacion-correo/confirmar`)
+      .flush('Correo verificado correctamente.');
+
+    fixture.destroy();
+    vi.advanceTimersByTime(ESPERA_REDIRECCION_SEGUNDOS * 1000);
+    expect(navegar).not.toHaveBeenCalled();
+  });
+
   it('permite ir al inicio de sesión sin esperar', async () => {
     await crear('ana@correo.com');
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
