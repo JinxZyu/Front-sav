@@ -1,0 +1,83 @@
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 4.5rem;
+  padding: 0 2rem;
+  border-bottom: 1px solid rgb(226 232 240 / 70%);
+  background: rgb(255 255 255 / 82%);
+  backdrop-filter: blur(14px) saturate(160%);
+  view-transition-name: encabezado;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+}
+
+.marca img {
+  display: block;
+  height: 3.1rem;
+  width: auto;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+nav a {
+  color: #334155;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+nav a:hover,
+nav a.activo {
+  color: #4f46e5;
+}
+
+nav a.destacado {
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #fff;
+  font-weight: 600;
+}
+
+nav a {
+  white-space: nowrap;
+}
+
+@media (width < 30rem) {
+  .encabezado {
+    padding: 0 1rem;
+  }
+
+  .marca img {
+    height: 2.5rem;
+  }
+
+  nav {
+    gap: 0.9rem;
+    font-size: 0.9rem;
+  }
+
+  nav a.opcional {
+    display: none;
+  }
+
+  nav a.destacado {
+    padding: 0.45rem 0.9rem;
+  }
+}
+
+nav a.destacado,
+nav a.destacado:hover {
+  color: #fff;
+}

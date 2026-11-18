@@ -1,1 +1,41 @@
-/* You can add global styles to this file, and also import other style files */
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/poppins/800.css';
+
+body {
+  margin: 0;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+::view-transition-old(tarjeta-acceso),
+::view-transition-new(tarjeta-acceso) {
+  height: 100%;
+}
+
+::view-transition-old(contenido-acceso) {
+  animation: 0.15s ease-out both desvanecer;
+}
+
+::view-transition-new(contenido-acceso) {
+  animation: 0.3s ease-out 0.15s both aparecer;
+}
+
+@keyframes desvanecer {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}

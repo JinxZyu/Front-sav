@@ -1,24 +1,21 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-    })
-      .compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', async () => {
+  it('muestra el logo y las opciones de navegación', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, angular-sav');
+    const elemento = fixture.nativeElement as HTMLElement;
+    const texto = elemento.textContent ?? '';
+
+    expect((elemento.querySelector('.marca img') as HTMLImageElement).alt).toBe('SAV');
+    expect(texto).toContain('Alojamientos');
+    expect(texto).toContain('Iniciar sesión');
+    expect(texto).toContain('Registrarse');
   });
 });
