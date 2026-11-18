@@ -41,7 +41,9 @@
 
         <label>
           Contraseña nueva
-          <input type="password" formControlName="nuevaContrasena" [readonly]="enviando()" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.nuevaContrasena)" [attr.aria-invalid]="invalido(formularioCodigo.controls.nuevaContrasena)" />
+          <app-campo-contrasena>
+            <input #campo type="password" formControlName="nuevaContrasena" [readonly]="enviando()" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.nuevaContrasena)" [attr.aria-invalid]="invalido(formularioCodigo.controls.nuevaContrasena)" />
+          </app-campo-contrasena>
           @if (invalido(formularioCodigo.controls.nuevaContrasena)) {
             <span class="error-campo">La contraseña debe tener al menos 8 caracteres.</span>
           }
@@ -49,7 +51,9 @@
 
         <label>
           Confirma la contraseña nueva
-          <input type="password" formControlName="confirmacion" [readonly]="enviando()" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" [attr.aria-invalid]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" />
+          <app-campo-contrasena>
+            <input #campo type="password" formControlName="confirmacion" [readonly]="enviando()" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" [attr.aria-invalid]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" />
+          </app-campo-contrasena>
           @if (noCoinciden()) {
             <span class="error-campo">Las contraseñas no coinciden.</span>
           } @else if (invalido(formularioCodigo.controls.confirmacion)) {

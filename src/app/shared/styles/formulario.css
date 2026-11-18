@@ -80,6 +80,10 @@ select {
     box-shadow 0.2s;
 }
 
+app-campo-contrasena input {
+  padding-right: 2.75rem;
+}
+
 input:focus,
 select:focus {
   border-color: #6366f1;
@@ -92,6 +96,13 @@ input.invalido,
 select.invalido {
   border-color: #e11d48;
   background: #fff5f7;
+}
+
+.redireccion {
+  margin: 0 0 1rem;
+  color: #475569;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .error-campo {

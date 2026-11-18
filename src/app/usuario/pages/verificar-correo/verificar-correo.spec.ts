@@ -1,9 +1,13 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { environment } from '../../../../environments/environment';
-import { ESPERA_REENVIO_SEGUNDOS, VerificarCorreo } from './verificar-correo';
+import {
+  ESPERA_REDIRECCION_SEGUNDOS,
+  ESPERA_REENVIO_SEGUNDOS,
+  VerificarCorreo,
+} from './verificar-correo';
 
 describe('VerificarCorreo (HU-001)', () => {
   let fixture: ComponentFixture<VerificarCorreo>;
@@ -73,6 +77,50 @@ describe('VerificarCorreo (HU-001)', () => {
 
     expect(componente.verificado()).toBe(true);
     expect(textoPantalla()).toContain('Correo verificado');
+  });
+
+  it('lleva al inicio de sesión con el correo después de verificar', async () => {
+    await crear('ana@correo.com');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    componente.formulario.controls.codigo.setValue('123456');
+    componente.verificar();
+    backend
+      .expectOne((r) => r.url === `${api}/verificacion-correo/confirmar`)
+      .flush('Correo verificado correctamente.');
+    await fixture.whenStable();
+
+    expect(textoPantalla()).toContain(
+      `Te llevamos al inicio de sesión en ${ESPERA_REDIRECCION_SEGUNDOS} s`,
+    );
+    vi.advanceTimersByTime(1000);
+    expect(componente.segundosParaIniciarSesion()).toBe(ESPERA_REDIRECCION_SEGUNDOS - 1);
+    expect(navegar).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime((ESPERA_REDIRECCION_SEGUNDOS - 1) * 1000);
+    expect(navegar).toHaveBeenCalledTimes(1);
+    expect(navegar).toHaveBeenCalledWith(['/usuario/login'], {
+      queryParams: { correo: 'ana@correo.com' },
+    });
+
+    vi.advanceTimersByTime(5000);
+    expect(navegar).toHaveBeenCalledTimes(1);
+  });
+
+  it('permite ir al inicio de sesión sin esperar', async () => {
+    await crear('ana@correo.com');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    componente.formulario.controls.codigo.setValue('123456');
+    componente.verificar();
+    backend
+      .expectOne((r) => r.url === `${api}/verificacion-correo/confirmar`)
+      .flush('Correo verificado correctamente.');
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button')?.click();
+    expect(navegar).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(ESPERA_REDIRECCION_SEGUNDOS * 1000);
+    expect(navegar).toHaveBeenCalledTimes(1);
   });
 
   it('muestra el mensaje del backend si el código es incorrecto', async () => {

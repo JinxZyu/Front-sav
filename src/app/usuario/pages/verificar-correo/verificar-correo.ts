@@ -1,22 +1,24 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
 export const ESPERA_REENVIO_SEGUNDOS = 60;
+export const ESPERA_REDIRECCION_SEGUNDOS = 5;
 
 @Component({
   selector: 'app-verificar-correo',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './verificar-correo.html',
   styleUrl: '../../../shared/styles/formulario.css',
 })
 export class VerificarCorreo {
   private readonly autenticacion = inject(AutenticacionService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
   private intervalo: ReturnType<typeof setInterval> | null = null;
 
   readonly enviando = signal(false);
@@ -25,6 +27,8 @@ export class VerificarCorreo {
   readonly error = signal<string | null>(null);
   readonly aviso = signal<string | null>(null);
   readonly segundosParaReenviar = signal(ESPERA_REENVIO_SEGUNDOS);
+  readonly segundosParaIniciarSesion = signal(ESPERA_REDIRECCION_SEGUNDOS);
+  readonly correoVerificado = signal('');
 
   readonly formulario = inject(FormBuilder).nonNullable.group({
     correo: [
@@ -61,7 +65,8 @@ export class VerificarCorreo {
         next: () => {
           this.enviando.set(false);
           this.verificado.set(true);
-          this.detenerCuentaRegresiva();
+          this.correoVerificado.set(correo.trim());
+          this.iniciarRedireccion();
         },
         error: (error: unknown) => {
           this.enviando.set(false);
@@ -97,6 +102,25 @@ export class VerificarCorreo {
         },
         error: (error: unknown) => this.error.set(mensajeDeError(error)),
       });
+  }
+
+  irAIniciarSesion(): void {
+    this.detenerCuentaRegresiva();
+    void this.router.navigate(['/usuario/login'], {
+      queryParams: { correo: this.correoVerificado() },
+    });
+  }
+
+  private iniciarRedireccion(): void {
+    this.detenerCuentaRegresiva();
+    this.segundosParaIniciarSesion.set(ESPERA_REDIRECCION_SEGUNDOS);
+    this.intervalo = setInterval(() => {
+      const restantes = this.segundosParaIniciarSesion() - 1;
+      this.segundosParaIniciarSesion.set(restantes);
+      if (restantes <= 0) {
+        this.irAIniciarSesion();
+      }
+    }, 1000);
   }
 
   private iniciarCuentaRegresiva(): void {

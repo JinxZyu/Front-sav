@@ -2,7 +2,8 @@
   @if (verificado()) {
     <h1>¡Correo verificado!</h1>
     <p class="alerta exito" role="status">Tu cuenta quedó activa. Ya puedes iniciar sesión.</p>
-    <p class="pie"><a routerLink="/usuario/login">Ir a iniciar sesión</a></p>
+    <p class="redireccion" aria-live="polite">Te llevamos al inicio de sesión en {{ segundosParaIniciarSesion() }} s…</p>
+    <button type="button" (click)="irAIniciarSesion()">Iniciar sesión ahora</button>
   } @else {
     <h1>Verifica tu correo</h1>
     <p class="subtitulo">Te enviamos un código de 6 dígitos. Escríbelo para activar tu cuenta.</p>

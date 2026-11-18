@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SesionService } from '../../../config/auth/sesion.service';
+import { CampoContrasena } from '../../../shared/components/campo-contrasena/campo-contrasena';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
@@ -11,7 +12,7 @@ type EstadoCuenta = 'normal' | 'desactivada' | 'sin-verificar';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, CampoContrasena],
   templateUrl: './login.html',
   styleUrl: '../../../shared/styles/formulario.css',
 })
@@ -28,7 +29,10 @@ export class Login {
   readonly estadoCuenta = signal<EstadoCuenta>('normal');
 
   readonly formulario = inject(FormBuilder).nonNullable.group({
-    correo: ['', [Validators.required, Validators.email]],
+    correo: [
+      this.ruta.snapshot.queryParamMap.get('correo') ?? '',
+      [Validators.required, Validators.email],
+    ],
     contrasena: ['', [Validators.required]],
   });
 
