@@ -209,6 +209,49 @@ describe('RecuperarContrasena (HU-005)', () => {
     expect(texto()).toContain('Enviar código');
   });
 
+  it('bloquea el correo mientras se solicita el código', async () => {
+    await crear('ana@correo.com');
+    componente.solicitarCodigo();
+    await fixture.whenStable();
+
+    const campo = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      'input[type="email"]',
+    );
+    expect(campo?.readOnly).toBe(true);
+
+    backend.expectOne(urlSolicitar).flush({ mensaje: 'Revisa tu correo.' });
+  });
+
+  it('restablece con el correo al que se envió el código aunque el campo cambie', async () => {
+    await llegarAlCodigo();
+    componente.formularioCorreo.controls.correo.setValue('otra@correo.com');
+    await fixture.whenStable();
+    expect(texto()).toContain('ana@correo.com');
+
+    llenarCodigo();
+    componente.restablecer();
+    const peticion = backend.expectOne(urlRestablecer);
+    expect(peticion.request.body.correo).toBe('ana@correo.com');
+    peticion.flush({ mensaje: 'Listo.' });
+  });
+
+  it('no permite usar otro correo mientras hay una petición en curso', async () => {
+    await llegarAlCodigo();
+    componente.pedirOtroCodigo();
+    await fixture.whenStable();
+
+    const boton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '.boton-texto',
+    );
+    expect(boton?.disabled).toBe(true);
+
+    componente.usarOtroCorreo();
+    expect(componente.paso()).toBe('codigo');
+
+    backend.expectOne(urlSolicitar).flush({ mensaje: 'Revisa tu correo.' });
+    expect(componente.paso()).toBe('codigo');
+  });
+
   it('cancela la petición si el usuario sale de la pantalla', async () => {
     await crear('ana@correo.com');
     componente.solicitarCodigo();

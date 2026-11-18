@@ -36,6 +36,7 @@ export class RecuperarContrasena {
   readonly error = signal<string | null>(null);
   readonly aviso = signal<string | null>(null);
   readonly codigoRechazado = signal(false);
+  readonly correoSolicitado = signal('');
 
   readonly formularioCorreo = this.fb.group({
     correo: [
@@ -52,10 +53,6 @@ export class RecuperarContrasena {
     },
     { validators: contrasenasIguales },
   );
-
-  get correo(): string {
-    return this.formularioCorreo.controls.correo.value.trim().toLowerCase();
-  }
 
   invalido(control: AbstractControl): boolean {
     return control.invalid && (control.touched || control.dirty);
@@ -74,16 +71,19 @@ export class RecuperarContrasena {
       this.formularioCorreo.markAllAsTouched();
       return;
     }
-    this.enviarSolicitud();
+    this.enviarSolicitud(this.formularioCorreo.controls.correo.value.trim().toLowerCase());
   }
 
   pedirOtroCodigo(): void {
     this.limpiarMensajes();
     this.formularioCodigo.controls.codigo.reset();
-    this.enviarSolicitud();
+    this.enviarSolicitud(this.correoSolicitado());
   }
 
   usarOtroCorreo(): void {
+    if (this.enviando()) {
+      return;
+    }
     this.limpiarMensajes();
     this.formularioCodigo.reset();
     this.paso.set('correo');
@@ -98,7 +98,7 @@ export class RecuperarContrasena {
     const { codigo, nuevaContrasena } = this.formularioCodigo.getRawValue();
     this.enviando.set(true);
     this.autenticacion
-      .restablecerContrasena({ correo: this.correo, codigo, nuevaContrasena })
+      .restablecerContrasena({ correo: this.correoSolicitado(), codigo, nuevaContrasena })
       .pipe(
         finalize(() => this.enviando.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -117,16 +117,17 @@ export class RecuperarContrasena {
       });
   }
 
-  private enviarSolicitud(): void {
+  private enviarSolicitud(correo: string): void {
     this.enviando.set(true);
     this.autenticacion
-      .solicitarRecuperacion(this.correo)
+      .solicitarRecuperacion(correo)
       .pipe(
         finalize(() => this.enviando.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: ({ mensaje }) => {
+          this.correoSolicitado.set(correo);
           this.aviso.set(mensaje || 'Si el correo está registrado, te enviamos un código.');
           this.paso.set('codigo');
         },

@@ -7,7 +7,7 @@
       <form [formGroup]="formularioCorreo" (ngSubmit)="solicitarCodigo()" novalidate>
         <label>
           Correo electrónico
-          <input type="email" formControlName="correo" autocomplete="email" [class.invalido]="invalido(formularioCorreo.controls.correo)" [attr.aria-invalid]="invalido(formularioCorreo.controls.correo)" />
+          <input type="email" formControlName="correo" autocomplete="email" [readonly]="enviando()" [class.invalido]="invalido(formularioCorreo.controls.correo)" [attr.aria-invalid]="invalido(formularioCorreo.controls.correo)" />
           @if (invalido(formularioCorreo.controls.correo)) {
             <span class="error-campo">Ingresa un correo válido.</span>
           }
@@ -25,7 +25,7 @@
     }
 
     @case ('codigo') {
-      <p class="subtitulo">Escribe el código que enviamos a <strong>{{ correo }}</strong>. Vence en 5 minutos.</p>
+      <p class="subtitulo">Escribe el código que enviamos a <strong>{{ correoSolicitado() }}</strong>. Vence en 5 minutos.</p>
       <form [formGroup]="formularioCodigo" (ngSubmit)="restablecer()" novalidate>
         @if (aviso()) {
           <p class="alerta exito" role="status">{{ aviso() }}</p>
@@ -68,7 +68,7 @@
           {{ codigoRechazado() ? 'Solicitar un código nuevo' : 'Enviar otro código' }}
         </button>
       </form>
-      <p class="pie"><button type="button" class="boton-texto" (click)="usarOtroCorreo()">Usar otro correo</button></p>
+      <p class="pie"><button type="button" class="boton-texto" (click)="usarOtroCorreo()" [disabled]="enviando()">Usar otro correo</button></p>
     }
 
     @case ('listo') {
