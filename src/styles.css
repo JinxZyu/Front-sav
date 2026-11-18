@@ -4,6 +4,11 @@
 @import '@fontsource/poppins/700.css';
 @import '@fontsource/poppins/800.css';
 
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 body {
   margin: 0;
   font-family: 'Poppins', system-ui, sans-serif;

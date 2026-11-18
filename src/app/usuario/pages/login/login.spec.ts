@@ -21,7 +21,7 @@ describe('Login (HU-002)', () => {
     exp: Math.floor(Date.now() / 1000) + 3600,
   });
 
-  const crear = async (volverA?: string) => {
+  const crear = async (volverA?: string, correo?: string) => {
     localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
@@ -31,7 +31,12 @@ describe('Login (HU-002)', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: { queryParamMap: convertToParamMap(volverA ? { volverA } : {}) },
+            snapshot: {
+              queryParamMap: convertToParamMap({
+                ...(volverA ? { volverA } : {}),
+                ...(correo ? { correo } : {}),
+              }),
+            },
           },
         },
       ],
@@ -277,5 +282,19 @@ describe('Login (HU-002)', () => {
     expect(enlace?.getAttribute('href')).toContain(
       '/usuario/recuperar-contrasena?correo=ana@correo.com',
     );
+  });
+
+  it('toma el correo de la URL al llegar desde la verificación', async () => {
+    await crear(undefined, 'ana@correo.com');
+    expect(componente.formulario.controls.correo.value).toBe('ana@correo.com');
+  });
+
+  it('muestra un botón para ver la contraseña', async () => {
+    await crear();
+    const elemento = fixture.nativeElement as HTMLElement;
+    const campo = elemento.querySelector<HTMLInputElement>('input[formControlName="contrasena"]');
+    elemento.querySelector<HTMLButtonElement>('app-campo-contrasena button')?.click();
+    await fixture.whenStable();
+    expect(campo?.type).toBe('text');
   });
 });

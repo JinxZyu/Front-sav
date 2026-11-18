@@ -3,6 +3,7 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CampoContrasena } from '../../../shared/components/campo-contrasena/campo-contrasena';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import {
   INDICATIVOS_TELEFONO,
@@ -19,7 +20,7 @@ const PATRON_DOCUMENTO = /^[A-Za-z0-9]{5,20}$/;
 
 @Component({
   selector: 'app-registro',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CampoContrasena],
   templateUrl: './registro.html',
   styleUrl: '../../../shared/styles/formulario.css',
 })

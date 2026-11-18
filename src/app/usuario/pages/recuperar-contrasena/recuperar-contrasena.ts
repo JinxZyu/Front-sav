@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
+import { CampoContrasena } from '../../../shared/components/campo-contrasena/campo-contrasena';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
@@ -23,7 +24,7 @@ const contrasenasIguales = (grupo: AbstractControl): ValidationErrors | null => 
 
 @Component({
   selector: 'app-recuperar-contrasena',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, CampoContrasena],
   templateUrl: './recuperar-contrasena.html',
   styleUrl: '../../../shared/styles/formulario.css',
 })

@@ -68,7 +68,9 @@
 
     <label>
       Contraseña
-      <input type="password" formControlName="contrasena" autocomplete="new-password" [class.invalido]="invalido('contrasena')" [attr.aria-invalid]="invalido('contrasena')" />
+      <app-campo-contrasena>
+        <input #campo type="password" formControlName="contrasena" autocomplete="new-password" [class.invalido]="invalido('contrasena')" [attr.aria-invalid]="invalido('contrasena')" />
+      </app-campo-contrasena>
       @if (invalido('contrasena')) {
         <span class="error-campo">La contraseña debe tener al menos 8 caracteres.</span>
       }
