@@ -21,7 +21,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: unknown) => {
       if (esBackend && token && error instanceof HttpErrorResponse && error.status === 401) {
         sesion.cerrar();
-        router.navigateByUrl('/usuario/login');
+        void router.navigateByUrl('/usuario/login');
       }
       return throwError(() => error);
     }),
