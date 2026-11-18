@@ -1,9 +1,16 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AutenticacionResponse } from '../../config/auth/sesion.models';
-import { CredencialesRequest, RegistroRequest } from '../models/usuario.models';
+import {
+  CredencialesRequest,
+  RegistroRequest,
+  RespuestaMensaje,
+  RestablecerContrasenaRequest,
+} from '../models/usuario.models';
+
+export const TIEMPO_ESPERA_RECUPERACION_MS = 30_000;
 
 @Injectable({ providedIn: 'root' })
 export class AutenticacionService {
@@ -38,5 +45,17 @@ export class AutenticacionService {
     return this.http.post(`${this.api}/autenticacion/reactivar`, credenciales, {
       responseType: 'text',
     });
+  }
+
+  solicitarRecuperacion(correo: string): Observable<RespuestaMensaje> {
+    return this.http
+      .post<RespuestaMensaje>(`${this.api}/recuperacion-contrasena/solicitar`, { correo })
+      .pipe(timeout(TIEMPO_ESPERA_RECUPERACION_MS));
+  }
+
+  restablecerContrasena(datos: RestablecerContrasenaRequest): Observable<RespuestaMensaje> {
+    return this.http
+      .post<RespuestaMensaje>(`${this.api}/recuperacion-contrasena/restablecer`, datos)
+      .pipe(timeout(TIEMPO_ESPERA_RECUPERACION_MS));
   }
 }

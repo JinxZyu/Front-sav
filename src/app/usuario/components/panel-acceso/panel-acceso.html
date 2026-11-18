@@ -1,5 +1,5 @@
 <div class="tarjeta">
-  @if (modo() !== 'verificar') {
+  @if (modo() === 'login' || modo() === 'registro') {
     <nav class="pestanas" [class.en-registro]="modo() === 'registro'" aria-label="Acceso">
       <span class="indicador"></span>
       <a routerLink="/usuario/login" class="pestana-login" [class.activa]="modo() === 'login'">Iniciar sesión</a>

@@ -1,0 +1,79 @@
+<section class="tarjeta">
+  <h1>Recuperar contraseña</h1>
+
+  @switch (paso()) {
+    @case ('correo') {
+      <p class="subtitulo">Te enviaremos un código para crear una contraseña nueva.</p>
+      <form [formGroup]="formularioCorreo" (ngSubmit)="solicitarCodigo()" novalidate>
+        <label>
+          Correo electrónico
+          <input type="email" formControlName="correo" autocomplete="email" [readonly]="enviando()" [class.invalido]="invalido(formularioCorreo.controls.correo)" [attr.aria-invalid]="invalido(formularioCorreo.controls.correo)" />
+          @if (invalido(formularioCorreo.controls.correo)) {
+            <span class="error-campo">Ingresa un correo válido.</span>
+          }
+        </label>
+
+        @if (error()) {
+          <p class="alerta error" role="alert">{{ error() }}</p>
+        }
+
+        <button type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Enviando…' : 'Enviar código' }}
+        </button>
+      </form>
+      <p class="pie"><a routerLink="/usuario/login">Volver a iniciar sesión</a></p>
+    }
+
+    @case ('codigo') {
+      <p class="subtitulo">Escribe el código que enviamos a <strong>{{ correoSolicitado() }}</strong>. Vence en 5 minutos.</p>
+      <form [formGroup]="formularioCodigo" (ngSubmit)="restablecer()" novalidate>
+        @if (aviso()) {
+          <p class="alerta exito" role="status">{{ aviso() }}</p>
+        }
+
+        <label>
+          Código
+          <input formControlName="codigo" [readonly]="enviando()" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" [class.invalido]="invalido(formularioCodigo.controls.codigo)" [attr.aria-invalid]="invalido(formularioCodigo.controls.codigo)" />
+          @if (invalido(formularioCodigo.controls.codigo)) {
+            <span class="error-campo">El código tiene 6 números.</span>
+          }
+        </label>
+
+        <label>
+          Contraseña nueva
+          <input type="password" formControlName="nuevaContrasena" [readonly]="enviando()" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.nuevaContrasena)" [attr.aria-invalid]="invalido(formularioCodigo.controls.nuevaContrasena)" />
+          @if (invalido(formularioCodigo.controls.nuevaContrasena)) {
+            <span class="error-campo">La contraseña debe tener al menos 8 caracteres.</span>
+          }
+        </label>
+
+        <label>
+          Confirma la contraseña nueva
+          <input type="password" formControlName="confirmacion" [readonly]="enviando()" autocomplete="new-password" [class.invalido]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" [attr.aria-invalid]="invalido(formularioCodigo.controls.confirmacion) || noCoinciden()" />
+          @if (noCoinciden()) {
+            <span class="error-campo">Las contraseñas no coinciden.</span>
+          } @else if (invalido(formularioCodigo.controls.confirmacion)) {
+            <span class="error-campo">Confirma tu contraseña nueva.</span>
+          }
+        </label>
+
+        @if (error()) {
+          <p class="alerta error" role="alert">{{ error() }}</p>
+        }
+
+        <button type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Guardando…' : 'Cambiar contraseña' }}
+        </button>
+        <button type="button" class="secundario" (click)="pedirOtroCodigo()" [disabled]="enviando()">
+          {{ codigoRechazado() ? 'Solicitar un código nuevo' : 'Enviar otro código' }}
+        </button>
+      </form>
+      <p class="pie"><button type="button" class="boton-texto" (click)="usarOtroCorreo()" [disabled]="enviando()">Usar otro correo</button></p>
+    }
+
+    @case ('listo') {
+      <p class="alerta exito" role="status">{{ aviso() }}</p>
+      <p class="pie"><a routerLink="/usuario/login">Ir a iniciar sesión</a></p>
+    }
+  }
+</section>

@@ -17,6 +17,7 @@
         <span class="error-campo">La contraseña es obligatoria.</span>
       }
     </label>
+    <a class="enlace-secundario" routerLink="/usuario/recuperar-contrasena" [queryParams]="{ correo: formulario.controls.correo.value || null }">¿Olvidaste tu contraseña?</a>
 
     @if (error()) {
       <p class="alerta error" role="alert">{{ error() }}</p>

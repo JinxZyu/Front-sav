@@ -17,6 +17,14 @@ export const USUARIO_ROUTES: Routes = [
         loadComponent: () => import('./pages/registro/registro').then((m) => m.Registro),
       },
       {
+        path: 'recuperar-contrasena',
+        title: 'Recuperar contraseña',
+        loadComponent: () =>
+          import('./pages/recuperar-contrasena/recuperar-contrasena').then(
+            (m) => m.RecuperarContrasena,
+          ),
+      },
+      {
         path: 'verificar-correo',
         title: 'Verificar correo',
         loadComponent: () =>
