@@ -18,6 +18,7 @@ describe('Registro (HU-001)', () => {
     correo: 'Ana@Correo.com',
     tipoDocumento: 'CC',
     documentoIdentidad: '1012345678',
+    indicativo: 'CO' as const,
     telefono: '3001234567',
     contrasena: 'clave-segura',
     rol: 'ANFITRION' as const,
@@ -57,7 +58,7 @@ describe('Registro (HU-001)', () => {
 
     expect(componente.invalido('correo')).toBe(true);
     expect(componente.invalido('telefono')).toBe(true);
-    expect(textoPantalla()).toContain('Ingresa un teléfono válido');
+    expect(textoPantalla()).toContain('Ingresa un número válido para el país elegido');
   });
 
   it('registra con datos limpios y lleva a verificar el correo', () => {
@@ -66,9 +67,14 @@ describe('Registro (HU-001)', () => {
 
     const peticion = backend.expectOne(url);
     expect(peticion.request.body).toEqual({
-      ...datosValidos,
       nombre: 'Ana',
+      apellido: 'Pérez',
       correo: 'ana@correo.com',
+      tipoDocumento: 'CC',
+      documentoIdentidad: '1012345678',
+      telefono: '+573001234567',
+      contrasena: 'clave-segura',
+      rol: 'ANFITRION',
     });
     expect(componente.enviando()).toBe(true);
     peticion.flush('Usuario creado.', { status: 201, statusText: 'Created' });
@@ -100,6 +106,60 @@ describe('Registro (HU-001)', () => {
     backend.expectOne(url).flush('Falla interna', { status: 500, statusText: 'Error' });
 
     expect(componente.error()).toBe('Falla interna');
+  });
+
+  it('une el indicativo del país elegido con el número', () => {
+    componente.formulario.setValue({ ...datosValidos, indicativo: 'MX', telefono: '5512345678' });
+    componente.registrar();
+
+    const peticion = backend.expectOne(url);
+    expect(peticion.request.body.telefono).toBe('+525512345678');
+    peticion.flush('Usuario creado.', { status: 201, statusText: 'Created' });
+  });
+
+  it('acepta el número con espacios o con el indicativo escrito', () => {
+    componente.formulario.setValue({ ...datosValidos, telefono: '+57 300 123 4567' });
+    componente.registrar();
+
+    const peticion = backend.expectOne(url);
+    expect(peticion.request.body.telefono).toBe('+573001234567');
+    peticion.flush('Usuario creado.', { status: 201, statusText: 'Created' });
+  });
+
+  it('vuelve a validar el número al cambiar de país', async () => {
+    componente.formulario.patchValue({ telefono: '3001234567' });
+    expect(componente.formulario.controls.telefono.valid).toBe(true);
+
+    componente.formulario.controls.indicativo.setValue('ES');
+    await fixture.whenStable();
+
+    expect(componente.formulario.controls.telefono.hasError('telefono')).toBe(true);
+    const campo = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      'input[formControlName="telefono"]',
+    );
+    expect(campo?.placeholder).toMatch(/\d/);
+  });
+
+  it('muestra Colombia como país por defecto en el teléfono', async () => {
+    await fixture.whenStable();
+    const select = (fixture.nativeElement as HTMLElement).querySelector<HTMLSelectElement>(
+      'select[formControlName="indicativo"]',
+    );
+    expect(select?.selectedOptions[0]?.textContent?.trim()).toBe('Colombia +57');
+  });
+
+  it('explica un 401 del registro como un problema del servidor', () => {
+    componente.formulario.setValue(datosValidos);
+    componente.registrar();
+
+    backend
+      .expectOne(url)
+      .flush('{"mensaje":"Debes iniciar sesión para acceder a este recurso."}', {
+        status: 401,
+        statusText: 'Unauthorized',
+      });
+
+    expect(componente.error()).toContain('problema del servidor');
   });
 
   it('no acepta un nombre o apellido hecho solo de espacios', () => {

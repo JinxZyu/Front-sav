@@ -13,7 +13,7 @@ export function mensajeDeError(error: unknown, porDefecto = MENSAJE_GENERICO): s
   if (error.status === 0) {
     return 'No se pudo conectar con el servidor. Revisa tu conexión.';
   }
-  const cuerpo: unknown = error.error;
+  const cuerpo = leerCuerpo(error.error);
   if (typeof cuerpo === 'string' && cuerpo.trim() !== '') {
     return cuerpo;
   }
@@ -26,4 +26,15 @@ export function mensajeDeError(error: unknown, porDefecto = MENSAJE_GENERICO): s
     }
   }
   return porDefecto;
+}
+
+function leerCuerpo(cuerpo: unknown): unknown {
+  if (typeof cuerpo !== 'string' || !cuerpo.trim().startsWith('{')) {
+    return cuerpo;
+  }
+  try {
+    return JSON.parse(cuerpo) as unknown;
+  } catch {
+    return cuerpo;
+  }
 }

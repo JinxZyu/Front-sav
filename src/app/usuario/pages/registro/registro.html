@@ -51,13 +51,20 @@
       </label>
     </div>
 
-    <label>
-      Teléfono
-      <input type="tel" formControlName="telefono" autocomplete="tel" placeholder="3001234567" [class.invalido]="invalido('telefono')" [attr.aria-invalid]="invalido('telefono')" />
+    <div class="campo">
+      <span class="etiqueta" id="etiqueta-telefono">Teléfono</span>
+      <div class="telefono" role="group" aria-labelledby="etiqueta-telefono">
+        <select formControlName="indicativo" aria-label="Indicativo del país">
+          @for (pais of paises; track pais.codigo) {
+            <option [value]="pais.codigo">{{ pais.nombre }} +{{ pais.indicativo }}</option>
+          }
+        </select>
+        <input type="tel" formControlName="telefono" inputmode="numeric" autocomplete="tel-national" [placeholder]="ejemplo()" aria-label="Número de teléfono" [class.invalido]="invalido('telefono')" [attr.aria-invalid]="invalido('telefono')" />
+      </div>
       @if (invalido('telefono')) {
-        <span class="error-campo">Ingresa un teléfono válido: solo números, entre 7 y 15 dígitos.</span>
+        <span class="error-campo">Ingresa un número válido para el país elegido.</span>
       }
-    </label>
+    </div>
 
     <label>
       Contraseña

@@ -21,6 +21,16 @@ describe('mensajeDeError', () => {
     expect(mensajeDeError(error)).toBe('Correo o contraseña incorrectos.');
   });
 
+  it('lee el mensaje de un JSON que llega como texto', () => {
+    const error = new HttpErrorResponse({ status: 401, error: '{"mensaje":"Sin permiso."}' });
+    expect(mensajeDeError(error)).toBe('Sin permiso.');
+  });
+
+  it('devuelve el texto tal cual si parece JSON pero no lo es', () => {
+    const error = new HttpErrorResponse({ status: 400, error: '{roto' });
+    expect(mensajeDeError(error)).toBe('{roto');
+  });
+
   it('devuelve el campo message de un error JSON', () => {
     const error = new HttpErrorResponse({ status: 400, error: { message: 'Dato inválido' } });
     expect(mensajeDeError(error)).toBe('Dato inválido');

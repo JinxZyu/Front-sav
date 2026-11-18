@@ -6,6 +6,7 @@ export const USUARIO_ROUTES: Routes = [
     loadComponent: () =>
       import('./components/panel-acceso/panel-acceso').then((m) => m.PanelAcceso),
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'login' },
       {
         path: 'login',
         title: 'Iniciar sesión',
