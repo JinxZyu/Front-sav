@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SesionService } from '../../../config/auth/sesion.service';
@@ -19,6 +20,7 @@ export class Login {
   private readonly sesion = inject(SesionService);
   private readonly router = inject(Router);
   private readonly ruta = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly enviando = signal(false);
   readonly error = signal<string | null>(null);
@@ -43,35 +45,41 @@ export class Login {
     }
 
     this.enviando.set(true);
-    this.autenticacion.iniciarSesion(this.credenciales()).subscribe({
-      next: ({ token }) => {
-        this.enviando.set(false);
-        this.sesion.iniciar(token);
-        const destino = this.ruta.snapshot.queryParamMap.get('volverA') ?? '/';
-        void this.router.navigateByUrl(destino);
-      },
-      error: (error: unknown) => {
-        this.enviando.set(false);
-        this.manejarError(error);
-      },
-    });
+    this.autenticacion
+      .iniciarSesion(this.credenciales())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ token }) => {
+          this.enviando.set(false);
+          this.sesion.iniciar(token);
+          const destino = this.ruta.snapshot.queryParamMap.get('volverA') ?? '/';
+          void this.router.navigateByUrl(destino);
+        },
+        error: (error: unknown) => {
+          this.enviando.set(false);
+          this.manejarError(error);
+        },
+      });
   }
 
   reactivar(): void {
     this.limpiarMensajes();
     this.enviando.set(true);
-    this.autenticacion.reactivarCuenta(this.credenciales()).subscribe({
-      next: (mensaje) => {
-        this.enviando.set(false);
-        this.estadoCuenta.set('normal');
-        this.aviso.set(mensaje || 'Tu cuenta fue reactivada. Inicia sesión nuevamente.');
-      },
-      error: (error: unknown) => {
-        this.enviando.set(false);
-        this.estadoCuenta.set('normal');
-        this.error.set(mensajeDeError(error));
-      },
-    });
+    this.autenticacion
+      .reactivarCuenta(this.credenciales())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (mensaje) => {
+          this.enviando.set(false);
+          this.estadoCuenta.set('normal');
+          this.aviso.set(mensaje || 'Tu cuenta fue reactivada. Inicia sesión nuevamente.');
+        },
+        error: (error: unknown) => {
+          this.enviando.set(false);
+          this.estadoCuenta.set('normal');
+          this.error.set(mensajeDeError(error));
+        },
+      });
   }
 
   irAVerificar(): void {

@@ -165,7 +165,10 @@ describe('Login (HU-002)', () => {
     componente.reactivar();
     backend
       .expectOne(urlReactivar)
-      .flush('Tu cuenta tiene una restricción administrativa.', { status: 403, statusText: 'Forbidden' });
+      .flush('Tu cuenta tiene una restricción administrativa.', {
+        status: 403,
+        statusText: 'Forbidden',
+      });
 
     expect(componente.error()).toContain('restricción administrativa');
   });
@@ -190,8 +193,44 @@ describe('Login (HU-002)', () => {
     await crear();
     llenar();
     componente.iniciarSesion();
-    backend.expectOne(urlLogin).flush({ error: 'Bad Request' }, { status: 400, statusText: 'Bad Request' });
+    backend
+      .expectOne(urlLogin)
+      .flush({ error: 'Bad Request' }, { status: 400, statusText: 'Bad Request' });
 
     expect(componente.error()).toBe('Revisa el correo y la contraseña.');
+  });
+
+  it('marca los campos con error como aria-invalid', async () => {
+    await crear();
+    componente.iniciarSesion();
+    await fixture.whenStable();
+
+    const correo = (fixture.nativeElement as HTMLElement).querySelector(
+      'input[formControlName="correo"]',
+    );
+    expect(correo?.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('cancela el inicio de sesión si el usuario sale de la pantalla', async () => {
+    await crear();
+    llenar();
+    componente.iniciarSesion();
+    const peticion = backend.expectOne(urlLogin);
+
+    fixture.destroy();
+
+    expect(peticion.cancelled).toBe(true);
+    expect(sesion.autenticado()).toBe(false);
+  });
+
+  it('cancela la reactivación si el usuario sale de la pantalla', async () => {
+    await crear();
+    llenar();
+    componente.reactivar();
+    const peticion = backend.expectOne(urlReactivar);
+
+    fixture.destroy();
+
+    expect(peticion.cancelled).toBe(true);
   });
 });
