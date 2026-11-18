@@ -7,6 +7,11 @@ export const USUARIO_ROUTES: Routes = [
       import('./components/panel-acceso/panel-acceso').then((m) => m.PanelAcceso),
     children: [
       {
+        path: 'login',
+        title: 'Iniciar sesión',
+        loadComponent: () => import('./pages/login/login').then((m) => m.Login),
+      },
+      {
         path: 'registro',
         title: 'Crear cuenta',
         loadComponent: () => import('./pages/registro/registro').then((m) => m.Registro),

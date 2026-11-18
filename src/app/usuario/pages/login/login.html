@@ -1,0 +1,48 @@
+<section class="tarjeta">
+  <h1>Iniciar sesión</h1>
+
+  <form [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
+    <label>
+      Correo electrónico
+      <input type="email" formControlName="correo" autocomplete="email" [class.invalido]="invalido('correo')" />
+      @if (invalido('correo')) {
+        <span class="error-campo">Ingresa un correo válido.</span>
+      }
+    </label>
+
+    <label>
+      Contraseña
+      <input type="password" formControlName="contrasena" autocomplete="current-password" [class.invalido]="invalido('contrasena')" />
+      @if (invalido('contrasena')) {
+        <span class="error-campo">La contraseña es obligatoria.</span>
+      }
+    </label>
+
+    @if (error()) {
+      <p class="alerta error" role="alert">{{ error() }}</p>
+    }
+    @if (aviso()) {
+      <p class="alerta exito" role="status">{{ aviso() }}</p>
+    }
+
+    @switch (estadoCuenta()) {
+      @case ('desactivada') {
+        <div class="alerta error" role="alert">
+          <p>Tu cuenta está desactivada. Puedes reactivarla para volver a usarla.</p>
+        </div>
+        <button type="button" (click)="reactivar()" [disabled]="enviando()">Reactivar mi cuenta</button>
+      }
+      @case ('sin-verificar') {
+        <div class="alerta error" role="alert">
+          <p>Debes verificar tu correo antes de iniciar sesión.</p>
+        </div>
+        <button type="button" (click)="irAVerificar()">Verificar mi correo</button>
+      }
+      @default {
+        <button type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Entrando…' : 'Iniciar sesión' }}
+        </button>
+      }
+    }
+  </form>
+</section>

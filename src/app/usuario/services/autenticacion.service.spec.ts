@@ -48,4 +48,22 @@ describe('AutenticacionService', () => {
     expect(peticion.request.params.get('correo')).toBe('a@b.co');
     peticion.flush('Se envió un nuevo código.');
   });
+
+  it('iniciarSesion envía las credenciales y recibe el token', () => {
+    let token = '';
+    servicio.iniciarSesion({ correo: 'a@b.co', contrasena: 'x' }).subscribe((r) => (token = r.token));
+
+    const peticion = backend.expectOne(`${api}/autenticacion/login`);
+    expect(peticion.request.body).toEqual({ correo: 'a@b.co', contrasena: 'x' });
+    peticion.flush({ token: 'jwt', tipo: 'Bearer' });
+    expect(token).toBe('jwt');
+  });
+
+  it('reactivarCuenta envía las credenciales y recibe el texto del backend', () => {
+    let respuesta = '';
+    servicio.reactivarCuenta({ correo: 'a@b.co', contrasena: 'x' }).subscribe((r) => (respuesta = r));
+
+    backend.expectOne(`${api}/autenticacion/reactivar`).flush('Cuenta reactivada.');
+    expect(respuesta).toBe('Cuenta reactivada.');
+  });
 });
