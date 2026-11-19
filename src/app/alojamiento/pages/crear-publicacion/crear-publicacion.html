@@ -2,7 +2,16 @@
   @if (creada(); as creada) {
     <div class="exito">
       <span class="icono-exito" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7" /></svg>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m5 12 5 5L20 7" />
+        </svg>
       </span>
       <h1 id="titulo-crear" #tituloExito tabindex="-1">¡Tu publicación quedó guardada!</h1>
       <p>
@@ -12,14 +21,35 @@
       <button type="button" class="principal" (click)="crearOtra()">Crear otra publicación</button>
       <a routerLink="/alojamientos" class="boton-texto">Ver mis alojamientos</a>
     </div>
+  } @else if (!listo()) {
+    <h1 id="titulo-crear">Editar publicación</h1>
+    @if (noEncontrada()) {
+      <p class="alerta" role="alert">
+        No encontramos esta publicación o no pertenece a tu cuenta.
+        <a routerLink="/alojamientos" class="boton-texto">Volver a mis alojamientos</a>
+      </p>
+    } @else if (errorCarga(); as errorCarga) {
+      <p class="alerta" role="alert">
+        {{ errorCarga }}
+        <button type="button" class="boton-texto" (click)="original.reload()">
+          Intentar de nuevo
+        </button>
+      </p>
+    } @else {
+      <p class="ayuda" role="status">Cargando publicación…</p>
+    }
   } @else {
     <header class="cabecera">
-      <h1 id="titulo-crear">Publicar alojamiento</h1>
+      <h1 id="titulo-crear">{{ edicion() ? 'Editar publicación' : 'Publicar alojamiento' }}</h1>
       <p class="subtitulo">
-        Completa la información de tu alojamiento. Se guardará como borrador hasta que lo envíes a
-        revisión.
+        @if (edicion()) {
+          Actualiza la información de tu publicación. Su estado no cambia al guardar.
+        } @else {
+          Completa la información de tu alojamiento. Se guardará como borrador hasta que lo envíes
+          a revisión.
+        }
       </p>
-      @if (cuenta.hasValue()) {
+      @if (!edicion() && cuenta.hasValue()) {
         <p class="propietario">
           Se publicará a nombre de
           <strong>{{ cuenta.value().nombre }} {{ cuenta.value().apellido }}</strong> ·
@@ -59,7 +89,7 @@
             [attr.aria-describedby]="invalido('tipoAlojamiento') ? 'error-tipoAlojamiento' : null"
           >
             <option value="" disabled>Selecciona un tipo</option>
-            @for (tipo of tipos; track tipo) {
+            @for (tipo of tipos(); track tipo) {
               <option [value]="tipo">{{ tipo }}</option>
             }
           </select>
@@ -292,6 +322,9 @@
           } @else {
             <p class="ayuda" role="status">Cargando políticas…</p>
           }
+          @if (politicaInactiva()) {
+            <p class="ayuda">La política que tenías ya no está activa. Elige una de las actuales.</p>
+          }
           @if (invalido('idPolitica')) {
             <span class="error-campo" id="error-idPolitica"
               >Elige una política de cancelación.</span
@@ -349,6 +382,27 @@
 
       <fieldset [disabled]="enviando()">
         <legend>Imágenes</legend>
+        @if (edicion()) {
+          @if (imagenesActuales().length) {
+            <ul class="actuales" aria-label="Imágenes actuales">
+              @for (imagen of imagenesActuales(); track imagen.idImagen; let indice = $index) {
+                <li>
+                  <app-imagen-publicacion
+                    [ruta]="imagen.rutaImagen"
+                    [descripcion]="'Imagen actual ' + (indice + 1)"
+                  />
+                </li>
+              }
+            </ul>
+          }
+          <p class="ayuda" id="ayuda-imagenes">
+            @if (imagenes().length) {
+              Al guardar, estas {{ imagenes().length }} imágenes reemplazarán a las actuales.
+            } @else {
+              Si no agregas imágenes nuevas, se conservan las actuales.
+            }
+          </p>
+        }
         <app-selector-imagenes
           [(archivos)]="imagenes"
           [deshabilitado]="enviando()"
@@ -378,8 +432,15 @@
       }
 
       <div class="acciones">
+        @if (edicion()) {
+          <a class="boton-texto" [routerLink]="['/alojamientos', idPublicacion()]">Cancelar</a>
+        }
         <button type="submit" class="principal" [disabled]="enviando()">
-          {{ enviando() ? 'Guardando…' : 'Guardar publicación' }}
+          @if (enviando()) {
+            Guardando…
+          } @else {
+            {{ edicion() ? 'Guardar cambios' : 'Guardar publicación' }}
+          }
         </button>
       </div>
     </form>

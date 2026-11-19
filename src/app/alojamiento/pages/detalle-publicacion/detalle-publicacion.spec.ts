@@ -39,7 +39,7 @@ describe('DetallePublicacion (HU-011)', () => {
     ...cambios,
   });
 
-  const crear = () => {
+  const crear = (aviso?: string) => {
     restaurarUrls = simularUrlsDeObjeto(() => 'blob:x', vi.fn());
     TestBed.configureTestingModule({
       providers: [
@@ -48,7 +48,10 @@ describe('DetallePublicacion (HU-011)', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: of(convertToParamMap({ idPublicacion: 'p-1' })) },
+          useValue: {
+            paramMap: of(convertToParamMap({ idPublicacion: 'p-1' })),
+            queryParamMap: of(convertToParamMap(aviso ? { aviso } : {})),
+          },
         },
       ],
     });
@@ -92,6 +95,25 @@ describe('DetallePublicacion (HU-011)', () => {
     expect(texto).toContain('4 huéspedes');
     expect(texto).toContain('Con mi aprobación');
     expect(texto).not.toContain('Última actualización');
+  });
+
+  it('permite editar la publicación desde el detalle', async () => {
+    crear();
+    backend.expectOne(url).flush(detalle({ imagenes: [] }));
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('a.editar')?.getAttribute('href')).toBe('/alojamientos/p-1/editar');
+    expect(elemento().querySelector('.aviso')).toBeNull();
+  });
+
+  it('confirma que se guardaron los cambios al volver de editar', async () => {
+    crear('actualizada');
+    backend.expectOne(url).flush(detalle({ imagenes: [] }));
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.aviso[role="status"]')?.textContent).toContain(
+      'Guardamos los cambios',
+    );
   });
 
   it('pone la portada de primera en la galería', async () => {

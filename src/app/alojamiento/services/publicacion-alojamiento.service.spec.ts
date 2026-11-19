@@ -84,4 +84,31 @@ describe('PublicacionAlojamientoService', () => {
     primera.flush(new Blob(['a']));
     backend.expectOne(`${api}/imagenes/publicaciones/b.jpg`).flush(new Blob(['b']));
   });
+
+  it('edita la publicación con PUT y sin imágenes si no se cambian', () => {
+    servicio
+      .editar('p 9', {
+        titulo: 'Cabaña',
+        descripcion: 'Junto al lago',
+        reglas: 'No fumar',
+        ubicacion: 'Vereda El Lago',
+        ciudad: 'Guatavita',
+        tipoAlojamiento: 'Cabaña',
+        capacidad: 4,
+        precioPorNoche: 250000,
+        tarifaLimpieza: 0,
+        modoAceptacion: 'APROBACION',
+        idPolitica: 'p-1',
+        idsServicios: ['s-1'],
+        imagenes: [],
+      })
+      .subscribe();
+
+    const peticion = backend.expectOne(`${api}/publicaciones/p%209`);
+    expect(peticion.request.method).toBe('PUT');
+    const cuerpo = peticion.request.body as FormData;
+    expect(cuerpo.get('modoAceptacion')).toBe('APROBACION');
+    expect(cuerpo.getAll('imagenes')).toEqual([]);
+    peticion.flush({});
+  });
 });

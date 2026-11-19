@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   DestroyRef,
@@ -8,9 +9,10 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
-import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -18,18 +20,21 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { finalize, map } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { PATRON_CON_TEXTO } from '../../../shared/utils/validadores';
 import { CuentaService } from '../../../usuario/services/cuenta.service';
+import { ImagenPublicacion } from '../../components/imagen-publicacion/imagen-publicacion';
 import {
   MAX_IMAGENES,
   SelectorImagenes,
 } from '../../components/selector-imagenes/selector-imagenes';
 import {
+  DetallePublicacion,
   MODOS_ACEPTACION,
   ModoAceptacion,
+  PoliticaCancelacion,
   PublicacionCreada,
   TIPOS_ALOJAMIENTO,
 } from '../../models/alojamiento.models';
@@ -68,7 +73,7 @@ type Campo = keyof typeof ETIQUETAS;
 
 @Component({
   selector: 'app-crear-publicacion',
-  imports: [ReactiveFormsModule, RouterLink, SelectorImagenes],
+  imports: [ReactiveFormsModule, RouterLink, SelectorImagenes, ImagenPublicacion],
   templateUrl: './crear-publicacion.html',
   styleUrl: './crear-publicacion.css',
 })
@@ -78,9 +83,47 @@ export class CrearPublicacion {
   private readonly injector = inject(Injector);
   private readonly resumenErrores = viewChild<ElementRef<HTMLElement>>('resumenErrores');
   private readonly tituloExito = viewChild<ElementRef<HTMLElement>>('tituloExito');
+  private readonly router = inject(Router);
+
+  readonly idPublicacion = toSignal(
+    inject(ActivatedRoute).paramMap.pipe(map((parametros) => parametros.get('idPublicacion'))),
+    { initialValue: null },
+  );
+  readonly edicion = computed(() => this.idPublicacion() !== null);
+
+  readonly original = rxResource({
+    params: () => this.idPublicacion() ?? undefined,
+    stream: ({ params }) => this.servicio.detalle(params),
+  });
+
+  private readonly cargada = signal<string | null>(null);
+  readonly listo = computed(() => !this.edicion() || this.cargada() === this.idPublicacion());
+  readonly politicaInactiva = signal(false);
+
+  readonly noEncontrada = computed(() => {
+    const error = this.original.status() === 'error' ? this.original.error() : null;
+    return error instanceof HttpErrorResponse && [400, 403, 404].includes(error.status);
+  });
+
+  readonly errorCarga = computed(() =>
+    this.original.status() === 'error' && !this.noEncontrada()
+      ? mensajeDeError(this.original.error(), 'No pudimos cargar la publicación.')
+      : null,
+  );
+
+  readonly imagenesActuales = computed(() => {
+    const imagenes = this.original.hasValue() ? [...this.original.value().imagenes] : [];
+    return imagenes.sort((a, b) => Number(b.esPortada) - Number(a.esPortada) || a.orden - b.orden);
+  });
+
+  readonly tipos = computed<readonly string[]>(() => {
+    const actual = this.original.hasValue() ? this.original.value().tipoAlojamiento : '';
+    return actual && !(TIPOS_ALOJAMIENTO as readonly string[]).includes(actual)
+      ? [...TIPOS_ALOJAMIENTO, actual]
+      : TIPOS_ALOJAMIENTO;
+  });
 
   readonly cuenta = inject(CuentaService).actual;
-  readonly tipos = TIPOS_ALOJAMIENTO;
   readonly modos = MODOS_ACEPTACION;
   readonly maxImagenes = MAX_IMAGENES;
 
@@ -97,7 +140,7 @@ export class CrearPublicacion {
   readonly imagenesInvalidas = computed(
     () =>
       this.intentoEnviar() &&
-      (this.imagenes().length === 0 || this.imagenes().length > MAX_IMAGENES),
+      ((!this.edicion() && this.imagenes().length === 0) || this.imagenes().length > MAX_IMAGENES),
   );
 
   readonly formulario = inject(FormBuilder).nonNullable.group({
@@ -133,6 +176,18 @@ export class CrearPublicacion {
     effect(() => {
       this.imagenes();
       this.actualizarFaltantes();
+    });
+    effect(() => {
+      const detalle = this.original.hasValue() ? this.original.value() : null;
+      const politicas = this.politicas.hasValue() ? this.politicas.value() : null;
+      untracked(() => {
+        if (detalle && detalle.idPublicacion !== this.cargada()) {
+          this.rellenar(detalle);
+        }
+        if (detalle && politicas) {
+          this.descartarPoliticaInactiva(politicas);
+        }
+      });
     });
   }
 
@@ -178,36 +233,50 @@ export class CrearPublicacion {
     }
 
     const valores = this.formulario.getRawValue();
+    const idPublicacion = this.idPublicacion();
+    const datos = {
+      titulo: valores.titulo.trim(),
+      descripcion: valores.descripcion.trim(),
+      reglas: valores.reglas.trim(),
+      ubicacion: valores.ubicacion.trim(),
+      ciudad: valores.ciudad.trim(),
+      tipoAlojamiento: valores.tipoAlojamiento,
+      capacidad: Number(valores.capacidad),
+      precioPorNoche: Number(valores.precioPorNoche),
+      tarifaLimpieza: Number(valores.tarifaLimpieza || 0),
+      modoAceptacion: valores.modoAceptacion as ModoAceptacion,
+      idPolitica: valores.idPolitica,
+      idsServicios: valores.idsServicios,
+      imagenes: this.imagenes(),
+    };
     this.enviando.set(true);
-    this.servicio
-      .crear({
-        titulo: valores.titulo.trim(),
-        descripcion: valores.descripcion.trim(),
-        reglas: valores.reglas.trim(),
-        ubicacion: valores.ubicacion.trim(),
-        ciudad: valores.ciudad.trim(),
-        tipoAlojamiento: valores.tipoAlojamiento,
-        capacidad: Number(valores.capacidad),
-        precioPorNoche: Number(valores.precioPorNoche),
-        tarifaLimpieza: Number(valores.tarifaLimpieza || 0),
-        modoAceptacion: valores.modoAceptacion as ModoAceptacion,
-        idPolitica: valores.idPolitica,
-        idsServicios: valores.idsServicios,
-        imagenes: this.imagenes(),
-      })
+    (idPublicacion ? this.servicio.editar(idPublicacion, datos) : this.servicio.crear(datos))
       .pipe(
         finalize(() => this.enviando.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (respuesta) => {
+          if (idPublicacion) {
+            void this.router.navigate(['/alojamientos', idPublicacion], {
+              queryParams: { aviso: 'actualizada' },
+            });
+            return;
+          }
           this.creada.set(respuesta);
           afterNextRender(() => this.tituloExito()?.nativeElement.focus(), {
             injector: this.injector,
           });
         },
         error: (error: unknown) =>
-          this.error.set(mensajeDeError(error, 'No pudimos crear la publicación.')),
+          this.error.set(
+            mensajeDeError(
+              error,
+              idPublicacion
+                ? 'No pudimos guardar los cambios.'
+                : 'No pudimos crear la publicación.',
+            ),
+          ),
       });
   }
 
@@ -215,7 +284,7 @@ export class CrearPublicacion {
     const faltantes: string[] = (Object.keys(ETIQUETAS) as Campo[])
       .filter((campo) => this.formulario.controls[campo].invalid)
       .map((campo) => ETIQUETAS[campo]);
-    if (this.imagenes().length === 0) {
+    if (!this.edicion() && this.imagenes().length === 0) {
       faltantes.push('Imágenes');
     }
     return faltantes;
@@ -224,6 +293,39 @@ export class CrearPublicacion {
   private actualizarFaltantes(): void {
     if (this.intentoEnviar()) {
       this.faltantes.set(this.calcularFaltantes());
+    }
+  }
+
+  private rellenar(detalle: DetallePublicacion): void {
+    this.formulario.reset({
+      titulo: detalle.titulo,
+      descripcion: detalle.descripcion,
+      reglas: detalle.reglas ?? '',
+      ubicacion: detalle.ubicacion,
+      ciudad: detalle.ciudad,
+      tipoAlojamiento: detalle.tipoAlojamiento,
+      capacidad: String(detalle.capacidad),
+      precioPorNoche: String(detalle.precioPorNoche),
+      tarifaLimpieza: String(detalle.tarifaLimpieza ?? 0),
+      modoAceptacion: MODOS_ACEPTACION.some((modo) => modo.valor === detalle.modoAceptacion)
+        ? (detalle.modoAceptacion as ModoAceptacion)
+        : '',
+      idPolitica: detalle.idPolitica,
+      idsServicios: detalle.servicios.map((servicio) => servicio.idServicio),
+    });
+    this.imagenes.set([]);
+    this.intentoEnviar.set(false);
+    this.faltantes.set([]);
+    this.error.set(null);
+    this.politicaInactiva.set(false);
+    this.cargada.set(detalle.idPublicacion);
+  }
+
+  private descartarPoliticaInactiva(politicas: PoliticaCancelacion[]): void {
+    const control = this.formulario.controls.idPolitica;
+    if (control.value && !politicas.some((politica) => politica.idPolitica === control.value)) {
+      control.setValue('');
+      this.politicaInactiva.set(true);
     }
   }
 

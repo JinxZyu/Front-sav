@@ -25,25 +25,14 @@ export class PublicacionAlojamientoService {
   }
 
   crear(datos: NuevaPublicacion): Observable<PublicacionCreada> {
-    const formulario = new FormData();
-    formulario.append('titulo', datos.titulo);
-    formulario.append('descripcion', datos.descripcion);
-    formulario.append('reglas', datos.reglas);
-    formulario.append('ubicacion', datos.ubicacion);
-    formulario.append('ciudad', datos.ciudad);
-    formulario.append('tipoAlojamiento', datos.tipoAlojamiento);
-    formulario.append('capacidad', String(datos.capacidad));
-    formulario.append('precioPorNoche', String(datos.precioPorNoche));
-    formulario.append('tarifaLimpieza', String(datos.tarifaLimpieza));
-    formulario.append('modoAceptacion', datos.modoAceptacion);
-    formulario.append('idPolitica', datos.idPolitica);
-    for (const idServicio of datos.idsServicios) {
-      formulario.append('idsServicios', idServicio);
-    }
-    for (const imagen of datos.imagenes) {
-      formulario.append('imagenes', imagen, imagen.name);
-    }
-    return this.http.post<PublicacionCreada>(`${this.api}/alojamientos`, formulario);
+    return this.http.post<PublicacionCreada>(`${this.api}/alojamientos`, comoFormulario(datos));
+  }
+
+  editar(idPublicacion: string, datos: NuevaPublicacion): Observable<PublicacionCreada> {
+    return this.http.put<PublicacionCreada>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}`,
+      comoFormulario(datos),
+    );
   }
 
   misPublicaciones(): Observable<MisPublicaciones> {
@@ -60,4 +49,26 @@ export class PublicacionAlojamientoService {
     const separador = ruta.startsWith('/') ? '' : '/';
     return this.http.get(`${this.api}${separador}${ruta}`, { responseType: 'blob' });
   }
+}
+
+function comoFormulario(datos: NuevaPublicacion): FormData {
+  const formulario = new FormData();
+  formulario.append('titulo', datos.titulo);
+  formulario.append('descripcion', datos.descripcion);
+  formulario.append('reglas', datos.reglas);
+  formulario.append('ubicacion', datos.ubicacion);
+  formulario.append('ciudad', datos.ciudad);
+  formulario.append('tipoAlojamiento', datos.tipoAlojamiento);
+  formulario.append('capacidad', String(datos.capacidad));
+  formulario.append('precioPorNoche', String(datos.precioPorNoche));
+  formulario.append('tarifaLimpieza', String(datos.tarifaLimpieza));
+  formulario.append('modoAceptacion', datos.modoAceptacion);
+  formulario.append('idPolitica', datos.idPolitica);
+  for (const idServicio of datos.idsServicios) {
+    formulario.append('idsServicios', idServicio);
+  }
+  for (const imagen of datos.imagenes) {
+    formulario.append('imagenes', imagen, imagen.name);
+  }
+  return formulario;
 }
