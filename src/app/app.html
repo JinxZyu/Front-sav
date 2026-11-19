@@ -5,8 +5,7 @@
   <nav>
     <a routerLink="/publicaciones" routerLinkActive="activo">Alojamientos</a>
     @if (sesion.autenticado()) {
-      <span class="usuario">{{ sesion.correo() }} · {{ nombreRol() }}</span>
-      <button type="button" (click)="cerrarSesion()">Cerrar sesión</button>
+      <app-menu-usuario />
     } @else {
       <a routerLink="/usuario/login" routerLinkActive="activo" class="opcional">Iniciar sesión</a>
       <a routerLink="/usuario/registro" class="destacado">Registrarse</a>

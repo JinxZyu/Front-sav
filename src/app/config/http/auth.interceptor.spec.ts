@@ -32,7 +32,7 @@ describe('authInterceptor', () => {
     backend = TestBed.inject(HttpTestingController);
     sesion = TestBed.inject(SesionService);
     router = TestBed.inject(Router);
-    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
   });
 
   afterEach(() => backend.verify());
@@ -68,11 +68,29 @@ describe('authInterceptor', () => {
     let fallo = false;
     http.get(urlBackend).subscribe({ error: () => (fallo = true) });
 
-    backend.expectOne(urlBackend).flush('No autorizado', { status: 401, statusText: 'Unauthorized' });
+    backend
+      .expectOne(urlBackend)
+      .flush('No autorizado', { status: 401, statusText: 'Unauthorized' });
 
     expect(fallo).toBe(true);
     expect(sesion.autenticado()).toBe(false);
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/usuario/login');
+    expect(router.navigate).toHaveBeenCalledWith(['/usuario/login'], {
+      queryParams: { volverA: null },
+    });
+  });
+
+  it('recuerda la página en la que estaba el usuario al vencer la sesión', () => {
+    sesion.iniciar(token);
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/reservas/mias');
+    http.get(urlBackend).subscribe({ error: () => undefined });
+
+    backend
+      .expectOne(urlBackend)
+      .flush('No autorizado', { status: 401, statusText: 'Unauthorized' });
+
+    expect(router.navigate).toHaveBeenCalledWith(['/usuario/login'], {
+      queryParams: { volverA: '/reservas/mias' },
+    });
   });
 
   it('no cierra la sesión con otros errores', () => {
@@ -82,7 +100,7 @@ describe('authInterceptor', () => {
     backend.expectOne(urlBackend).flush('Error', { status: 500, statusText: 'Server Error' });
 
     expect(sesion.autenticado()).toBe(true);
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('no cierra una sesión nueva por un 401 tardío de la sesión anterior', () => {
@@ -95,10 +113,12 @@ describe('authInterceptor', () => {
     });
     sesion.iniciar(nuevoToken);
 
-    backend.expectOne(urlBackend).flush('No autorizado', { status: 401, statusText: 'Unauthorized' });
+    backend
+      .expectOne(urlBackend)
+      .flush('No autorizado', { status: 401, statusText: 'Unauthorized' });
 
     expect(sesion.token()).toBe(nuevoToken);
     expect(sesion.autenticado()).toBe(true);
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 });

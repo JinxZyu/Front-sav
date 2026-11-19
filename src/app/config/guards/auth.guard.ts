@@ -24,5 +24,5 @@ export const rolGuard =
     if (!sesion.autenticado()) {
       return irAlLogin(router, segmentos);
     }
-    return sesion.tieneRol(...roles) || router.parseUrl('/');
+    return sesion.tieneRol(...roles) || router.parseUrl('/publicaciones');
   };

@@ -50,8 +50,7 @@ nav a.destacado {
   font-weight: 600;
 }
 
-nav a,
-nav button {
+nav a {
   white-space: nowrap;
 }
 
@@ -75,46 +74,6 @@ nav button {
 
   nav a.destacado {
     padding: 0.45rem 0.9rem;
-  }
-}
-
-.usuario {
-  color: #475569;
-  font-size: 0.9rem;
-}
-
-nav button {
-  padding: 0.5rem 1.1rem;
-  border: 1.5px solid #6366f1;
-  border-radius: 999px;
-  background: transparent;
-  color: #4f46e5;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-@media (width < 40rem) {
-  .encabezado {
-    height: auto;
-    min-height: 4.5rem;
-    padding-block: 0.6rem;
-  }
-
-  nav {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    row-gap: 0.3rem;
-  }
-
-  .usuario {
-    order: 3;
-    flex-basis: 100%;
-    overflow: hidden;
-    font-size: 0.78rem;
-    text-align: right;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 }
 

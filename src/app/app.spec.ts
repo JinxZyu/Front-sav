@@ -1,5 +1,7 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { SesionService } from './config/auth/sesion.service';
 import { crearToken } from './config/auth/sesion.testing';
@@ -7,7 +9,9 @@ import { crearToken } from './config/auth/sesion.testing';
 describe('App', () => {
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
   });
 
   const crear = async () => {
@@ -16,39 +20,35 @@ describe('App', () => {
     return fixture;
   };
 
-  const texto = (fixture: { nativeElement: HTMLElement }) => fixture.nativeElement.textContent ?? '';
+  const elemento = (fixture: { nativeElement: HTMLElement }) => fixture.nativeElement;
 
   it('sin sesión muestra las opciones para entrar o registrarse', async () => {
     const fixture = await crear();
 
-    const logo = fixture.nativeElement.querySelector('.marca img') as HTMLImageElement;
+    const logo = elemento(fixture).querySelector('.marca img') as HTMLImageElement;
     expect(logo.alt).toBe('SAV');
-    expect(texto(fixture)).toContain('Alojamientos');
-    expect(texto(fixture)).toContain('Iniciar sesión');
-    expect(texto(fixture)).toContain('Registrarse');
+    expect(elemento(fixture).textContent).toContain('Alojamientos');
+    expect(elemento(fixture).textContent).toContain('Iniciar sesión');
+    expect(elemento(fixture).textContent).toContain('Registrarse');
+    expect(elemento(fixture).querySelector('app-menu-usuario')).toBeNull();
   });
 
-  it('con sesión muestra el correo y el rol, y permite cerrar sesión', async () => {
-    const sesion = TestBed.inject(SesionService);
-    sesion.iniciar(
-      crearToken({ sub: 'ana@correo.com', role: 'ANFITRION', exp: Math.floor(Date.now() / 1000) + 3600 }),
+  it('con sesión muestra el menú del usuario en lugar de entrar o registrarse', async () => {
+    TestBed.inject(SesionService).iniciar(
+      crearToken({
+        sub: 'ana@correo.com',
+        role: 'ANFITRION',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
     );
-    const router = TestBed.inject(Router);
-    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-    const fixture = await crear();
-
-    expect(texto(fixture)).toContain('ana@correo.com · Anfitrión');
-
-    fixture.componentInstance.cerrarSesion();
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne(() => true)
+      .flush({ nombre: 'Ana', apellido: 'Pérez' });
     await fixture.whenStable();
 
-    expect(sesion.autenticado()).toBe(false);
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/usuario/login');
-    expect(texto(fixture)).toContain('Registrarse');
-  });
-
-  it('no muestra rol si la sesión no tiene uno válido', () => {
-    const fixture = TestBed.createComponent(App);
-    expect((fixture.componentInstance as unknown as { nombreRol: () => string }).nombreRol()).toBe('');
+    expect(elemento(fixture).querySelector('app-menu-usuario')).not.toBeNull();
+    expect(elemento(fixture).textContent).not.toContain('Registrarse');
   });
 });

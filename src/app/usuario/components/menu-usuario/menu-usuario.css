@@ -1,0 +1,174 @@
+:host {
+  position: relative;
+  display: block;
+}
+
+.disparador {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.6rem 0.25rem 0.25rem;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #1e1b4b;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.disparador:hover,
+.disparador[aria-expanded='true'] {
+  border-color: rgb(99 102 241 / 30%);
+  background: rgb(99 102 241 / 8%);
+}
+
+.disparador:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.avatar.grande {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.1rem;
+}
+
+.nombre-corto {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flecha {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  z-index: 20;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 0.5rem;
+  border: 1px solid rgb(226 232 240 / 90%);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 18px 40px rgb(30 27 75 / 18%);
+  backdrop-filter: blur(14px);
+}
+
+.identidad {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.6rem 0.8rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.datos {
+  min-width: 0;
+}
+
+.datos p {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nombre {
+  color: #1e1b4b;
+  font-weight: 700;
+}
+
+.correo {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.rol {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: rgb(99 102 241 / 12%);
+  color: #4f46e5;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.65rem 0.7rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.opcion:hover,
+.opcion:focus-visible {
+  outline: none;
+  background: rgb(99 102 241 / 10%);
+  color: #4f46e5;
+}
+
+.opcion.salir:hover,
+.opcion.salir:focus-visible {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.opcion svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (width < 30rem) {
+  .nombre-corto,
+  .flecha {
+    display: none;
+  }
+
+  .disparador {
+    padding: 0.2rem;
+  }
+}

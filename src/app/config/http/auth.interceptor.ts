@@ -13,16 +13,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = sesion.token();
 
   const peticion =
-    esBackend && token
-      ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-      : req;
+    esBackend && token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 
   return next(peticion).pipe(
     catchError((error: unknown) => {
       const esSesionActual = token !== null && sesion.token() === token;
-      if (esBackend && esSesionActual && error instanceof HttpErrorResponse && error.status === 401) {
+      if (
+        esBackend &&
+        esSesionActual &&
+        error instanceof HttpErrorResponse &&
+        error.status === 401
+      ) {
         sesion.cerrar();
-        void router.navigateByUrl('/usuario/login');
+        const actual = router.url;
+        const volverA = actual === '/' || actual.startsWith('/usuario') ? null : actual;
+        void router.navigate(['/usuario/login'], { queryParams: { volverA } });
       }
       return throwError(() => error);
     }),
