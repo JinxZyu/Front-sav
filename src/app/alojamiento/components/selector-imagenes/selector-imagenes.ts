@@ -129,7 +129,7 @@ export class SelectorImagenes {
     }
     void this.tareas.run(async () => {
       const formatos = await Promise.all(nuevos.map(leerFormato));
-      if (!this.destruccion.destroyed) {
+      if (!this.destruccion.destroyed && !this.deshabilitado()) {
         this.aplicar(nuevos, formatos);
       }
     });
