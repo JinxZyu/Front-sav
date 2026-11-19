@@ -4,8 +4,10 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   CambioEstadoPublicacion,
+  ConfiguracionComercial,
   DetallePublicacion,
   MisPublicaciones,
+  NuevaConfiguracionComercial,
   NuevaPublicacion,
   PoliticaCancelacion,
   PoliticaDePublicacion,
@@ -78,6 +80,22 @@ export class PublicacionAlojamientoService {
     return this.http.patch<PoliticaDePublicacion>(
       `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/politica-cancelacion`,
       { idPolitica },
+    );
+  }
+
+  configuracionComercial(idPublicacion: string): Observable<ConfiguracionComercial> {
+    return this.http.get<ConfiguracionComercial>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/configuracion-comercial`,
+    );
+  }
+
+  guardarConfiguracionComercial(
+    idPublicacion: string,
+    datos: NuevaConfiguracionComercial,
+  ): Observable<ConfiguracionComercial> {
+    return this.http.put<ConfiguracionComercial>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/configuracion-comercial`,
+      datos,
     );
   }
 

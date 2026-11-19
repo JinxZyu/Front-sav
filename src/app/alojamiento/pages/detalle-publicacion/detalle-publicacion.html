@@ -95,6 +95,11 @@
           [idPublicacion]="publicacion.idPublicacion"
           [editable]="publicacion.estado !== 'BLOQUEADA'"
         />
+        <app-tarifas-publicacion
+          [idPublicacion]="publicacion.idPublicacion"
+          [editable]="publicacion.estado !== 'BLOQUEADA'"
+          (guardado)="reintentar()"
+        />
       </div>
     </section>
   } @else if (noEncontrada()) {

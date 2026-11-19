@@ -149,3 +149,23 @@ export interface PoliticaDePublicacion extends PoliticaCancelacion {
 export function formatearPorcentaje(valor: number | null): string {
   return valor === null ? '' : `${Number(valor)} %`;
 }
+
+export interface ServicioAdicional {
+  idAdicional: string;
+  nombre: string;
+  descripcion: string | null;
+  costo: number;
+  activo: boolean;
+}
+
+export interface ConfiguracionComercial {
+  idPublicacion: string;
+  tarifaLimpieza: number;
+  serviciosAdicionales: ServicioAdicional[];
+  fechaActualizacion: string | null;
+}
+
+export interface NuevaConfiguracionComercial {
+  tarifaLimpieza: number;
+  serviciosAdicionales: { nombre: string; descripcion: string | null; costo: number }[];
+}

@@ -140,4 +140,21 @@ describe('PublicacionAlojamientoService', () => {
     consulta.flush({});
     cambio.flush({});
   });
+
+  it('consulta y guarda la configuración comercial', () => {
+    const datos = { tarifaLimpieza: 0, serviciosAdicionales: [] };
+    servicio.configuracionComercial('p-1').subscribe();
+    servicio.guardarConfiguracionComercial('p-1', datos).subscribe();
+    const consulta = backend.expectOne(
+      (peticion) =>
+        peticion.method === 'GET' && peticion.url.endsWith('/p-1/configuracion-comercial'),
+    );
+    const guardado = backend.expectOne(
+      (peticion) =>
+        peticion.method === 'PUT' && peticion.url.endsWith('/p-1/configuracion-comercial'),
+    );
+    expect(guardado.request.body).toEqual(datos);
+    consulta.flush({});
+    guardado.flush({});
+  });
 });

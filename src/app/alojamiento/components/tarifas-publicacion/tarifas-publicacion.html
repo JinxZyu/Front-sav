@@ -1,0 +1,127 @@
+<div class="encabezado">
+  <h3 id="titulo-tarifas">Tarifa de limpieza y servicios adicionales</h3>
+  @if (editable() && actual.hasValue() && !editando()) {
+    <button type="button" class="texto" (click)="cambiar()">Cambiar</button>
+  }
+</div>
+
+@if (editando()) {
+  <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <fieldset class="campos" [disabled]="guardando()">
+      <label>
+        Tarifa de limpieza (COP)
+        <input
+          formControlName="tarifaLimpieza"
+          inputmode="numeric"
+          [attr.aria-invalid]="invalido(formulario.controls.tarifaLimpieza)"
+          [attr.aria-describedby]="
+            invalido(formulario.controls.tarifaLimpieza) ? 'error-tarifa' : null
+          "
+        />
+        @if (invalido(formulario.controls.tarifaLimpieza)) {
+          <span class="error-campo" id="error-tarifa">Ingresa un valor entero, 0 o mayor.</span>
+        }
+      </label>
+
+      <p class="subtitulo-servicios">Servicios adicionales</p>
+      @for (fila of filas.controls; track fila; let indice = $index) {
+        <div
+          class="fila"
+          [formGroup]="fila"
+          role="group"
+          [attr.aria-label]="'Servicio ' + (indice + 1)"
+        >
+          <label>
+            Nombre
+            <input
+              formControlName="nombre"
+              maxlength="100"
+              [attr.aria-invalid]="invalido(fila.get('nombre'))"
+              [attr.aria-describedby]="
+                invalido(fila.get('nombre')) ? 'error-nombre-' + indice : null
+              "
+            />
+            @if (invalido(fila.get('nombre'))) {
+              <span class="error-campo" [id]="'error-nombre-' + indice">Escribe el nombre.</span>
+            }
+          </label>
+          <label>
+            Costo (COP)
+            <input
+              formControlName="costo"
+              inputmode="numeric"
+              [attr.aria-invalid]="invalido(fila.get('costo'))"
+              [attr.aria-describedby]="invalido(fila.get('costo')) ? 'error-costo-' + indice : null"
+            />
+            @if (invalido(fila.get('costo'))) {
+              <span class="error-campo" [id]="'error-costo-' + indice"
+                >Valor entero, 0 o mayor.</span
+              >
+            }
+          </label>
+          <label class="ancha">
+            Descripción (opcional)
+            <input formControlName="descripcion" maxlength="255" />
+          </label>
+          <button
+            type="button"
+            class="texto quitar"
+            [attr.aria-label]="'Quitar el servicio ' + (indice + 1)"
+            (click)="quitar(indice)"
+          >
+            Quitar
+          </button>
+        </div>
+      } @empty {
+        <p class="nota">No ofreces servicios adicionales.</p>
+      }
+      @if (filas.hasError('duplicados')) {
+        <p class="mensaje falla" role="alert">Hay servicios con el mismo nombre.</p>
+      }
+      @if (filas.length < maximo) {
+        <button type="button" class="secundario agregar" (click)="agregar()">
+          Agregar servicio
+        </button>
+      }
+    </fieldset>
+    <div class="acciones">
+      <button type="submit" class="principal" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+      </button>
+      <button type="button" class="secundario" [disabled]="guardando()" (click)="cancelar()">
+        Cancelar
+      </button>
+    </div>
+  </form>
+} @else if (actual.hasValue()) {
+  <p class="valor">Limpieza: {{ pesos(actual.value().tarifaLimpieza) }}</p>
+  @if (activos().length) {
+    <ul class="lista">
+      @for (adicional of activos(); track adicional.idAdicional) {
+        <li>
+          <span>{{ adicional.nombre }}</span>
+          <strong>{{ pesos(adicional.costo) }}</strong>
+          @if (adicional.descripcion) {
+            <span class="nota">{{ adicional.descripcion }}</span>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="nota">No ofreces servicios adicionales.</p>
+  }
+} @else if (errorCarga(); as errorCarga) {
+  <p class="mensaje falla" role="alert">
+    {{ errorCarga }}
+    <button type="button" class="texto" (click)="actual.reload()">Reintentar</button>
+  </p>
+} @else {
+  <div class="cargando" aria-busy="true" aria-label="Cargando tarifas"></div>
+}
+
+@if (error(); as error) {
+  <p class="mensaje falla" role="alert">{{ error }}</p>
+}
+@if (aviso(); as aviso) {
+  <p class="mensaje exito" role="status">{{ aviso }}</p>
+}
