@@ -154,6 +154,35 @@ describe('CrearPublicacion (HU-010)', () => {
     ).toBe('true');
   });
 
+  it('marca como inválidos los grupos de reservas y servicios y los enlaza con su error', async () => {
+    await crear();
+    componente.publicar();
+    await fixture.whenStable();
+
+    const grupos = [...elemento().querySelectorAll('[role="radiogroup"], .servicios')];
+    expect(grupos.map((grupo) => grupo.getAttribute('aria-invalid'))).toEqual([
+      'true',
+      'true',
+      'true',
+    ]);
+    for (const [selector, error] of [
+      ['input[formControlName="modoAceptacion"]', 'error-modoAceptacion'],
+      ['input[formControlName="idPolitica"]', 'error-idPolitica'],
+      ['.servicios input[type="checkbox"]', 'error-idsServicios'],
+    ]) {
+      const casilla = elemento().querySelector(selector);
+      expect(casilla?.getAttribute('aria-invalid')).toBe('true');
+      expect(casilla?.getAttribute('aria-describedby')).toBe(error);
+      expect(elemento().querySelector(`#${error}`)).not.toBeNull();
+    }
+
+    llenar();
+    await fixture.whenStable();
+    expect(elemento().querySelector('[role="radiogroup"]')?.getAttribute('aria-invalid')).toBe(
+      'false',
+    );
+  });
+
   it('el resumen de faltantes se actualiza al completar los campos', async () => {
     await crear();
     componente.publicar();

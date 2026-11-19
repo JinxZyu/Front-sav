@@ -1,8 +1,51 @@
-import { Component, DestroyRef, effect, inject, input, model, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  PendingTasks,
+  effect,
+  inject,
+  input,
+  model,
+  signal,
+} from '@angular/core';
 
 export const MAX_IMAGENES = 10;
 export const TAMANO_MAXIMO_BYTES = 5 * 1024 * 1024;
 export const FORMATOS_IMAGEN = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
+type FormatoImagen = (typeof FORMATOS_IMAGEN)[number];
+
+const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+const texto = (bytes: Uint8Array, desde: number, hasta: number) =>
+  String.fromCodePoint(...bytes.subarray(desde, hasta));
+
+function formatoPorFirma(bytes: Uint8Array): FormatoImagen | null {
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  if (PNG.every((valor, indice) => bytes[indice] === valor)) {
+    return 'image/png';
+  }
+  if (texto(bytes, 0, 4) === 'RIFF' && texto(bytes, 8, 12) === 'WEBP') {
+    return 'image/webp';
+  }
+  return null;
+}
+
+async function leerFormato(archivo: File): Promise<FormatoImagen | null> {
+  try {
+    return formatoPorFirma(new Uint8Array(await archivo.slice(0, 12).arrayBuffer()));
+  } catch {
+    return null;
+  }
+}
+
+function conFormato(archivo: File, formato: FormatoImagen): File {
+  return archivo.type === formato
+    ? archivo
+    : new File([archivo], archivo.name, { type: formato, lastModified: archivo.lastModified });
+}
 
 @Component({
   selector: 'app-selector-imagenes',
@@ -11,6 +54,8 @@ export const FORMATOS_IMAGEN = ['image/jpeg', 'image/png', 'image/webp'] as cons
 })
 export class SelectorImagenes {
   private readonly urls = new Map<File, string>();
+  private readonly tareas = inject(PendingTasks);
+  private readonly destruccion = inject(DestroyRef);
 
   readonly archivos = model<File[]>([]);
   readonly deshabilitado = input(false);
@@ -32,7 +77,7 @@ export class SelectorImagenes {
         }
       }
     });
-    inject(DestroyRef).onDestroy(() => {
+    this.destruccion.onDestroy(() => {
       for (const url of this.urls.values()) {
         URL.revokeObjectURL(url);
       }
@@ -79,22 +124,35 @@ export class SelectorImagenes {
   }
 
   private agregar(nuevos: File[]): void {
+    if (!nuevos.length) {
+      return;
+    }
+    void this.tareas.run(async () => {
+      const formatos = await Promise.all(nuevos.map(leerFormato));
+      if (!this.destruccion.destroyed) {
+        this.aplicar(nuevos, formatos);
+      }
+    });
+  }
+
+  private aplicar(nuevos: File[], formatos: (FormatoImagen | null)[]): void {
     const avisos: string[] = [];
     const aceptados: File[] = [];
     let disponibles = MAX_IMAGENES - this.archivos().length;
 
-    for (const archivo of nuevos) {
-      if (!(FORMATOS_IMAGEN as readonly string[]).includes(archivo.type)) {
+    nuevos.forEach((archivo, indice) => {
+      const formato = formatos[indice];
+      if (!formato) {
         avisos.push(`${archivo.name}: formato no permitido (usa JPG, PNG o WEBP).`);
       } else if (archivo.size > TAMANO_MAXIMO_BYTES) {
         avisos.push(`${archivo.name}: supera los 5 MB.`);
       } else if (disponibles <= 0) {
         avisos.push(`${archivo.name}: ya tienes el máximo de ${MAX_IMAGENES} imágenes.`);
       } else {
-        aceptados.push(archivo);
+        aceptados.push(conFormato(archivo, formato));
         disponibles--;
       }
-    }
+    });
 
     this.avisos.set(avisos);
     if (aceptados.length) {

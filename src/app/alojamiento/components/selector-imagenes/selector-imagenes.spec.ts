@@ -2,8 +2,26 @@ import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAX_IMAGENES, SelectorImagenes, TAMANO_MAXIMO_BYTES } from './selector-imagenes';
 
-const imagen = (nombre: string, tipo = 'image/jpeg', tamano = 10) =>
-  new File([new Uint8Array(tamano)], nombre, { type: tipo });
+const FIRMAS: Record<string, number[]> = {
+  'image/jpeg': [0xff, 0xd8, 0xff, 0xe0],
+  'image/png': [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+  'image/webp': [...'RIFF']
+    .map((c) => c.charCodeAt(0))
+    .concat(
+      [0, 0, 0, 0],
+      [...'WEBP'].map((c) => c.charCodeAt(0)),
+    ),
+  'image/gif': [...'GIF89a'].map((c) => c.charCodeAt(0)),
+};
+
+const contenido = (firma: number[], tamano: number) => {
+  const bytes = new Uint8Array(Math.max(tamano, firma.length));
+  bytes.set(firma);
+  return bytes;
+};
+
+const imagen = (nombre: string, tipo = 'image/jpeg', tamano = 16, firma = FIRMAS[tipo] ?? []) =>
+  new File([contenido(firma, tamano)], nombre, { type: tipo });
 
 @Component({
   imports: [SelectorImagenes],
@@ -84,6 +102,43 @@ describe('SelectorImagenes (HU-010)', () => {
       'ya tienes el máximo',
     );
     expect(elemento().querySelector<HTMLInputElement>('input[type="file"]')?.disabled).toBe(true);
+  });
+
+  it('acepta una imagen válida aunque el navegador no informe su tipo', async () => {
+    await seleccionar([imagen('sin-tipo.webp', '', 16, FIRMAS['image/webp'])]);
+
+    const [aceptada] = fixture.componentInstance.archivos();
+    expect(aceptada.name).toBe('sin-tipo.webp');
+    expect(aceptada.type).toBe('image/webp');
+    expect(elemento().querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('rechaza archivos que no son imágenes aunque digan serlo o no traigan tipo', async () => {
+    await seleccionar([
+      imagen(
+        'falsa.jpg',
+        'image/jpeg',
+        16,
+        [...'hola'].map((c) => c.charCodeAt(0)),
+      ),
+      imagen('sin-tipo.bin', '', 16, []),
+    ]);
+
+    expect(fixture.componentInstance.archivos()).toEqual([]);
+    const avisos = elemento().querySelector('[role="alert"]')?.textContent ?? '';
+    expect(avisos).toContain('falsa.jpg: formato no permitido');
+    expect(avisos).toContain('sin-tipo.bin: formato no permitido');
+  });
+
+  it('no agrega nada si se sale de la pantalla mientras revisa los archivos', async () => {
+    const campo = elemento().querySelector<HTMLInputElement>('input[type="file"]');
+    Object.defineProperty(campo, 'files', { value: [imagen('a.jpg')], configurable: true });
+    campo?.dispatchEvent(new Event('change'));
+    fixture.destroy();
+    await new Promise((resolver) => setTimeout(resolver));
+
+    expect(fixture.componentInstance.archivos()).toEqual([]);
+    expect(crearUrl).not.toHaveBeenCalled();
   });
 
   it('quita una imagen y libera su vista previa', async () => {

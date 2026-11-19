@@ -214,6 +214,7 @@
           class="grupo"
           role="radiogroup"
           aria-labelledby="etiqueta-modo"
+          [attr.aria-invalid]="invalido('modoAceptacion')"
           [attr.aria-describedby]="invalido('modoAceptacion') ? 'error-modoAceptacion' : null"
         >
           <span class="etiqueta" id="etiqueta-modo">Cómo aceptas las reservas</span>
@@ -223,7 +224,13 @@
                 class="opcion"
                 [class.marcada]="formulario.controls.modoAceptacion.value === modo.valor"
               >
-                <input type="radio" formControlName="modoAceptacion" [value]="modo.valor" />
+                <input
+                  type="radio"
+                  formControlName="modoAceptacion"
+                  [value]="modo.valor"
+                  [attr.aria-invalid]="invalido('modoAceptacion')"
+                  [attr.aria-describedby]="invalido('modoAceptacion') ? 'error-modoAceptacion' : null"
+                />
                 <span class="titulo-opcion">{{ modo.titulo }}</span>
                 <span class="detalle">{{ modo.descripcion }}</span>
               </label>
@@ -240,6 +247,7 @@
           class="grupo"
           role="radiogroup"
           aria-labelledby="etiqueta-politica"
+          [attr.aria-invalid]="invalido('idPolitica')"
           [attr.aria-describedby]="invalido('idPolitica') ? 'error-idPolitica' : null"
         >
           <span class="etiqueta" id="etiqueta-politica">Política de cancelación</span>
@@ -250,7 +258,13 @@
                   class="opcion"
                   [class.marcada]="formulario.controls.idPolitica.value === politica.idPolitica"
                 >
-                  <input type="radio" formControlName="idPolitica" [value]="politica.idPolitica" />
+                  <input
+                    type="radio"
+                    formControlName="idPolitica"
+                    [value]="politica.idPolitica"
+                    [attr.aria-invalid]="invalido('idPolitica')"
+                    [attr.aria-describedby]="invalido('idPolitica') ? 'error-idPolitica' : null"
+                  />
                   <span class="titulo-opcion">{{ politica.nombre }}</span>
                   @if (politica.descripcion) {
                     <span class="detalle">{{ politica.descripcion }}</span>
@@ -292,6 +306,7 @@
             class="servicios"
             role="group"
             aria-label="Servicios del alojamiento"
+            [attr.aria-invalid]="invalido('idsServicios')"
             [attr.aria-describedby]="invalido('idsServicios') ? 'error-idsServicios' : null"
           >
             @for (servicioDisponible of servicios.value(); track servicioDisponible.idServicio) {
@@ -304,6 +319,8 @@
                   type="checkbox"
                   [checked]="servicioMarcado(servicioDisponible.idServicio)"
                   [disabled]="enviando()"
+                  [attr.aria-invalid]="invalido('idsServicios')"
+                  [attr.aria-describedby]="invalido('idsServicios') ? 'error-idsServicios' : null"
                   (change)="alternarServicio(servicioDisponible.idServicio)"
                 />
                 {{ servicioDisponible.nombre }}
