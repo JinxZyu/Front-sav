@@ -67,10 +67,10 @@ describe('guards de sesión', () => {
       expect(ejecutar(rolGuard('ANFITRION', 'ADMINISTRADOR'))).toBe(true);
     });
 
-    it('manda al inicio si el rol no está permitido', () => {
+    it('criterio 2: rechaza el rol no permitido y lleva a los alojamientos', () => {
       entrarComo('HUESPED');
       const resultado = ejecutar(rolGuard('ADMINISTRADOR')) as UrlTree;
-      expect(router.serializeUrl(resultado)).toBe('/');
+      expect(router.serializeUrl(resultado)).toBe('/publicaciones');
     });
 
     it('usa los segmentos cuando no hay navegación en curso', () => {

@@ -32,3 +32,12 @@ export interface RestablecerContrasenaRequest {
 export interface RespuestaMensaje {
   mensaje: string;
 }
+
+export interface Cuenta {
+  nombre: string;
+  apellido: string;
+  correo: string;
+  tipoDocumento: string;
+  documentoIdentidad: string;
+  rol: string;
+}

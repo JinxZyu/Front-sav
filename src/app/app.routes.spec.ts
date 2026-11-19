@@ -1,3 +1,4 @@
+import { autenticadoGuard } from './config/guards/auth.guard';
 import { routes } from './app.routes';
 import { USUARIO_ROUTES } from './usuario/usuario.routes';
 
@@ -23,4 +24,18 @@ describe('rutas de la aplicación', () => {
   it('una ruta desconocida lleva directo al inicio de sesión', () => {
     expect(routes.at(-1)).toEqual({ path: '**', redirectTo: 'usuario/login' });
   });
+
+  it('protege los módulos privados por sesión o por rol', () => {
+    const ruta = (path: string) => routes.find((opcion) => opcion.path === path);
+    for (const path of ['cancelacion', 'notificaciones', 'reservas']) {
+      expect(ruta(path)?.canMatch).toEqual([autenticadoGuard]);
+    }
+    for (const path of ['alojamientos', 'disponibilidad']) {
+      expect(ruta(path)?.canMatch).toHaveLength(1);
+    }
+    for (const path of ['usuario', 'publicaciones']) {
+      expect(ruta(path)?.canMatch).toBeUndefined();
+    }
+  });
+
 });
