@@ -82,16 +82,16 @@ describe('Login (HU-002)', () => {
 
     expect(sesion.autenticado()).toBe(true);
     expect(sesion.rol()).toBe('ANFITRION');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/publicaciones');
   });
 
   it('vuelve a la página que pedía el usuario antes de iniciar sesión', async () => {
-    await crear('/publicaciones');
+    await crear('/reservas');
     llenar();
     componente.iniciarSesion();
     backend.expectOne(urlLogin).flush({ token, tipo: 'Bearer' });
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/publicaciones');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/reservas');
   });
 
   it('criterio 2: informa que las credenciales no son válidas', async () => {
@@ -269,7 +269,7 @@ describe('Login (HU-002)', () => {
     componente.iniciarSesion();
     backend.expectOne(urlLogin).flush({ token, tipo: 'Bearer' });
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/publicaciones');
   });
 
   it('ofrece recuperar la contraseña llevando el correo escrito', async () => {

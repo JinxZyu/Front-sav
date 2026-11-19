@@ -4,6 +4,10 @@
 @import '@fontsource/poppins/700.css';
 @import '@fontsource/poppins/800.css';
 
+html {
+  scrollbar-gutter: stable;
+}
+
 input::-ms-reveal,
 input::-ms-clear {
   display: none;

@@ -1,4 +1,4 @@
-import { autenticadoGuard } from './config/guards/auth.guard';
+import { autenticadoGuard, paginaInicial } from './config/guards/auth.guard';
 import { routes } from './app.routes';
 import { USUARIO_ROUTES } from './usuario/usuario.routes';
 
@@ -12,17 +12,17 @@ describe('rutas de la aplicación', () => {
     }
   });
 
-  it('la página principal lleva al inicio de sesión', () => {
-    expect(routes[0]).toEqual({ path: '', pathMatch: 'full', redirectTo: 'usuario/login' });
-    expect(USUARIO_ROUTES[0].children?.[0]).toEqual({
+  it('la página principal depende de si hay sesión', () => {
+    expect(routes[0]).toEqual({ path: '', pathMatch: 'full', redirectTo: paginaInicial });
+    expect(USUARIO_ROUTES[1].children?.[0]).toEqual({
       path: '',
       pathMatch: 'full',
       redirectTo: 'login',
     });
   });
 
-  it('una ruta desconocida lleva directo al inicio de sesión', () => {
-    expect(routes.at(-1)).toEqual({ path: '**', redirectTo: 'usuario/login' });
+  it('una ruta desconocida lleva a la página principal', () => {
+    expect(routes.at(-1)).toEqual({ path: '**', redirectTo: paginaInicial });
   });
 
   it('protege los módulos privados por sesión o por rol', () => {
@@ -37,5 +37,4 @@ describe('rutas de la aplicación', () => {
       expect(ruta(path)?.canMatch).toBeUndefined();
     }
   });
-
 });

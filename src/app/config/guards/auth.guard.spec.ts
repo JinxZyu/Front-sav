@@ -1,12 +1,23 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { CanMatchFn, Route, Router, UrlSegment, UrlTree, provideRouter } from '@angular/router';
+import {
+  CanMatchFn,
+  Route,
+  Router,
+  RouterOutlet,
+  UrlSegment,
+  UrlTree,
+  provideRouter,
+} from '@angular/router';
 import { SesionService } from '../auth/sesion.service';
 import { crearToken } from '../auth/sesion.testing';
-import { autenticadoGuard, rolGuard } from './auth.guard';
+import { autenticadoGuard, paginaInicial, rolGuard, sinSesionGuard } from './auth.guard';
 
 @Component({ template: '' })
 class PaginaVacia {}
+
+@Component({ imports: [RouterOutlet], template: '<router-outlet />' })
+class PanelVacio {}
 
 describe('guards de sesión', () => {
   let sesion: SesionService;
@@ -67,7 +78,7 @@ describe('guards de sesión', () => {
       expect(ejecutar(rolGuard('ANFITRION', 'ADMINISTRADOR'))).toBe(true);
     });
 
-    it('criterio 2: rechaza el rol no permitido y lleva a los alojamientos', () => {
+    it('criterio 2: rechaza el rol no permitido y lleva a la página principal', () => {
       entrarComo('HUESPED');
       const resultado = ejecutar(rolGuard('ADMINISTRADOR')) as UrlTree;
       expect(router.serializeUrl(resultado)).toBe('/publicaciones');
@@ -77,5 +88,70 @@ describe('guards de sesión', () => {
       const resultado = ejecutar(rolGuard('ADMINISTRADOR')) as UrlTree;
       expect(router.serializeUrl(resultado)).toBe('/usuario/login?volverA=%2Freservas%2Fmias');
     });
+  });
+
+  describe('sinSesionGuard', () => {
+    const ejecutarSinSesion = () =>
+      TestBed.runInInjectionContext(() =>
+        sinSesionGuard(
+          {} as Parameters<typeof sinSesionGuard>[0],
+          {} as Parameters<typeof sinSesionGuard>[1],
+        ),
+      );
+
+    it('deja ver el inicio de sesión y el registro si no hay sesión', () => {
+      expect(ejecutarSinSesion()).toBe(true);
+    });
+
+    it('con sesión iniciada no deja volver y lleva a los alojamientos', () => {
+      entrarComo('HUESPED');
+      expect(router.serializeUrl(ejecutarSinSesion() as UrlTree)).toBe('/publicaciones');
+    });
+  });
+
+  describe('paginaInicial', () => {
+    it('sin sesión es el inicio de sesión', () => {
+      expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/usuario/login');
+    });
+
+    it('con sesión son los alojamientos', () => {
+      entrarComo('HUESPED');
+      expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/publicaciones');
+    });
+  });
+});
+
+describe('sinSesionGuard al navegar entre las pantallas de acceso', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          { path: 'publicaciones', component: PaginaVacia },
+          {
+            path: 'usuario',
+            canActivateChild: [sinSesionGuard],
+            component: PanelVacio,
+            children: [
+              { path: 'login', component: PaginaVacia },
+              { path: 'registro', component: PaginaVacia },
+            ],
+          },
+        ]),
+      ],
+    });
+  });
+
+  it('se vuelve a evaluar al cambiar de login a registro con la sesión ya iniciada', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/usuario/login');
+    expect(router.url).toBe('/usuario/login');
+
+    TestBed.inject(SesionService).iniciar(
+      crearToken({ sub: 'a@b.co', role: 'HUESPED', exp: Math.floor(Date.now() / 1000) + 3600 }),
+    );
+    await router.navigateByUrl('/usuario/registro');
+
+    expect(router.url).toBe('/publicaciones');
   });
 });

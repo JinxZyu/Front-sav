@@ -51,6 +51,36 @@
   font-size: 1.1rem;
 }
 
+.avatar.cargando,
+.nombre-corto.vacio {
+  background: linear-gradient(90deg, #e2e8f0, #f1f5f9, #e2e8f0);
+  background-size: 200% 100%;
+  animation: brillo 1.2s ease-in-out infinite;
+}
+
+.nombre-corto.vacio {
+  width: 4.5rem;
+  height: 0.9rem;
+  border-radius: 0.4rem;
+}
+
+@keyframes brillo {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar.cargando,
+  .nombre-corto.vacio {
+    animation: none;
+  }
+}
+
 .nombre-corto {
   max-width: 9rem;
   overflow: hidden;
@@ -137,6 +167,14 @@
   font-weight: 500;
   text-align: left;
   cursor: pointer;
+}
+
+.opcion + .opcion {
+  margin-top: 0.1rem;
+}
+
+a.opcion {
+  text-decoration: none;
 }
 
 .opcion:hover,

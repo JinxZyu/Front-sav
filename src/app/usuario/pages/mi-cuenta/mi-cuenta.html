@@ -1,0 +1,46 @@
+<section class="tarjeta" aria-labelledby="titulo-cuenta">
+  @if (datos(); as datos) {
+    <header class="cabecera">
+      <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
+      <div>
+        <h1 id="titulo-cuenta">{{ datos.nombre }} {{ datos.apellido }}</h1>
+        <span class="rol">{{ nombreRol() }}</span>
+      </div>
+    </header>
+
+    <h2>Datos de la cuenta</h2>
+    <dl class="datos">
+      <div>
+        <dt>Nombre</dt>
+        <dd>{{ datos.nombre }}</dd>
+      </div>
+      <div>
+        <dt>Apellido</dt>
+        <dd>{{ datos.apellido }}</dd>
+      </div>
+      <div class="ancho">
+        <dt>Correo electrónico</dt>
+        <dd>{{ datos.correo }}</dd>
+      </div>
+      <div>
+        <dt>Tipo de documento</dt>
+        <dd>{{ tipoDocumento() }}</dd>
+      </div>
+      <div>
+        <dt>Número de documento</dt>
+        <dd>{{ datos.documentoIdentidad }}</dd>
+      </div>
+    </dl>
+  } @else if (error(); as error) {
+    <h1 id="titulo-cuenta">Mi cuenta</h1>
+    <p class="alerta" role="alert">{{ error }}</p>
+    <button type="button" class="reintentar" (click)="reintentar()">Intentar de nuevo</button>
+  } @else {
+    <h1 id="titulo-cuenta" class="visualmente-oculto">Mi cuenta</h1>
+    <div class="cargando" role="status" aria-label="Cargando los datos de tu cuenta">
+      <span class="bloque avatar-vacio"></span>
+      <span class="bloque linea"></span>
+      <span class="bloque linea corta"></span>
+    </div>
+  }
+</section>
