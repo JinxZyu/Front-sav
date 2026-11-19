@@ -7,13 +7,21 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, finalize, map } from 'rxjs';
 import { PublicacionAlojamientoService } from '../../../alojamiento/services/publicacion-alojamiento.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import { CalendarioDisponibilidad } from '../../components/calendario-disponibilidad/calendario-disponibilidad';
+import { ConsultaFechas } from '../../components/consulta-fechas/consulta-fechas';
 import { NuevoPeriodo, PeriodoDisponible } from '../../models/disponibilidad.models';
 import { DisponibilidadService } from '../../services/disponibilidad.service';
 import { desdeHoy, formatearDia, hoy, noches, rangoValido } from '../../utils/fechas';
 
 @Component({
   selector: 'app-disponibilidad-alojamiento',
-  imports: [ReactiveFormsModule, RouterLink, NgTemplateOutlet],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    NgTemplateOutlet,
+    CalendarioDisponibilidad,
+    ConsultaFechas,
+  ],
   templateUrl: './disponibilidad-alojamiento.html',
   styleUrl: './disponibilidad-alojamiento.css',
 })
@@ -88,6 +96,7 @@ export class DisponibilidadAlojamiento {
   readonly aviso = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly lugarMensaje = signal<string>('nuevo');
+  readonly actualizacion = signal(0);
 
   readonly minimo = hoy();
   readonly dia = formatearDia;
@@ -197,6 +206,7 @@ export class DisponibilidadAlojamiento {
       .subscribe({
         next: (periodo) => {
           alTerminar(periodo);
+          this.actualizacion.update((valor) => valor + 1);
           this.aviso.set(exito);
         },
         error: (error: unknown) => this.error.set(mensajeDeError(error, falla)),

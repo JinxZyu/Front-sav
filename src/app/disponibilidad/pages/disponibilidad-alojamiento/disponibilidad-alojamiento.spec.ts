@@ -7,7 +7,7 @@ import { environment } from '../../../../environments/environment';
 import { comoDia } from '../../utils/fechas';
 import { DisponibilidadAlojamiento } from './disponibilidad-alojamiento';
 
-describe('DisponibilidadAlojamiento (HU-022)', () => {
+describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
   let fixture: ComponentFixture<DisponibilidadAlojamiento>;
   let componente: DisponibilidadAlojamiento;
   let backend: HttpTestingController;
@@ -56,8 +56,18 @@ describe('DisponibilidadAlojamiento (HU-022)', () => {
     TestBed.tick();
     if (periodos) {
       backend.expectOne(urlPeriodos).flush(periodos);
-      await fixture.whenStable();
+      await responderCalendario(periodos);
     }
+  };
+
+  const responderCalendario = async (periodos: object[] = []) => {
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend
+      .expectOne(`${api}/alojamientos/a-1/calendario`)
+      .flush({ idAlojamiento: 'a-1', periodos, nochesOcupadas: [] });
+    await fixture.whenStable();
   };
 
   const elemento = () => fixture.nativeElement as HTMLElement;
@@ -99,15 +109,15 @@ describe('DisponibilidadAlojamiento (HU-022)', () => {
   it('criterio 1: registra un periodo con fechas válidas', async () => {
     await crear([]);
     expect(elemento().textContent).toContain('Aún no tienes periodos disponibles');
-    escribir('form input[formControlName="fechaInicio"]', enDias(1));
-    escribir('form input[formControlName="fechaFin"]', enDias(4));
+    escribir('form.tarjeta input[formControlName="fechaInicio"]', enDias(1));
+    escribir('form.tarjeta input[formControlName="fechaFin"]', enDias(4));
     botonPorTexto('Agregar periodo')?.click();
 
     const peticion = backend.expectOne(urlPeriodos);
     expect(peticion.request.method).toBe('POST');
     expect(peticion.request.body).toEqual({ fechaInicio: enDias(1), fechaFin: enDias(4) });
     peticion.flush(periodo({ idPeriodo: 'nuevo', fechaInicio: enDias(1), fechaFin: enDias(4) }));
-    await fixture.whenStable();
+    await responderCalendario();
 
     expect(elemento().querySelectorAll('.periodos li.tarjeta')).toHaveLength(1);
     expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Agregamos');
@@ -116,8 +126,8 @@ describe('DisponibilidadAlojamiento (HU-022)', () => {
 
   it('criterio 2: no envía si la salida no es posterior a la llegada', async () => {
     await crear([]);
-    escribir('form input[formControlName="fechaInicio"]', enDias(3));
-    escribir('form input[formControlName="fechaFin"]', enDias(3));
+    escribir('form.tarjeta input[formControlName="fechaInicio"]', enDias(3));
+    escribir('form.tarjeta input[formControlName="fechaFin"]', enDias(3));
     botonPorTexto('Agregar periodo')?.click();
     await fixture.whenStable();
 
@@ -129,7 +139,7 @@ describe('DisponibilidadAlojamiento (HU-022)', () => {
 
   it('no acepta llegadas en el pasado ni fechas vacías', async () => {
     await crear([]);
-    escribir('form input[formControlName="fechaInicio"]', '2000-01-01');
+    escribir('form.tarjeta input[formControlName="fechaInicio"]', '2000-01-01');
     botonPorTexto('Agregar periodo')?.click();
     await fixture.whenStable();
 
@@ -150,7 +160,7 @@ describe('DisponibilidadAlojamiento (HU-022)', () => {
     expect(peticion.request.method).toBe('PUT');
     expect(peticion.request.body).toEqual({ fechaInicio: '2027-01-10', fechaFin: '2027-01-20' });
     peticion.flush(periodo({ fechaFin: '2027-01-20' }));
-    await fixture.whenStable();
+    await responderCalendario();
 
     expect(elemento().querySelector('.periodos .nota')?.textContent).toContain('10 noches');
     expect(elemento().querySelector('.periodos form')).toBeNull();
@@ -192,7 +202,7 @@ describe('DisponibilidadAlojamiento (HU-022)', () => {
     const peticion = backend.expectOne(`${urlPeriodos}/pe-1`);
     expect(peticion.request.method).toBe('DELETE');
     peticion.flush(periodo({ habilitado: false }));
-    await fixture.whenStable();
+    await responderCalendario();
 
     expect(elemento().querySelector('.periodos li')?.classList).toContain('apagado');
     expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Deshabilitamos');
@@ -233,8 +243,15 @@ describe('DisponibilidadAlojamiento (HU-022)', () => {
     fixture.detectChanges();
     TestBed.tick();
     backend.expectOne(urlPeriodos).flush([periodo()]);
-    await fixture.whenStable();
+    await responderCalendario([periodo()]);
 
     expect(elemento().querySelectorAll('.periodos li.tarjeta')).toHaveLength(1);
+  });
+
+  it('HU-023 criterio 2: muestra el calendario y la consulta por fechas del alojamiento', async () => {
+    await crear();
+
+    expect(elemento().querySelector('app-calendario-disponibilidad table')).not.toBeNull();
+    expect(elemento().querySelector('app-consulta-fechas form')).not.toBeNull();
   });
 });

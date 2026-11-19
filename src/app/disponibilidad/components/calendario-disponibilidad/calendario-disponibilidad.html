@@ -1,0 +1,56 @@
+<div class="encabezado">
+  <button
+    type="button"
+    class="flecha"
+    aria-label="Mes anterior"
+    [disabled]="esMesActual()"
+    (click)="moverMes(-1)"
+  >
+    ‹
+  </button>
+  <h3 aria-live="polite">{{ tituloMes() }}</h3>
+  <button type="button" class="flecha" aria-label="Mes siguiente" (click)="moverMes(1)">›</button>
+</div>
+
+@if (error(); as error) {
+  <p class="falla" role="alert">
+    {{ error }}
+    <button type="button" class="texto" (click)="calendario.reload()">Reintentar</button>
+  </p>
+} @else {
+  <table [attr.aria-busy]="calendario.isLoading()">
+    <caption class="oculto">
+      Disponibilidad de
+      {{
+        tituloMes()
+      }}
+    </caption>
+    <thead>
+      <tr>
+        @for (nombre of diasSemana; track $index) {
+          <th scope="col">{{ nombre }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (semana of semanas(); track $index) {
+        <tr>
+          @for (celda of semana; track $index) {
+            <td>
+              @if (celda) {
+                <span class="dia" [class]="celda.estado" [attr.aria-label]="celda.etiqueta">
+                  {{ celda.numero }}
+                </span>
+              }
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+  <ul class="leyenda">
+    <li><span class="muestra disponible"></span> Disponible</li>
+    <li><span class="muestra ocupada"></span> Ocupada por una reserva</li>
+    <li><span class="muestra sin-periodo"></span> Sin periodo disponible</li>
+  </ul>
+}

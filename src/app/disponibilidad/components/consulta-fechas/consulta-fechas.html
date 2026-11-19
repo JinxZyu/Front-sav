@@ -1,0 +1,49 @@
+<form [formGroup]="formulario" (ngSubmit)="consultar()" novalidate>
+  <fieldset [disabled]="consultando()">
+    <label>
+      Llegada
+      <input type="date" formControlName="fechaInicio" [min]="minimo" />
+    </label>
+    <label>
+      Salida
+      <input
+        type="date"
+        formControlName="fechaFin"
+        [min]="formulario.controls.fechaInicio.value || minimo"
+        [attr.aria-invalid]="intento() && formulario.invalid"
+        [attr.aria-describedby]="intento() && formulario.invalid ? 'error-consulta' : null"
+      />
+    </label>
+    <button type="submit">{{ consultando() ? 'Consultando…' : 'Consultar' }}</button>
+  </fieldset>
+  @if (intento() && formulario.invalid) {
+    <span class="error-campo" id="error-consulta">
+      Elige ambas fechas; la salida debe ser posterior a la llegada.
+    </span>
+  }
+</form>
+
+<div aria-live="polite">
+  @if (resultado(); as resultado) {
+    @if (resultado.disponible) {
+      <p class="resultado si">
+        Disponible del {{ dia(resultado.fechaInicio) }} al {{ dia(resultado.fechaFin) }}.
+      </p>
+    } @else if (!resultado.cubiertoPorPeriodosDisponibles) {
+      <p class="resultado no">
+        No disponible: esas fechas no están dentro de un periodo habilitado.
+      </p>
+    } @else {
+      <p class="resultado no">
+        No disponible: hay noches ocupadas
+        @if (resultado.nochesOcupadas.length) {
+          ({{ resultado.nochesOcupadas.map(dia).join(', ') }})
+        }
+        .
+      </p>
+    }
+  }
+</div>
+@if (error(); as error) {
+  <p class="resultado no" role="alert">{{ error }}</p>
+}

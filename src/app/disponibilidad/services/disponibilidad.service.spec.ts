@@ -41,4 +41,16 @@ describe('DisponibilidadService', () => {
     cambio.flush({});
     baja.flush({});
   });
+
+  it('consulta el calendario y la disponibilidad por fechas', () => {
+    servicio.calendario('a-1').subscribe();
+    servicio.consultar('a-1', '2026-12-01', '2026-12-05').subscribe();
+    backend.expectOne(`${environment.apiUrl}/alojamientos/a-1/calendario`).flush({});
+    const consulta = backend.expectOne(
+      (peticion) => peticion.url === `${environment.apiUrl}/alojamientos/a-1/disponibilidad`,
+    );
+    expect(consulta.request.params.get('fechaInicio')).toBe('2026-12-01');
+    expect(consulta.request.params.get('fechaFin')).toBe('2026-12-05');
+    consulta.flush({});
+  });
 });
