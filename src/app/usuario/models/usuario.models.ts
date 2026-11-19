@@ -52,3 +52,14 @@ export interface CambiarContrasenaRequest {
   contrasenaActual: string;
   nuevaContrasena: string;
 }
+
+export interface UsuarioAdministrado {
+  idUsuario: string;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  rol: string | null;
+  estado: string | null;
+  restringido: boolean;
+  motivoRestriccion: string | null;
+}

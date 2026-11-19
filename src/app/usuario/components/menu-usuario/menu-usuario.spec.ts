@@ -166,6 +166,28 @@ describe('MenuUsuario (HU-004)', () => {
     expect(navegar).toHaveBeenCalled();
   });
 
+  it('al Administrador le ofrece la gestión de usuarios', async () => {
+    await crear('ADMINISTRADOR');
+    await responderCuenta();
+    disparador()?.click();
+    await fixture.whenStable();
+
+    const enlaces = [...elemento().querySelectorAll<HTMLAnchorElement>('a.opcion')];
+    expect(enlaces.map((enlace) => enlace.getAttribute('href'))).toEqual([
+      '/usuario/mi-cuenta',
+      '/administracion/usuarios',
+    ]);
+  });
+
+  it('a los demás roles no les muestra la gestión de usuarios', async () => {
+    await crear('ANFITRION');
+    await responderCuenta();
+    disparador()?.click();
+    await fixture.whenStable();
+
+    expect(elemento().textContent).not.toContain('Gestión de usuarios');
+  });
+
   it('cierra la sesión y lleva al inicio de sesión', async () => {
     await crear();
     await responderCuenta();

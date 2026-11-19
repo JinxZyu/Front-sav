@@ -41,5 +41,12 @@ export const routes: Routes = [
     canMatch: [autenticadoGuard],
     loadChildren: () => import('./reserva/reserva.routes').then((m) => m.RESERVA_ROUTES),
   },
+  {
+    path: 'administracion/usuarios',
+    title: 'Gestión de usuarios',
+    canMatch: [rolGuard('ADMINISTRADOR')],
+    loadComponent: () =>
+      import('./usuario/pages/gestion-usuarios/gestion-usuarios').then((m) => m.GestionUsuarios),
+  },
   { path: '**', redirectTo: paginaInicial },
 ];

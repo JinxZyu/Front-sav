@@ -1,0 +1,75 @@
+<section class="tarjeta" aria-labelledby="titulo-gestion">
+  <header class="cabecera">
+    <div>
+      <h1 id="titulo-gestion">Gestión de usuarios</h1>
+      @if (lista(); as lista) {
+        <p class="resumen">{{ lista.length }} cuentas · {{ totalRestringidas() }} con restricción</p>
+      }
+    </div>
+  </header>
+
+  <div class="herramientas">
+    <label class="buscar">
+      <span class="visualmente-oculto">Buscar por nombre o correo</span>
+      <input type="search" placeholder="Buscar por nombre o correo" [value]="busqueda()" (input)="buscar($any($event.target).value)" />
+    </label>
+    <label class="filtro">
+      <span class="visualmente-oculto">Filtrar por restricción</span>
+      <select [value]="filtro()" (change)="filtrar($any($event.target).value)">
+        <option value="todas">Todas las cuentas</option>
+        <option value="restringidas">Con restricción</option>
+        <option value="sin-restriccion">Sin restricción</option>
+      </select>
+    </label>
+  </div>
+
+  @if (aviso()) {
+    <p class="aviso" role="status">{{ aviso() }}</p>
+  }
+
+  @if (error(); as error) {
+    <div class="alerta" role="alert">
+      <span>{{ error }}</span>
+      <button type="button" class="reintentar" (click)="reintentar()">Intentar de nuevo</button>
+    </div>
+  }
+
+  @if (lista(); as lista) {
+    @if (filtrados().length) {
+      <ul class="usuarios" [attr.aria-busy]="usuarios.isLoading()">
+        @for (usuario of filtrados(); track usuario.idUsuario) {
+          <li app-fila-usuario [usuario]="usuario" [bloqueado]="usuarios.isLoading()" [esPropia]="esPropia(usuario)" (actualizado)="alActualizar($event)"></li>
+        }
+      </ul>
+    } @else {
+      <p class="vacio">{{ lista.length ? 'Ninguna cuenta coincide con la búsqueda.' : 'Todavía no hay cuentas registradas.' }}</p>
+    }
+  } @else if (!error()) {
+    <div class="cargando" role="status" aria-label="Cargando usuarios">
+      <span class="bloque"></span>
+      <span class="bloque"></span>
+      <span class="bloque"></span>
+    </div>
+  }
+
+  <section class="desbloqueo" aria-labelledby="titulo-desbloqueo">
+    <h2 id="titulo-desbloqueo">Desbloquear por intentos fallidos</h2>
+    <p class="ayuda">Si una cuenta se bloqueó por cinco intentos fallidos de inicio de sesión, escribe su correo para permitirle entrar de nuevo.</p>
+    <form (ngSubmit)="desbloquear()" novalidate>
+      <label class="buscar">
+        <span class="visualmente-oculto">Correo de la cuenta bloqueada</span>
+        <input type="email" placeholder="correo@ejemplo.com" autocomplete="off" [formControl]="correoDesbloqueo" [readonly]="desbloqueando()" [class.invalido]="desbloqueoInvalido()" [attr.aria-invalid]="desbloqueoInvalido()" [attr.aria-describedby]="desbloqueoInvalido() ? 'error-desbloqueo' : null" />
+      </label>
+      <button type="submit" class="principal" [disabled]="desbloqueando()">{{ desbloqueando() ? 'Desbloqueando…' : 'Desbloquear' }}</button>
+    </form>
+    @if (desbloqueoInvalido()) {
+      <span class="error-campo" id="error-desbloqueo">Ingresa un correo válido.</span>
+    }
+    @if (avisoDesbloqueo()) {
+      <p class="aviso" role="status">{{ avisoDesbloqueo() }}</p>
+    }
+    @if (errorDesbloqueo()) {
+      <p class="alerta" role="alert">{{ errorDesbloqueo() }}</p>
+    }
+  </section>
+</section>

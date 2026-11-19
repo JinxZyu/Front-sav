@@ -1,0 +1,72 @@
+<div class="resumen">
+  <div class="identidad">
+    <p class="nombre">
+      {{ nombreCompleto() }}
+      @if (esPropia()) {
+        <span class="tu">Tú</span>
+      }
+    </p>
+    <p class="correo">{{ usuario().correo }}</p>
+  </div>
+
+  <div class="etiquetas">
+    <span class="chip rol">{{ nombreRol() }}</span>
+    <span [class]="'chip estado ' + claseEstado()">{{ nombreEstado() }}</span>
+    @if (usuario().restringido) {
+      <span class="chip restringida">Restringida</span>
+    }
+  </div>
+
+  <div class="accion">
+    @if (esPropia()) {
+      <span class="sin-accion">Tu cuenta</span>
+    } @else if (usuario().restringido) {
+      <button #botonAccion type="button" class="secundario" (click)="abrir('levantar')" [disabled]="bloqueado() || modo() !== 'ver'" [attr.aria-label]="'Levantar la restricción de ' + nombreCompleto()">Levantar restricción</button>
+    } @else {
+      <button #botonAccion type="button" class="peligro-texto" (click)="abrir('restringir')" [disabled]="bloqueado() || modo() !== 'ver'" [attr.aria-label]="'Restringir la cuenta de ' + nombreCompleto()">Restringir</button>
+    }
+  </div>
+</div>
+
+@if (usuario().restringido && usuario().motivoRestriccion) {
+  <p class="motivo"><strong>Motivo:</strong> {{ usuario().motivoRestriccion }}</p>
+}
+
+@switch (modo()) {
+  @case ('restringir') {
+    <form class="panel" (ngSubmit)="restringir()" novalidate>
+      <label>
+        Motivo de la restricción
+        <textarea #campoMotivo rows="3" maxlength="255" [formControl]="motivo" [readonly]="enviando()" [class.invalido]="motivoConError()" [attr.aria-invalid]="motivoConError()" [attr.aria-describedby]="motivoConError() ? 'error-motivo-' + usuario().idUsuario : null"></textarea>
+      </label>
+      @if (motivoConError()) {
+        <span class="error-campo" [id]="'error-motivo-' + usuario().idUsuario">Escribe el motivo de la restricción (máximo 255 caracteres).</span>
+      }
+      <p class="ayuda">La persona no podrá iniciar sesión mientras la restricción esté vigente.</p>
+      @if (error()) {
+        <p class="alerta" role="alert">{{ error() }}</p>
+      }
+      <div class="botones">
+        <button type="button" class="secundario" (click)="cancelar()" [disabled]="enviando()">Cancelar</button>
+        <button type="submit" class="peligro" [disabled]="enviando()">{{ enviando() ? 'Restringiendo…' : 'Restringir cuenta' }}</button>
+      </div>
+    </form>
+  }
+  @case ('levantar') {
+    <div class="panel" role="group" [attr.aria-label]="'Levantar la restricción de ' + nombreCompleto()">
+      <p class="ayuda">
+        La persona podrá iniciar sesión de nuevo.
+        @if (esAnfitrion()) {
+          Sus publicaciones seguirán pausadas hasta que ella misma las reactive.
+        }
+      </p>
+      @if (error()) {
+        <p class="alerta" role="alert">{{ error() }}</p>
+      }
+      <div class="botones">
+        <button type="button" class="secundario" (click)="cancelar()" [disabled]="enviando()">Cancelar</button>
+        <button type="button" class="principal" (click)="levantar()" [disabled]="enviando()">{{ enviando() ? 'Levantando…' : 'Levantar restricción' }}</button>
+      </div>
+    </div>
+  }
+}

@@ -37,4 +37,10 @@ describe('rutas de la aplicación', () => {
       expect(ruta(path)?.canMatch).toBeUndefined();
     }
   });
+
+  it('criterio 4: la gestión de usuarios es solo para Administrador', async () => {
+    const ruta = routes.find((opcion) => opcion.path === 'administracion/usuarios');
+    expect(ruta?.canMatch).toHaveLength(1);
+    expect(await (ruta?.loadComponent as () => Promise<unknown>)()).toBeDefined();
+  });
 });

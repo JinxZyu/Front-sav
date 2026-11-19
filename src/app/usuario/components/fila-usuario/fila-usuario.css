@@ -1,0 +1,227 @@
+:host {
+  display: block;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+:host(:last-child) {
+  border-bottom: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.resumen {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.identidad p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.nombre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  color: #1e1b4b;
+  font-weight: 600;
+}
+
+.correo {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.tu {
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip.rol {
+  background: rgb(99 102 241 / 12%);
+  color: #4f46e5;
+}
+
+.chip.activa {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.chip.inactiva {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.chip.pendiente_verificacion {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.chip.restringida {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.sin-accion {
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+
+.motivo {
+  margin: 0.6rem 0 0;
+  color: #475569;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  background: #f8fafc;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  font-weight: 400;
+  resize: vertical;
+}
+
+textarea:focus {
+  border-color: #6366f1;
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(99 102 241 / 18%);
+}
+
+textarea.invalido {
+  border-color: #e11d48;
+  background: #fff5f7;
+}
+
+.error-campo {
+  color: #e11d48;
+  font-size: 0.8rem;
+}
+
+.ayuda {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.alerta {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.7rem;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 0.85rem;
+}
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+button {
+  padding: 0.5rem 1.1rem;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.secundario {
+  border-color: #6366f1;
+  background: transparent;
+  color: #4f46e5;
+}
+
+.peligro-texto {
+  border-color: #e11d48;
+  background: transparent;
+  color: #be123c;
+}
+
+.peligro {
+  background: #e11d48;
+  color: #fff;
+}
+
+.principal {
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #fff;
+}
+
+@media (width < 40rem) {
+  .resumen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .accion:has(.sin-accion) {
+    display: none;
+  }
+
+  .botones {
+    flex-direction: column-reverse;
+  }
+}

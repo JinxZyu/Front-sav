@@ -1,0 +1,231 @@
+:host {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  min-height: calc(100dvh - 4.5rem);
+  padding: 2.5rem 1rem;
+  background:
+    radial-gradient(circle at 15% 10%, rgb(37 99 235 / 12%), transparent 45%),
+    radial-gradient(circle at 85% 90%, rgb(124 58 237 / 12%), transparent 45%),
+    #f8fafc;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.tarjeta {
+  width: 100%;
+  max-width: 62rem;
+  align-self: flex-start;
+  padding: 2rem;
+  border: 1px solid rgb(226 232 240 / 90%);
+  border-radius: 1.5rem;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 20px 45px rgb(30 27 75 / 8%);
+}
+
+h1 {
+  margin: 0;
+  color: #1e1b4b;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+h2 {
+  margin: 0 0 0.4rem;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.resumen {
+  margin: 0.3rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.herramientas {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.buscar {
+  flex: 1;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+}
+
+input:focus,
+select:focus {
+  border-color: #6366f1;
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(99 102 241 / 18%);
+}
+
+input.invalido {
+  border-color: #e11d48;
+  background: #fff5f7;
+}
+
+.usuarios {
+  margin: 0;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  list-style: none;
+  overflow: hidden;
+}
+
+.aviso {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.88rem;
+}
+
+.alerta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 0.88rem;
+}
+
+.vacio {
+  margin: 0;
+  padding: 2rem 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 1rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.cargando {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.bloque {
+  height: 3.5rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, #e2e8f0, #f1f5f9, #e2e8f0);
+  background-size: 200% 100%;
+  animation: brillo 1.2s ease-in-out infinite;
+}
+
+.desbloqueo {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ayuda {
+  margin: 0 0 0.8rem;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.desbloqueo form {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.desbloqueo .aviso,
+.desbloqueo .alerta {
+  margin: 0.8rem 0 0;
+}
+
+.error-campo {
+  display: block;
+  margin-top: 0.35rem;
+  color: #e11d48;
+  font-size: 0.8rem;
+}
+
+button {
+  padding: 0.6rem 1.3rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.principal,
+.reintentar {
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #fff;
+}
+
+.reintentar {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes brillo {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloque {
+    animation: none;
+  }
+}
+
+@media (width < 40rem) {
+  .tarjeta {
+    padding: 1.5rem 1rem;
+  }
+
+  .herramientas,
+  .desbloqueo form {
+    flex-direction: column;
+  }
+}
