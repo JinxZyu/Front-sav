@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateChildFn, CanMatchFn, Router, UrlSegment, UrlTree } from '@angular/router';
 import { Rol } from '../auth/sesion.models';
 import { SesionService } from '../auth/sesion.service';
-import { INICIO_CON_SESION, INICIO_SIN_SESION } from '../rutas';
+import { INICIO_SIN_SESION, inicioSegunRol } from '../rutas';
 
 const irAlLogin = (router: Router, segmentos: UrlSegment[]): UrlTree => {
   const destino = router.currentNavigation()?.extractedUrl;
@@ -25,11 +25,15 @@ export const rolGuard =
     if (!sesion.autenticado()) {
       return irAlLogin(router, segmentos);
     }
-    return sesion.tieneRol(...roles) || router.parseUrl(INICIO_CON_SESION);
+    return sesion.tieneRol(...roles) || router.parseUrl(inicioSegunRol(sesion.rol()));
   };
 
-export const sinSesionGuard: CanActivateChildFn = () =>
-  !inject(SesionService).autenticado() || inject(Router).parseUrl(INICIO_CON_SESION);
+export const sinSesionGuard: CanActivateChildFn = () => {
+  const sesion = inject(SesionService);
+  return !sesion.autenticado() || inject(Router).parseUrl(inicioSegunRol(sesion.rol()));
+};
 
-export const paginaInicial = (): string =>
-  inject(SesionService).autenticado() ? INICIO_CON_SESION : INICIO_SIN_SESION;
+export const paginaInicial = (): string => {
+  const sesion = inject(SesionService);
+  return sesion.autenticado() ? inicioSegunRol(sesion.rol()) : INICIO_SIN_SESION;
+};

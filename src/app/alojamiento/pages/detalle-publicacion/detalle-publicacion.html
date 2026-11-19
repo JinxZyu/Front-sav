@@ -1,0 +1,101 @@
+<section class="contenedor" aria-labelledby="titulo-detalle">
+  <a routerLink="/alojamientos" class="volver">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+    Mis alojamientos
+  </a>
+
+  @if (publicacion(); as publicacion) {
+    <header class="cabecera">
+      <h1 id="titulo-detalle">{{ publicacion.titulo }}</h1>
+      <span class="estado" [class]="estado(publicacion.estado).tono">
+        {{ estado(publicacion.estado).etiqueta }}
+      </span>
+    </header>
+    <p class="subtitulo">
+      {{ publicacion.tipoAlojamiento }} · {{ publicacion.ciudad }} · {{ publicacion.ubicacion }}
+    </p>
+
+    @if (imagenes().length > 0) {
+      <ul class="galeria" aria-label="Imágenes de la publicación">
+        @for (imagen of imagenes(); track imagen.idImagen; let indice = $index) {
+          <li [class.portada]="indice === 0">
+            <app-imagen-publicacion
+              [ruta]="imagen.rutaImagen"
+              [descripcion]="'Imagen ' + (indice + 1) + ' de ' + publicacion.titulo"
+            />
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="cuerpo">
+      <div class="textos">
+        <h2>Descripción</h2>
+        <p class="texto">{{ publicacion.descripcion }}</p>
+
+        @if (publicacion.reglas) {
+          <h2>Reglas de la casa</h2>
+          <p class="texto">{{ publicacion.reglas }}</p>
+        }
+
+        <h2>Servicios</h2>
+        @if (publicacion.servicios.length > 0) {
+          <ul class="servicios">
+            @for (servicio of publicacion.servicios; track servicio.idServicio) {
+              <li>{{ servicio.nombre }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="texto">Sin servicios registrados.</p>
+        }
+      </div>
+
+      <dl class="datos">
+        <div>
+          <dt>Precio por noche</dt>
+          <dd class="precio">{{ pesos(publicacion.precioPorNoche) }}</dd>
+        </div>
+        <div>
+          <dt>Tarifa de limpieza</dt>
+          <dd>{{ pesos(publicacion.tarifaLimpieza ?? 0) }}</dd>
+        </div>
+        <div>
+          <dt>Capacidad</dt>
+          <dd>{{ publicacion.capacidad }} {{ publicacion.capacidad === 1 ? 'huésped' : 'huéspedes' }}</dd>
+        </div>
+        <div>
+          <dt>Aceptación de reservas</dt>
+          <dd>{{ modo(publicacion.modoAceptacion) }}</dd>
+        </div>
+        <div>
+          <dt>Creada</dt>
+          <dd>{{ fecha(publicacion.fechaCreacion) }}</dd>
+        </div>
+        @if (fecha(publicacion.fechaActualizacion); as actualizada) {
+          <div>
+            <dt>Última actualización</dt>
+            <dd>{{ actualizada }}</dd>
+          </div>
+        }
+      </dl>
+    </div>
+  } @else if (noEncontrada()) {
+    <div class="vacio" role="alert">
+      <h1 id="titulo-detalle">No encontramos esta publicación</h1>
+      <p>Puede que no exista o que no pertenezca a tu cuenta.</p>
+    </div>
+  } @else if (error(); as error) {
+    <div class="alerta" role="alert">
+      <h1 id="titulo-detalle" class="oculto">Detalle de la publicación</h1>
+      <p>{{ error }}</p>
+      <button type="button" class="boton-texto" (click)="reintentar()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="esqueleto" aria-busy="true">
+      <h1 id="titulo-detalle" class="oculto">Cargando publicación</h1>
+      <span class="linea larga"></span>
+      <span class="linea"></span>
+      <span class="bloque"></span>
+    </div>
+  }
+</section>

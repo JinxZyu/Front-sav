@@ -18,6 +18,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { PATRON_CON_TEXTO } from '../../../shared/utils/validadores';
@@ -67,7 +68,7 @@ type Campo = keyof typeof ETIQUETAS;
 
 @Component({
   selector: 'app-crear-publicacion',
-  imports: [ReactiveFormsModule, SelectorImagenes],
+  imports: [ReactiveFormsModule, RouterLink, SelectorImagenes],
   templateUrl: './crear-publicacion.html',
   styleUrl: './crear-publicacion.css',
 })

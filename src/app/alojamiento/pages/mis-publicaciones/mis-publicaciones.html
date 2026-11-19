@@ -1,0 +1,65 @@
+<section class="contenedor" aria-labelledby="titulo-mis-publicaciones">
+  <header class="cabecera">
+    <div>
+      <h1 id="titulo-mis-publicaciones">Mis alojamientos</h1>
+      <p class="subtitulo">Consulta la información y el estado de tus publicaciones.</p>
+    </div>
+    <a routerLink="nuevo" class="principal">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+      Publicar alojamiento
+    </a>
+  </header>
+
+  @if (cargando()) {
+    <ul class="lista" aria-busy="true" aria-label="Cargando publicaciones">
+      @for (indice of [1, 2, 3]; track indice) {
+        <li class="tarjeta esqueleto" aria-hidden="true">
+          <span class="linea larga"></span>
+          <span class="linea"></span>
+          <span class="linea corta"></span>
+        </li>
+      }
+    </ul>
+  } @else if (error(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="boton-texto" (click)="reintentar()">Reintentar</button>
+    </div>
+  } @else if (publicaciones().length === 0) {
+    <div class="vacio">
+      <span class="icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></svg>
+      </span>
+      <h2>Todavía no tienes publicaciones</h2>
+      <p>Cuando publiques un alojamiento lo vas a ver aquí con su estado.</p>
+      <a routerLink="nuevo" class="principal">Publicar mi primer alojamiento</a>
+    </div>
+  } @else {
+    <p class="conteo" aria-live="polite">
+      {{ publicaciones().length }}
+      {{ publicaciones().length === 1 ? 'publicación' : 'publicaciones' }}
+    </p>
+    <ul class="lista">
+      @for (publicacion of publicaciones(); track publicacion.idPublicacion) {
+        <li>
+          <a class="tarjeta" [routerLink]="publicacion.idPublicacion">
+            <span class="fila-titulo">
+              <span class="titulo">{{ publicacion.titulo }}</span>
+              <span class="estado" [class]="estado(publicacion.estado).tono">
+                {{ estado(publicacion.estado).etiqueta }}
+              </span>
+            </span>
+            <span class="meta">{{ publicacion.tipoAlojamiento }} · {{ publicacion.ciudad }}</span>
+            <span class="meta">
+              {{ publicacion.capacidad }} {{ publicacion.capacidad === 1 ? 'huésped' : 'huéspedes' }}
+            </span>
+            <span class="pie">
+              <span class="precio">{{ pesos(publicacion.precioPorNoche) }} <small>/ noche</small></span>
+              <span class="fecha">Creada el {{ fecha(publicacion.fechaCreacion) }}</span>
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -84,6 +84,12 @@ describe('guards de sesión', () => {
       expect(router.serializeUrl(resultado)).toBe('/publicaciones');
     });
 
+    it('al anfitrión con un rol no permitido lo lleva a sus alojamientos', () => {
+      entrarComo('ANFITRION');
+      const resultado = ejecutar(rolGuard('ADMINISTRADOR')) as UrlTree;
+      expect(router.serializeUrl(resultado)).toBe('/alojamientos');
+    });
+
     it('usa los segmentos cuando no hay navegación en curso', () => {
       const resultado = ejecutar(rolGuard('ADMINISTRADOR')) as UrlTree;
       expect(router.serializeUrl(resultado)).toBe('/usuario/login?volverA=%2Freservas%2Fmias');
@@ -107,6 +113,11 @@ describe('guards de sesión', () => {
       entrarComo('HUESPED');
       expect(router.serializeUrl(ejecutarSinSesion() as UrlTree)).toBe('/publicaciones');
     });
+
+    it('con sesión de anfitrión lleva a sus alojamientos', () => {
+      entrarComo('ANFITRION');
+      expect(router.serializeUrl(ejecutarSinSesion() as UrlTree)).toBe('/alojamientos');
+    });
   });
 
   describe('paginaInicial', () => {
@@ -117,6 +128,11 @@ describe('guards de sesión', () => {
     it('con sesión son los alojamientos', () => {
       entrarComo('HUESPED');
       expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/publicaciones');
+    });
+
+    it('para un anfitrión son sus alojamientos', () => {
+      entrarComo('ANFITRION');
+      expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/alojamientos');
     });
   });
 });

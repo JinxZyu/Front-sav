@@ -83,6 +83,22 @@ describe('Login (HU-002)', () => {
 
     expect(sesion.autenticado()).toBe(true);
     expect(sesion.rol()).toBe('ANFITRION');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/alojamientos');
+  });
+
+  it('un huésped entra al listado de alojamientos', async () => {
+    await crear();
+    llenar();
+    componente.iniciarSesion();
+    backend.expectOne(urlLogin).flush({
+      token: crearToken({
+        sub: 'ana@correo.com',
+        role: 'HUESPED',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+      tipo: 'Bearer',
+    });
+
     expect(router.navigateByUrl).toHaveBeenCalledWith('/publicaciones');
   });
 
@@ -270,7 +286,7 @@ describe('Login (HU-002)', () => {
     componente.iniciarSesion();
     backend.expectOne(urlLogin).flush({ token, tipo: 'Bearer' });
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/publicaciones');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/alojamientos');
   });
 
   it('ofrece recuperar la contraseña llevando el correo escrito', async () => {
