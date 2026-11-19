@@ -83,6 +83,36 @@ describe('MiCuenta (HU-006)', () => {
     expect(texto()).toContain('OTRO');
   });
 
+  it('si falla una recarga muestra el error junto a los datos que ya tenía', async () => {
+    crear();
+    backend.expectOne(url).flush(cuenta);
+    await fixture.whenStable();
+    const elemento = fixture.nativeElement as HTMLElement;
+
+    fixture.componentInstance.alGuardar('Perfil actualizado correctamente.');
+    TestBed.tick();
+    backend
+      .expectOne(url)
+      .flush({ mensaje: 'Servicio no disponible.' }, { status: 503, statusText: 'Error' });
+    await fixture.whenStable();
+
+    expect(elemento.querySelector('h1')?.textContent).toBe('Sophia Mora');
+    expect(elemento.querySelector('[role="alert"]')?.textContent).toContain(
+      'Servicio no disponible.',
+    );
+    const reintentar = elemento.querySelector<HTMLButtonElement>('.recarga .reintentar');
+    expect(reintentar).not.toBeNull();
+
+    reintentar?.click();
+    TestBed.tick();
+    fixture.detectChanges();
+    expect(elemento.querySelector('[role="alert"]')).toBeNull();
+    backend.expectOne(url).flush({ ...cuenta, nombre: 'Sofía' });
+    await fixture.whenStable();
+
+    expect(elemento.querySelector('h1')?.textContent).toBe('Sofía Mora');
+  });
+
   it('avisa si no se pudieron cargar los datos y permite reintentar', async () => {
     crear();
     backend

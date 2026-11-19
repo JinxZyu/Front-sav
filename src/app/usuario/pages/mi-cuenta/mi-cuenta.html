@@ -22,6 +22,13 @@
       <p class="aviso" role="status">{{ aviso() }}</p>
     }
 
+    @if (error(); as error) {
+      <div class="alerta recarga" role="alert">
+        <span>No pudimos actualizar tus datos: {{ error }}</span>
+        <button type="button" class="reintentar" (click)="reintentar()">Intentar de nuevo</button>
+      </div>
+    }
+
     @if (editando()) {
       <app-editar-perfil [cuenta]="datos" (cancelado)="editando.set(false)" (guardado)="alGuardar($event)" />
     } @else {
