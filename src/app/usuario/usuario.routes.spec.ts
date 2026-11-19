@@ -1,4 +1,5 @@
 import { Route } from '@angular/router';
+import { sinSesionGuard } from '../config/guards/auth.guard';
 import { USUARIO_ROUTES } from './usuario.routes';
 
 const cargar = async (ruta: Route): Promise<number> => {
@@ -19,6 +20,11 @@ describe('rutas del módulo usuario', () => {
     for (const ruta of USUARIO_ROUTES) {
       total += await cargar(ruta);
     }
-    expect(total).toBe(5);
+    expect(total).toBe(6);
+  });
+
+  it('el inicio de sesión y el registro no se abren con la sesión iniciada', () => {
+    const panel = USUARIO_ROUTES.find((ruta) => ruta.path === '');
+    expect(panel?.canActivate).toEqual([sinSesionGuard]);
   });
 });

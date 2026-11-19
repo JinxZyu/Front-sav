@@ -51,14 +51,31 @@ describe('MenuUsuario (HU-004)', () => {
     expect(disparador()?.getAttribute('aria-label')).toBe('Menú de Sophia Mora');
   });
 
-  it('usa el correo mientras no se conocen los datos de la cuenta', async () => {
+  it('no muestra el correo mientras cargan los datos de la cuenta', async () => {
     await crear();
-    expect(componente.iniciales()).toBe('S');
-    expect(componente.nombre()).toBe('sophie@correo.com');
-    expect(componente.primerNombre()).toBe('sophie');
+
+    expect(componente.cargando()).toBe(true);
+    expect(componente.nombre()).toBe('');
+    expect(componente.iniciales()).toBe('');
+    expect(elemento().querySelector('.nombre-corto.vacio')).not.toBeNull();
+    expect(elemento().textContent).not.toContain('sophie');
+    expect(disparador()?.getAttribute('aria-label')).toBe('Menú de usuario');
+    expect(disparador()?.getAttribute('aria-busy')).toBe('true');
+
+    await responderCuenta();
+    expect(componente.cargando()).toBe(false);
+    expect(elemento().querySelector('.nombre-corto')?.textContent?.trim()).toBe('Sophia');
+  });
+
+  it('usa el correo solo si no se pudieron cargar los datos', async () => {
+    await crear();
     backend.expectOne(urlCuenta).flush('Error', { status: 500, statusText: 'Server Error' });
     await fixture.whenStable();
+
+    expect(componente.cargando()).toBe(false);
     expect(componente.nombre()).toBe('sophie@correo.com');
+    expect(componente.primerNombre()).toBe('sophie');
+    expect(componente.iniciales()).toBe('S');
   });
 
   it('abre el menú con el nombre, el correo y el rol', async () => {
@@ -131,6 +148,22 @@ describe('MenuUsuario (HU-004)', () => {
     const enfocar = vi.spyOn(disparador() as HTMLButtonElement, 'focus');
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(enfocar).not.toHaveBeenCalled();
+  });
+
+  it('ofrece ir a Mi cuenta y cierra el menú al elegirlo', async () => {
+    await crear();
+    await responderCuenta();
+    disparador()?.click();
+    await fixture.whenStable();
+
+    const enlace = elemento().querySelector<HTMLAnchorElement>('a.opcion');
+    expect(enlace?.textContent?.trim()).toBe('Mi cuenta');
+    expect(enlace?.getAttribute('href')).toBe('/usuario/mi-cuenta');
+
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    enlace?.click();
+    expect(componente.abierto()).toBe(false);
+    expect(navegar).toHaveBeenCalled();
   });
 
   it('cierra la sesión y lleva al inicio de sesión', async () => {

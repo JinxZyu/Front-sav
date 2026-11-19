@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { autenticadoGuard, rolGuard } from './config/guards/auth.guard';
+import { autenticadoGuard, paginaInicial, rolGuard } from './config/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'usuario/login' },
+  { path: '', pathMatch: 'full', redirectTo: paginaInicial },
   {
     path: 'usuario',
     loadChildren: () => import('./usuario/usuario.routes').then((m) => m.USUARIO_ROUTES),
@@ -41,5 +41,5 @@ export const routes: Routes = [
     canMatch: [autenticadoGuard],
     loadChildren: () => import('./reserva/reserva.routes').then((m) => m.RESERVA_ROUTES),
   },
-  { path: '**', redirectTo: 'usuario/login' },
+  { path: '**', redirectTo: paginaInicial },
 ];

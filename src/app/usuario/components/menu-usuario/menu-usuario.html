@@ -5,10 +5,15 @@
   (click)="alternar()"
   aria-haspopup="menu"
   [attr.aria-expanded]="abierto()"
-  [attr.aria-label]="'Menú de ' + nombre()"
+  [attr.aria-label]="nombre() ? 'Menú de ' + nombre() : 'Menú de usuario'"
+  [attr.aria-busy]="cargando()"
 >
-  <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
-  <span class="nombre-corto" aria-hidden="true">{{ primerNombre() }}</span>
+  <span class="avatar" [class.cargando]="cargando()" aria-hidden="true">{{ iniciales() }}</span>
+  @if (cargando()) {
+    <span class="nombre-corto vacio" aria-hidden="true"></span>
+  } @else {
+    <span class="nombre-corto" aria-hidden="true">{{ primerNombre() }}</span>
+  }
   <svg class="flecha" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
 </button>
 
@@ -22,6 +27,10 @@
         <span class="rol">{{ nombreRol() }}</span>
       </div>
     </div>
+    <a role="menuitem" class="opcion" routerLink="/usuario/mi-cuenta" (click)="cerrar()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+      Mi cuenta
+    </a>
     <button type="button" role="menuitem" class="opcion salir" (click)="cerrarSesion()">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

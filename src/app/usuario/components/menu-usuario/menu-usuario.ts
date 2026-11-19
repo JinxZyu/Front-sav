@@ -1,6 +1,5 @@
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { CuentaService } from '../../services/cuenta.service';
 
@@ -14,6 +13,7 @@ const NOMBRES_ROL = {
   selector: 'app-menu-usuario',
   templateUrl: './menu-usuario.html',
   styleUrl: './menu-usuario.css',
+  imports: [RouterLink],
   host: {
     '(document:click)': 'cerrarSiEsAfuera($event)',
     '(document:keydown.escape)': 'cerrarConEscape()',
@@ -21,32 +21,32 @@ const NOMBRES_ROL = {
 })
 export class MenuUsuario {
   private readonly router = inject(Router);
-  private readonly cuentaService = inject(CuentaService);
   private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly disparador = viewChild.required<ElementRef<HTMLButtonElement>>('disparador');
   protected readonly sesion = inject(SesionService);
 
   readonly abierto = signal(false);
 
-  readonly cuenta = rxResource({
-    params: () => this.sesion.token() ?? undefined,
-    stream: () => this.cuentaService.consultar(),
-  });
+  readonly cuenta = inject(CuentaService).actual;
+
+  readonly cargando = computed(() => !this.cuenta.hasValue() && !this.cuenta.error());
 
   readonly nombre = computed(() => {
-    const cuenta = this.cuenta.hasValue() ? this.cuenta.value() : null;
-    const completo = `${cuenta?.nombre ?? ''} ${cuenta?.apellido ?? ''}`.trim();
-    return completo || (this.sesion.correo() ?? '');
+    if (this.cuenta.hasValue()) {
+      const { nombre, apellido } = this.cuenta.value();
+      return `${nombre} ${apellido}`.trim();
+    }
+    return this.cuenta.error() ? (this.sesion.correo() ?? '') : '';
   });
 
   readonly primerNombre = computed(() => this.nombre().split(/[\s@]/)[0] ?? '');
 
   readonly iniciales = computed(() => {
-    const cuenta = this.cuenta.hasValue() ? this.cuenta.value() : null;
-    const letras = cuenta
-      ? `${cuenta.nombre.trim().charAt(0)}${cuenta.apellido.trim().charAt(0)}`
-      : (this.sesion.correo() ?? '').charAt(0);
-    return letras.toUpperCase();
+    if (this.cuenta.hasValue()) {
+      const { nombre, apellido } = this.cuenta.value();
+      return `${nombre.trim().charAt(0)}${apellido.trim().charAt(0)}`.toUpperCase();
+    }
+    return this.nombre().charAt(0).toUpperCase();
   });
 
   readonly nombreRol = computed(() => {

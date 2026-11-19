@@ -1,8 +1,16 @@
 import { Routes } from '@angular/router';
+import { autenticadoGuard, sinSesionGuard } from '../config/guards/auth.guard';
 
 export const USUARIO_ROUTES: Routes = [
   {
+    path: 'mi-cuenta',
+    title: 'Mi cuenta',
+    canMatch: [autenticadoGuard],
+    loadComponent: () => import('./pages/mi-cuenta/mi-cuenta').then((m) => m.MiCuenta),
+  },
+  {
     path: '',
+    canActivate: [sinSesionGuard],
     loadComponent: () =>
       import('./components/panel-acceso/panel-acceso').then((m) => m.PanelAcceso),
     children: [
