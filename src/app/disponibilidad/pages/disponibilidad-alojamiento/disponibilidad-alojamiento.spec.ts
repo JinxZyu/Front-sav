@@ -1,0 +1,240 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { comoDia } from '../../utils/fechas';
+import { DisponibilidadAlojamiento } from './disponibilidad-alojamiento';
+
+describe('DisponibilidadAlojamiento (HU-022)', () => {
+  let fixture: ComponentFixture<DisponibilidadAlojamiento>;
+  let componente: DisponibilidadAlojamiento;
+  let backend: HttpTestingController;
+  const api = environment.apiUrl;
+  const urlDetalle = `${api}/publicaciones/mis-publicaciones/p-1`;
+  const urlPeriodos = `${api}/alojamientos/a-1/periodos-disponibles`;
+
+  const enDias = (dias: number) => {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() + dias);
+    return comoDia(fecha);
+  };
+
+  const periodo = (cambios: object = {}) => ({
+    idPeriodo: 'pe-1',
+    idAlojamiento: 'a-1',
+    fechaInicio: '2027-01-10',
+    fechaFin: '2027-01-15',
+    habilitado: true,
+    fechaCreacion: null,
+    ...cambios,
+  });
+
+  const crear = async (periodos: object[] | null = [periodo()]) => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ idPublicacion: 'p-1' })) },
+        },
+      ],
+    });
+    backend = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(DisponibilidadAlojamiento);
+    componente = fixture.componentInstance;
+    fixture.detectChanges();
+    TestBed.tick();
+    backend
+      .expectOne(urlDetalle)
+      .flush({ idPublicacion: 'p-1', idAlojamiento: 'a-1', titulo: 'Cabaña' });
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    if (periodos) {
+      backend.expectOne(urlPeriodos).flush(periodos);
+      await fixture.whenStable();
+    }
+  };
+
+  const elemento = () => fixture.nativeElement as HTMLElement;
+  const botonPorTexto = (texto: string) =>
+    [...elemento().querySelectorAll<HTMLButtonElement>('button')].find(
+      (boton) => boton.textContent?.trim() === texto,
+    );
+  const escribir = (selector: string, valor: string, raiz: ParentNode = elemento()) => {
+    const campo = raiz.querySelector<HTMLInputElement>(selector);
+    if (campo) {
+      campo.value = valor;
+      campo.dispatchEvent(new Event('input'));
+    }
+  };
+
+  afterEach(() => backend.verify());
+
+  it('muestra los periodos del alojamiento ordenados y con sus noches', async () => {
+    await crear([
+      periodo({ idPeriodo: 'pe-2', fechaInicio: '2027-02-01', fechaFin: '2027-02-02' }),
+      periodo(),
+      periodo({
+        idPeriodo: 'pe-3',
+        fechaInicio: '2027-03-01',
+        fechaFin: '2027-03-04',
+        habilitado: false,
+      }),
+    ]);
+
+    expect(elemento().querySelector('.subtitulo')?.textContent).toBe('Cabaña');
+    const items = [...elemento().querySelectorAll('.periodos li')];
+    expect(
+      items.map((item) => item.querySelector('.nota')?.textContent?.replaceAll(/\s+/g, ' ').trim()),
+    ).toEqual(['5 noches · Habilitado', '1 noche · Habilitado', '3 noches · Deshabilitado']);
+    expect(items[2].classList).toContain('apagado');
+    expect(items[2].querySelector('button')).toBeNull();
+  });
+
+  it('criterio 1: registra un periodo con fechas válidas', async () => {
+    await crear([]);
+    expect(elemento().textContent).toContain('Aún no tienes periodos disponibles');
+    escribir('form input[formControlName="fechaInicio"]', enDias(1));
+    escribir('form input[formControlName="fechaFin"]', enDias(4));
+    botonPorTexto('Agregar periodo')?.click();
+
+    const peticion = backend.expectOne(urlPeriodos);
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toEqual({ fechaInicio: enDias(1), fechaFin: enDias(4) });
+    peticion.flush(periodo({ idPeriodo: 'nuevo', fechaInicio: enDias(1), fechaFin: enDias(4) }));
+    await fixture.whenStable();
+
+    expect(elemento().querySelectorAll('.periodos li.tarjeta')).toHaveLength(1);
+    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Agregamos');
+    expect(componente.nuevo.getRawValue()).toEqual({ fechaInicio: '', fechaFin: '' });
+  });
+
+  it('criterio 2: no envía si la salida no es posterior a la llegada', async () => {
+    await crear([]);
+    escribir('form input[formControlName="fechaInicio"]', enDias(3));
+    escribir('form input[formControlName="fechaFin"]', enDias(3));
+    botonPorTexto('Agregar periodo')?.click();
+    await fixture.whenStable();
+
+    backend.expectNone(urlPeriodos);
+    expect(elemento().querySelector('#error-salida')?.textContent).toContain(
+      'posterior a la llegada',
+    );
+  });
+
+  it('no acepta llegadas en el pasado ni fechas vacías', async () => {
+    await crear([]);
+    escribir('form input[formControlName="fechaInicio"]', '2000-01-01');
+    botonPorTexto('Agregar periodo')?.click();
+    await fixture.whenStable();
+
+    backend.expectNone(urlPeriodos);
+    expect(elemento().querySelector('#error-llegada')?.textContent).toContain('fecha futura');
+    expect(elemento().querySelector('#error-salida')?.textContent).toContain('fecha de salida');
+  });
+
+  it('edita un periodo existente', async () => {
+    await crear();
+    botonPorTexto('Editar')?.click();
+    await fixture.whenStable();
+    const formulario = elemento().querySelector('.periodos form') as HTMLFormElement;
+    escribir('input[formControlName="fechaFin"]', '2027-01-20', formulario);
+    botonPorTexto('Guardar')?.click();
+
+    const peticion = backend.expectOne(`${urlPeriodos}/pe-1`);
+    expect(peticion.request.method).toBe('PUT');
+    expect(peticion.request.body).toEqual({ fechaInicio: '2027-01-10', fechaFin: '2027-01-20' });
+    peticion.flush(periodo({ fechaFin: '2027-01-20' }));
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.periodos .nota')?.textContent).toContain('10 noches');
+    expect(elemento().querySelector('.periodos form')).toBeNull();
+  });
+
+  it('criterio 3: muestra que un periodo con reservas no se puede modificar', async () => {
+    await crear();
+    botonPorTexto('Editar')?.click();
+    await fixture.whenStable();
+    botonPorTexto('Guardar')?.click();
+    backend.expectOne(`${urlPeriodos}/pe-1`).flush(
+      {
+        mensaje:
+          'El periodo contiene noches asociadas a reservas vigentes o confirmadas y no puede modificarse.',
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.periodos [role="alert"]')?.textContent).toContain(
+      'reservas vigentes',
+    );
+    expect(elemento().querySelector('.periodos form')).not.toBeNull();
+  });
+
+  it('pide confirmación antes de deshabilitar un periodo', async () => {
+    await crear();
+    botonPorTexto('Deshabilitar')?.click();
+    await fixture.whenStable();
+    backend.expectNone(`${urlPeriodos}/pe-1`);
+
+    botonPorTexto('No')?.click();
+    await fixture.whenStable();
+    expect(botonPorTexto('Sí, deshabilitar')).toBeUndefined();
+
+    botonPorTexto('Deshabilitar')?.click();
+    await fixture.whenStable();
+    botonPorTexto('Sí, deshabilitar')?.click();
+    const peticion = backend.expectOne(`${urlPeriodos}/pe-1`);
+    expect(peticion.request.method).toBe('DELETE');
+    peticion.flush(periodo({ habilitado: false }));
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.periodos li')?.classList).toContain('apagado');
+    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Deshabilitamos');
+  });
+
+  it('criterio 4: informa si la publicación no es del anfitrión', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ idPublicacion: 'p-1' })) },
+        },
+      ],
+    });
+    backend = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(DisponibilidadAlojamiento);
+    fixture.detectChanges();
+    TestBed.tick();
+    backend
+      .expectOne(urlDetalle)
+      .flush({ mensaje: 'No' }, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('[role="alert"]')?.textContent).toContain(
+      'no pertenece a tu cuenta',
+    );
+  });
+
+  it('permite reintentar si fallan los periodos', async () => {
+    await crear(null);
+    backend.expectOne(urlPeriodos).flush('Error', { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+
+    botonPorTexto('Reintentar')?.click();
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlPeriodos).flush([periodo()]);
+    await fixture.whenStable();
+
+    expect(elemento().querySelectorAll('.periodos li.tarjeta')).toHaveLength(1);
+  });
+});

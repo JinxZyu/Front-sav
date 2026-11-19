@@ -159,6 +159,7 @@ describe('DetallePublicacion (HU-011)', () => {
 
     const condiciones = elemento().querySelector('.condiciones');
     expect(condiciones?.querySelector('h2')?.textContent).toBe('Condiciones de reserva');
+    expect(condiciones?.querySelector('a')?.getAttribute('href')).toBe('/disponibilidad/p-1');
     expect(condiciones?.querySelector('app-politica-publicacion')?.textContent).toContain(
       'Flexible',
     );

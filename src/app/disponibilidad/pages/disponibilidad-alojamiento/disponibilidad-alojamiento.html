@@ -1,0 +1,173 @@
+<section class="contenedor" aria-labelledby="titulo-disponibilidad">
+  <a [routerLink]="['/alojamientos', idPublicacion()]" class="volver">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+    Volver a la publicación
+  </a>
+  <h1 id="titulo-disponibilidad">Disponibilidad</h1>
+  @if (publicacion.hasValue()) {
+    <p class="subtitulo">{{ publicacion.value().titulo }}</p>
+  }
+
+  @if (noEncontrada()) {
+    <p class="mensaje falla" role="alert">
+      No encontramos esta publicación o no pertenece a tu cuenta.
+      <a routerLink="/alojamientos">Volver a mis alojamientos</a>
+    </p>
+  } @else if (errorCarga(); as errorCarga) {
+    <p class="mensaje falla" role="alert">
+      {{ errorCarga }}
+      <button type="button" class="texto" (click)="reintentar()">Reintentar</button>
+    </p>
+  } @else if (!periodos.hasValue()) {
+    <p class="cargando" role="status">Cargando disponibilidad…</p>
+  } @else {
+    <form class="tarjeta" [formGroup]="nuevo" (ngSubmit)="agregar()" novalidate>
+      <h2>Agregar periodo disponible</h2>
+      <p class="nota">Los huéspedes solo podrán reservar dentro de los periodos que habilites.</p>
+      <fieldset class="fechas" [disabled]="procesando()">
+        <label>
+          Llegada
+          <input
+            type="date"
+            formControlName="fechaInicio"
+            [min]="minimo"
+            [attr.aria-invalid]="invalidoNuevo('fechaInicio')"
+            [attr.aria-describedby]="invalidoNuevo('fechaInicio') ? 'error-llegada' : null"
+          />
+          @if (invalidoNuevo('fechaInicio')) {
+            <span class="error-campo" id="error-llegada">
+              {{
+                nuevo.controls.fechaInicio.hasError('pasado')
+                  ? 'Elige hoy o una fecha futura.'
+                  : 'Elige la fecha de llegada.'
+              }}
+            </span>
+          }
+        </label>
+        <label>
+          Salida
+          <input
+            type="date"
+            formControlName="fechaFin"
+            [min]="nuevo.controls.fechaInicio.value || minimo"
+            [attr.aria-invalid]="
+              invalidoNuevo('fechaFin') || (intentoNuevo() && nuevo.hasError('rango'))
+            "
+            [attr.aria-describedby]="
+              invalidoNuevo('fechaFin') || (intentoNuevo() && nuevo.hasError('rango'))
+                ? 'error-salida'
+                : null
+            "
+          />
+          @if (invalidoNuevo('fechaFin')) {
+            <span class="error-campo" id="error-salida">Elige la fecha de salida.</span>
+          } @else if (intentoNuevo() && nuevo.hasError('rango')) {
+            <span class="error-campo" id="error-salida">
+              La salida debe ser posterior a la llegada.
+            </span>
+          }
+        </label>
+        <button type="submit" class="principal">
+          {{ procesando() ? 'Guardando…' : 'Agregar periodo' }}
+        </button>
+      </fieldset>
+    </form>
+
+    <ng-template #mensajes>
+      @if (aviso(); as aviso) {
+        <p class="mensaje exito" role="status">{{ aviso }}</p>
+      }
+      @if (error(); as error) {
+        <p class="mensaje falla" role="alert">{{ error }}</p>
+      }
+    </ng-template>
+
+    @if (lugarMensaje() === 'nuevo') {
+      <ng-container [ngTemplateOutlet]="mensajes" />
+    }
+
+    <h2>Periodos</h2>
+    <ul class="periodos">
+      @for (periodo of lista(); track periodo.idPeriodo) {
+        <li class="tarjeta" [class.apagado]="!periodo.habilitado">
+          @if (editando() === periodo.idPeriodo) {
+            <form [formGroup]="edicion" (ngSubmit)="guardarEdicion(periodo)" novalidate>
+              <fieldset class="fechas" [disabled]="procesando()">
+                <label>
+                  Llegada
+                  <input type="date" formControlName="fechaInicio" />
+                </label>
+                <label>
+                  Salida
+                  <input
+                    type="date"
+                    formControlName="fechaFin"
+                    [min]="edicion.controls.fechaInicio.value"
+                    [attr.aria-invalid]="intentoEdicion() && edicion.invalid"
+                    [attr.aria-describedby]="
+                      intentoEdicion() && edicion.invalid ? 'error-edicion' : null
+                    "
+                  />
+                </label>
+                <div class="acciones">
+                  <button type="submit" class="principal">
+                    {{ procesando() ? 'Guardando…' : 'Guardar' }}
+                  </button>
+                  <button type="button" class="secundario" (click)="cancelarEdicion()">
+                    Cancelar
+                  </button>
+                </div>
+              </fieldset>
+              @if (intentoEdicion() && edicion.invalid) {
+                <span class="error-campo" id="error-edicion">
+                  Elige ambas fechas; la salida debe ser posterior a la llegada.
+                </span>
+              }
+            </form>
+          } @else {
+            <div class="resumen">
+              <strong>{{ dia(periodo.fechaInicio) }} → {{ dia(periodo.fechaFin) }}</strong>
+              <span class="nota">
+                {{ noches(periodo.fechaInicio, periodo.fechaFin) }}
+                {{ noches(periodo.fechaInicio, periodo.fechaFin) === 1 ? 'noche' : 'noches' }}
+                · {{ periodo.habilitado ? 'Habilitado' : 'Deshabilitado' }}
+              </span>
+            </div>
+            @if (periodo.habilitado) {
+              @if (confirmando() === periodo.idPeriodo) {
+                <div class="acciones" role="group" aria-label="Confirmar deshabilitar">
+                  <span class="nota">¿Deshabilitar este periodo?</span>
+                  <button
+                    type="button"
+                    class="peligro"
+                    [disabled]="procesando()"
+                    (click)="deshabilitar(periodo)"
+                  >
+                    {{ procesando() ? 'Deshabilitando…' : 'Sí, deshabilitar' }}
+                  </button>
+                  <button type="button" class="secundario" (click)="confirmando.set(null)">
+                    No
+                  </button>
+                </div>
+              } @else {
+                <div class="acciones">
+                  <button type="button" class="secundario" (click)="editar(periodo)">Editar</button>
+                  <button type="button" class="texto" (click)="pedirConfirmacion(periodo)">
+                    Deshabilitar
+                  </button>
+                </div>
+              }
+            }
+          }
+          @if (lugarMensaje() === periodo.idPeriodo) {
+            <div class="mensajes-periodo">
+              <ng-container [ngTemplateOutlet]="mensajes" />
+            </div>
+          }
+        </li>
+      } @empty {
+        <li class="nota">Aún no tienes periodos disponibles. Agrega el primero arriba.</li>
+      }
+    </ul>
+  }
+</section>

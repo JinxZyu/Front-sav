@@ -269,6 +269,19 @@ dd {
   margin-top: 2rem;
 }
 
+.titulo-seccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.titulo-seccion h2 {
+  margin: 0;
+}
+
 .tarjetas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
