@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  CambioEstadoPublicacion,
   DetallePublicacion,
   MisPublicaciones,
   NuevaPublicacion,
@@ -42,6 +43,13 @@ export class PublicacionAlojamientoService {
   detalle(idPublicacion: string): Observable<DetallePublicacion> {
     return this.http.get<DetallePublicacion>(
       `${this.api}/publicaciones/mis-publicaciones/${encodeURIComponent(idPublicacion)}`,
+    );
+  }
+
+  enviarRevision(idPublicacion: string): Observable<CambioEstadoPublicacion> {
+    return this.http.patch<CambioEstadoPublicacion>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/enviar-revision`,
+      null,
     );
   }
 

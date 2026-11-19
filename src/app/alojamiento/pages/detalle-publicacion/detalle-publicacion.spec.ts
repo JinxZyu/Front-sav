@@ -102,8 +102,29 @@ describe('DetallePublicacion (HU-011)', () => {
     backend.expectOne(url).flush(detalle({ imagenes: [] }));
     await fixture.whenStable();
 
-    expect(elemento().querySelector('a.editar')?.getAttribute('href')).toBe('/alojamientos/p-1/editar');
+    expect(elemento().querySelector('a.editar')?.getAttribute('href')).toBe(
+      '/alojamientos/p-1/editar',
+    );
     expect(elemento().querySelector('.aviso')).toBeNull();
+  });
+
+  it('actualiza el estado mostrado cuando se envía a revisión', async () => {
+    crear();
+    backend.expectOne(url).flush(detalle({ imagenes: [], estado: 'BORRADOR' }));
+    await fixture.whenStable();
+
+    elemento().querySelector<HTMLButtonElement>('app-acciones-estado button')?.click();
+    backend.expectOne(`${api}/publicaciones/p-1/enviar-revision`).flush({
+      idPublicacion: 'p-1',
+      estadoAnterior: 'BORRADOR',
+      estadoActual: 'PENDIENTE_REVISION',
+    });
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.cabecera .estado')?.textContent?.trim()).toBe('En revisión');
+    expect(elemento().querySelector('app-acciones-estado')?.textContent).toContain(
+      'Un administrador está revisando',
+    );
   });
 
   it('confirma que se guardaron los cambios al volver de editar', async () => {

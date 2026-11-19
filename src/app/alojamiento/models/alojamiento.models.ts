@@ -132,3 +132,11 @@ export function estadoPublicacion(estado: string): EstadoPublicacion {
 export function modoAceptacion(valor: string): string {
   return MODOS_ACEPTACION.find((modo) => modo.valor === valor)?.titulo ?? valor;
 }
+
+export interface CambioEstadoPublicacion {
+  idPublicacion: string;
+  estadoAnterior: string;
+  estadoActual: string;
+  mensaje: string;
+  fechaActualizacion: string;
+}

@@ -1,0 +1,40 @@
+@switch (publicacion().estado) {
+  @case ('BORRADOR') {
+    <div class="caja">
+      <p>
+        Tu publicación es un borrador y nadie más la ve. Cuando esté lista, envíala a revisión para
+        que un administrador la apruebe.
+      </p>
+      <button type="button" class="principal" [disabled]="procesando()" (click)="enviarRevision()">
+        {{ procesando() ? 'Enviando…' : 'Enviar a revisión' }}
+      </button>
+    </div>
+  }
+  @case ('PENDIENTE_REVISION') {
+    <p class="caja informativa">
+      Un administrador está revisando tu publicación. Te avisaremos cuando tome una decisión.
+    </p>
+  }
+  @case ('RECHAZADA') {
+    <p class="caja informativa">Un administrador rechazó esta publicación.</p>
+  }
+  @case ('BLOQUEADA') {
+    <p class="caja informativa">
+      Un administrador bloqueó esta publicación. Mientras siga bloqueada no puedes cambiar su
+      estado.
+    </p>
+  }
+}
+@if (aviso(); as aviso) {
+  <p class="mensaje exito" role="status">{{ aviso }}</p>
+}
+@if (error(); as error) {
+  <p class="mensaje falla" role="alert">
+    {{ error }}
+    @if (faltaInformacion()) {
+      <a [routerLink]="['/alojamientos', publicacion().idPublicacion, 'editar']">
+        Completar la información
+      </a>
+    }
+  </p>
+}
