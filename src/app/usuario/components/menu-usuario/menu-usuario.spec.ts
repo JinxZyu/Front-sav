@@ -92,6 +92,47 @@ describe('MenuUsuario (HU-004)', () => {
     expect(componente.abierto()).toBe(false);
   });
 
+  it('con Escape cierra el menú y devuelve el foco al botón que lo abrió', async () => {
+    await crear();
+    await responderCuenta();
+    document.body.appendChild(fixture.nativeElement);
+
+    disparador()?.click();
+    await fixture.whenStable();
+    elemento().querySelector<HTMLButtonElement>('.salir')?.focus();
+    expect(document.activeElement?.classList.contains('salir')).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await fixture.whenStable();
+
+    expect(componente.abierto()).toBe(false);
+    expect(document.activeElement).toBe(disparador());
+    fixture.nativeElement.remove();
+  });
+
+  it('con Escape no mueve el foco si estaba fuera del menú', async () => {
+    await crear();
+    await responderCuenta();
+    const otro = document.createElement('button');
+    document.body.appendChild(otro);
+
+    componente.alternar();
+    otro.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    expect(componente.abierto()).toBe(false);
+    expect(document.activeElement).toBe(otro);
+    otro.remove();
+  });
+
+  it('Escape no hace nada si el menú está cerrado', async () => {
+    await crear();
+    await responderCuenta();
+    const enfocar = vi.spyOn(disparador() as HTMLButtonElement, 'focus');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(enfocar).not.toHaveBeenCalled();
+  });
+
   it('cierra la sesión y lleva al inicio de sesión', async () => {
     await crear();
     await responderCuenta();

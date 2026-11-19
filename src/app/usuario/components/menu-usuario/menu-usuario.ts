@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { SesionService } from '../../../config/auth/sesion.service';
@@ -16,13 +16,14 @@ const NOMBRES_ROL = {
   styleUrl: './menu-usuario.css',
   host: {
     '(document:click)': 'cerrarSiEsAfuera($event)',
-    '(document:keydown.escape)': 'cerrar()',
+    '(document:keydown.escape)': 'cerrarConEscape()',
   },
 })
 export class MenuUsuario {
   private readonly router = inject(Router);
   private readonly cuentaService = inject(CuentaService);
   private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly disparador = viewChild.required<ElementRef<HTMLButtonElement>>('disparador');
   protected readonly sesion = inject(SesionService);
 
   readonly abierto = signal(false);
@@ -59,6 +60,17 @@ export class MenuUsuario {
 
   cerrar(): void {
     this.abierto.set(false);
+  }
+
+  cerrarConEscape(): void {
+    if (!this.abierto()) {
+      return;
+    }
+    const enfocadoAdentro = this.elemento.nativeElement.contains(document.activeElement);
+    this.cerrar();
+    if (enfocadoAdentro) {
+      this.disparador().nativeElement.focus();
+    }
   }
 
   cerrarSiEsAfuera(evento: Event): void {
