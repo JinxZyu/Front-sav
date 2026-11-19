@@ -2,6 +2,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import {
   INDICATIVOS_TELEFONO,
   ejemploTelefono,
+  indicativoDePais,
   telefonoInternacional,
   telefonoValido,
 } from './telefono';
@@ -56,5 +57,11 @@ describe('utilidades de teléfono', () => {
 
   it('no valida si el campo no está dentro de un formulario', () => {
     expect(new FormControl('123', [telefonoValido('indicativo')]).valid).toBe(true);
+  });
+
+  it('obtiene el indicativo a partir del código del país', () => {
+    expect(indicativoDePais('co')).toBe('57');
+    expect(indicativoDePais('US')).toBe('1');
+    expect(indicativoDePais('XX')).toBeNull();
   });
 });

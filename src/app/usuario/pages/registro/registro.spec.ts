@@ -11,6 +11,17 @@ describe('Registro (HU-001)', () => {
   let backend: HttpTestingController;
   let router: Router;
   const url = `${environment.apiUrl}/autenticacion/registrar`;
+  const urlPaises = `${environment.apiUrl}/autenticacion/ubicaciones/paises`;
+  const urlCiudades = (idPais: string) => `${urlPaises}/${idPais}/ciudades`;
+  const paises = [
+    { idPais: 'p-co', codigoIso2: 'CO', nombre: 'Colombia' },
+    { idPais: 'p-es', codigoIso2: 'ES', nombre: 'Spain' },
+    { idPais: 'p-xx', codigoIso2: 'XX', nombre: 'Atlantis' },
+  ];
+  const ciudadesColombia = [
+    { idCiudad: 'c-bog', nombre: 'Bogotá' },
+    { idCiudad: 'c-med', nombre: 'Medellín' },
+  ];
 
   const datosValidos = {
     nombre: ' Ana ',
@@ -21,7 +32,19 @@ describe('Registro (HU-001)', () => {
     indicativo: '57',
     telefono: '3001234567',
     contrasena: 'clave-segura',
+    idPais: 'p-co',
+    idCiudad: 'c-bog',
     rol: 'ANFITRION' as const,
+  };
+
+  const elemento = () => fixture.nativeElement as HTMLElement;
+
+  const responderCiudades = async (idPais: string, respuesta: object = ciudadesColombia) => {
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlCiudades(idPais)).flush(respuesta);
+    await fixture.whenStable();
   };
 
   const textoPantalla = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
@@ -35,7 +58,10 @@ describe('Registro (HU-001)', () => {
     backend = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    await fixture.whenStable();
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlPaises).flush(paises);
+    await responderCiudades('p-co');
   });
 
   afterEach(() => backend.verify());
@@ -82,6 +108,7 @@ describe('Registro (HU-001)', () => {
       documentoIdentidad: '1012345678',
       telefono: '+573001234567',
       contrasena: 'clave-segura',
+      idCiudad: 'c-bog',
       rol: 'ANFITRION',
     });
     expect(componente.enviando()).toBe(true);
@@ -207,5 +234,94 @@ describe('Registro (HU-001)', () => {
 
     expect(peticion.cancelled).toBe(true);
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('carga los países, elige Colombia por defecto y trae sus ciudades', () => {
+    expect(componente.formulario.controls.idPais.value).toBe('p-co');
+    const opciones = [
+      ...elemento().querySelectorAll('select[formControlName="idCiudad"] option'),
+    ].map((opcion) => opcion.textContent?.trim());
+    expect(opciones).toEqual(['Elige tu ciudad', 'Bogotá', 'Medellín']);
+  });
+
+  it('al cambiar de país limpia la ciudad, trae las nuevas y ajusta el indicativo', async () => {
+    componente.formulario.controls.idCiudad.setValue('c-bog');
+    componente.formulario.controls.idPais.setValue('p-es');
+    await responderCiudades('p-es', [{ idCiudad: 'c-mad', nombre: 'Madrid' }]);
+
+    expect(componente.formulario.controls.idCiudad.value).toBe('');
+    expect(componente.formulario.controls.indicativo.value).toBe('34');
+    expect(elemento().textContent).toContain('Madrid');
+  });
+
+  it('no cambia el indicativo si la persona ya lo eligió', async () => {
+    componente.formulario.controls.indicativo.setValue('52');
+    componente.formulario.controls.indicativo.markAsDirty();
+    componente.formulario.controls.idPais.setValue('p-es');
+    await responderCiudades('p-es', []);
+
+    expect(componente.formulario.controls.indicativo.value).toBe('52');
+    expect(elemento().textContent).toContain('No hay ciudades para este país');
+  });
+
+  it('deja el indicativo igual si el país no tiene uno conocido', async () => {
+    componente.formulario.controls.idPais.setValue('p-xx');
+    await responderCiudades('p-xx', []);
+
+    expect(componente.formulario.controls.indicativo.value).toBe('57');
+  });
+
+  it('exige la ciudad antes de registrar', async () => {
+    componente.formulario.setValue({ ...datosValidos, idCiudad: '' });
+    componente.registrar();
+    await fixture.whenStable();
+
+    backend.expectNone(url);
+    const ciudad = elemento().querySelector('select[formControlName="idCiudad"]');
+    expect(ciudad?.getAttribute('aria-invalid')).toBe('true');
+    expect(ciudad?.getAttribute('aria-describedby')).toBe('error-ciudad');
+    expect(elemento().querySelector('#error-ciudad')?.textContent).toContain('Elige tu ciudad');
+  });
+
+  it('permite reintentar si fallan las ciudades', async () => {
+    componente.formulario.controls.idPais.setValue('p-es');
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlCiudades('p-es')).flush('Error', { status: 503, statusText: 'Error' });
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('#error-ciudad')?.textContent).toContain('Error');
+    elemento().querySelector<HTMLButtonElement>('#error-ciudad button')?.click();
+    await responderCiudades('p-es', [{ idCiudad: 'c-mad', nombre: 'Madrid' }]);
+
+    expect(elemento().querySelector('#error-ciudad')).toBeNull();
+    expect(elemento().textContent).toContain('Madrid');
+  });
+});
+
+describe('Registro (HU-001) sin países disponibles', () => {
+  it('avisa si no se pudieron cargar los países y permite reintentar', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(Registro);
+    const backend = TestBed.inject(HttpTestingController);
+    const urlPaises = `${environment.apiUrl}/autenticacion/ubicaciones/paises`;
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlPaises).flush('Sin conexión', { status: 503, statusText: 'Error' });
+    await fixture.whenStable();
+
+    const elemento = fixture.nativeElement as HTMLElement;
+    expect(elemento.querySelector('#error-pais')?.textContent).toContain('Sin conexión');
+    elemento.querySelector<HTMLButtonElement>('#error-pais button')?.click();
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlPaises).flush([]);
+    await fixture.whenStable();
+
+    expect(elemento.querySelector('#error-pais')).toBeNull();
+    backend.verify();
   });
 });
