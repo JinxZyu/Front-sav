@@ -171,6 +171,20 @@ dd {
   color: #be123c;
 }
 
+.alerta.recarga {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.alerta.recarga .reintentar {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+}
+
 .reintentar {
   padding: 0.7rem 1.4rem;
   border: 0;
