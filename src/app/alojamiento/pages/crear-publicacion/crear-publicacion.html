@@ -1,0 +1,369 @@
+<section class="tarjeta" aria-labelledby="titulo-crear">
+  @if (creada(); as creada) {
+    <div class="exito">
+      <span class="icono-exito" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7" /></svg>
+      </span>
+      <h1 id="titulo-crear" #tituloExito tabindex="-1">¡Tu publicación quedó guardada!</h1>
+      <p>
+        <strong>{{ creada.titulo }}</strong> se creó en estado <span class="estado">Borrador</span>.
+        Todavía no aparece en el marketplace: primero debe enviarse a revisión y ser aprobada.
+      </p>
+      <button type="button" class="principal" (click)="crearOtra()">Crear otra publicación</button>
+    </div>
+  } @else {
+    <header class="cabecera">
+      <h1 id="titulo-crear">Publicar alojamiento</h1>
+      <p class="subtitulo">
+        Completa la información de tu alojamiento. Se guardará como borrador hasta que lo envíes a
+        revisión.
+      </p>
+      @if (cuenta.hasValue()) {
+        <p class="propietario">
+          Se publicará a nombre de
+          <strong>{{ cuenta.value().nombre }} {{ cuenta.value().apellido }}</strong> ·
+          {{ cuenta.value().correo }}
+        </p>
+      }
+    </header>
+
+    <form [formGroup]="formulario" (ngSubmit)="publicar()" novalidate>
+      <fieldset [disabled]="enviando()">
+        <legend>Información básica</legend>
+        <label>
+          Título
+          <input
+            type="text"
+            formControlName="titulo"
+            [readonly]="enviando()"
+            [class.invalido]="invalido('titulo')"
+            [attr.aria-invalid]="invalido('titulo')"
+            [attr.aria-describedby]="invalido('titulo') ? 'error-titulo' : null"
+            placeholder="Ej.: Cabaña frente al lago con chimenea"
+            maxlength="200"
+          />
+          @if (invalido('titulo')) {
+            <span class="error-campo" id="error-titulo"
+              >Escribe un título (máximo 200 caracteres).</span
+            >
+          }
+        </label>
+
+        <label>
+          Tipo de alojamiento
+          <select
+            formControlName="tipoAlojamiento"
+            [class.invalido]="invalido('tipoAlojamiento')"
+            [attr.aria-invalid]="invalido('tipoAlojamiento')"
+            [attr.aria-describedby]="invalido('tipoAlojamiento') ? 'error-tipoAlojamiento' : null"
+          >
+            <option value="" disabled>Selecciona un tipo</option>
+            @for (tipo of tipos; track tipo) {
+              <option [value]="tipo">{{ tipo }}</option>
+            }
+          </select>
+          @if (invalido('tipoAlojamiento')) {
+            <span class="error-campo" id="error-tipoAlojamiento"
+              >Selecciona el tipo de alojamiento.</span
+            >
+          }
+        </label>
+        <label>
+          Descripción
+          <textarea
+            rows="5"
+            formControlName="descripcion"
+            [readonly]="enviando()"
+            [class.invalido]="invalido('descripcion')"
+            [attr.aria-invalid]="invalido('descripcion')"
+            [attr.aria-describedby]="invalido('descripcion') ? 'error-descripcion' : null"
+            maxlength="2000"
+          ></textarea>
+          @if (invalido('descripcion')) {
+            <span class="error-campo" id="error-descripcion"
+              >Describe tu alojamiento (máximo 2000 caracteres).</span
+            >
+          }
+        </label>
+        <label>
+          Reglas de la casa
+          <textarea
+            rows="3"
+            formControlName="reglas"
+            [readonly]="enviando()"
+            [class.invalido]="invalido('reglas')"
+            [attr.aria-invalid]="invalido('reglas')"
+            [attr.aria-describedby]="invalido('reglas') ? 'error-reglas' : null"
+            placeholder="Ej.: No se permiten fiestas. Mascotas bajo aprobación."
+            maxlength="1000"
+          ></textarea>
+          @if (invalido('reglas')) {
+            <span class="error-campo" id="error-reglas"
+              >Escribe las reglas (máximo 1000 caracteres).</span
+            >
+          }
+        </label>
+      </fieldset>
+
+      <fieldset [disabled]="enviando()">
+        <legend>Ubicación</legend>
+        <div class="fila">
+          <label>
+            Ciudad
+            <input
+              type="text"
+              formControlName="ciudad"
+              [readonly]="enviando()"
+              [class.invalido]="invalido('ciudad')"
+              [attr.aria-invalid]="invalido('ciudad')"
+              [attr.aria-describedby]="invalido('ciudad') ? 'error-ciudad' : null"
+              maxlength="100"
+            />
+            @if (invalido('ciudad')) {
+              <span class="error-campo" id="error-ciudad">Escribe la ciudad.</span>
+            }
+          </label>
+          <label>
+            Dirección o ubicación
+            <input
+              type="text"
+              formControlName="ubicacion"
+              [readonly]="enviando()"
+              [class.invalido]="invalido('ubicacion')"
+              [attr.aria-invalid]="invalido('ubicacion')"
+              [attr.aria-describedby]="invalido('ubicacion') ? 'error-ubicacion' : null"
+              placeholder="Ej.: Vereda El Lago, km 3"
+              maxlength="255"
+            />
+            @if (invalido('ubicacion')) {
+              <span class="error-campo" id="error-ubicacion">Escribe la ubicación.</span>
+            }
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset [disabled]="enviando()">
+        <legend>Capacidad y precios</legend>
+        <div class="fila tres">
+          <label>
+            Capacidad (huéspedes)
+            <input
+              type="number"
+              formControlName="capacidad"
+              [readonly]="enviando()"
+              [class.invalido]="invalido('capacidad')"
+              [attr.aria-invalid]="invalido('capacidad')"
+              [attr.aria-describedby]="invalido('capacidad') ? 'error-capacidad' : null"
+              min="1"
+              max="50"
+              step="1"
+              inputmode="numeric"
+            />
+            @if (invalido('capacidad')) {
+              <span class="error-campo" id="error-capacidad"
+                >Debe ser un número entero entre 1 y 50.</span
+              >
+            }
+          </label>
+          <label>
+            Precio por noche (COP)
+            <input
+              type="number"
+              formControlName="precioPorNoche"
+              [readonly]="enviando()"
+              [class.invalido]="invalido('precioPorNoche')"
+              [attr.aria-invalid]="invalido('precioPorNoche')"
+              [attr.aria-describedby]="invalido('precioPorNoche') ? 'error-precioPorNoche' : null"
+              min="1"
+              step="1"
+              inputmode="numeric"
+            />
+            @if (invalido('precioPorNoche')) {
+              <span class="error-campo" id="error-precioPorNoche"
+                >Debe ser un número entero mayor que cero.</span
+              >
+            }
+          </label>
+          <label>
+            Tarifa de limpieza (COP)
+            <input
+              type="number"
+              formControlName="tarifaLimpieza"
+              [readonly]="enviando()"
+              [class.invalido]="invalido('tarifaLimpieza')"
+              [attr.aria-invalid]="invalido('tarifaLimpieza')"
+              [attr.aria-describedby]="invalido('tarifaLimpieza') ? 'error-tarifaLimpieza' : null"
+              min="0"
+              step="1"
+              inputmode="numeric"
+            />
+            @if (invalido('tarifaLimpieza')) {
+              <span class="error-campo" id="error-tarifaLimpieza"
+                >Debe ser cero o un número entero positivo.</span
+              >
+            } @else {
+              <span class="ayuda">Opcional. Déjala en 0 si no cobras limpieza.</span>
+            }
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset [disabled]="enviando()">
+        <legend>Reservas</legend>
+        <div
+          class="grupo"
+          role="radiogroup"
+          aria-labelledby="etiqueta-modo"
+          [attr.aria-describedby]="invalido('modoAceptacion') ? 'error-modoAceptacion' : null"
+        >
+          <span class="etiqueta" id="etiqueta-modo">Cómo aceptas las reservas</span>
+          <div class="opciones">
+            @for (modo of modos; track modo.valor) {
+              <label
+                class="opcion"
+                [class.marcada]="formulario.controls.modoAceptacion.value === modo.valor"
+              >
+                <input type="radio" formControlName="modoAceptacion" [value]="modo.valor" />
+                <span class="titulo-opcion">{{ modo.titulo }}</span>
+                <span class="detalle">{{ modo.descripcion }}</span>
+              </label>
+            }
+          </div>
+          @if (invalido('modoAceptacion')) {
+            <span class="error-campo" id="error-modoAceptacion"
+              >Elige cómo aceptas las reservas.</span
+            >
+          }
+        </div>
+
+        <div
+          class="grupo"
+          role="radiogroup"
+          aria-labelledby="etiqueta-politica"
+          [attr.aria-describedby]="invalido('idPolitica') ? 'error-idPolitica' : null"
+        >
+          <span class="etiqueta" id="etiqueta-politica">Política de cancelación</span>
+          @if (politicas.hasValue()) {
+            <div class="opciones">
+              @for (politica of politicas.value(); track politica.idPolitica) {
+                <label
+                  class="opcion"
+                  [class.marcada]="formulario.controls.idPolitica.value === politica.idPolitica"
+                >
+                  <input type="radio" formControlName="idPolitica" [value]="politica.idPolitica" />
+                  <span class="titulo-opcion">{{ politica.nombre }}</span>
+                  @if (politica.descripcion) {
+                    <span class="detalle">{{ politica.descripcion }}</span>
+                  }
+                  @if (politica.porcentajeDevolucion !== null) {
+                    <span class="detalle"
+                      >Devolución: {{ formatearPorcentaje(politica.porcentajeDevolucion) }}</span
+                    >
+                  }
+                </label>
+              } @empty {
+                <p class="ayuda">
+                  No hay políticas de cancelación activas. Comunícate con un Administrador.
+                </p>
+              }
+            </div>
+          } @else if (politicas.error()) {
+            <p class="alerta">
+              No pudimos cargar las políticas.
+              <button type="button" class="boton-texto" (click)="politicas.reload()">
+                Intentar de nuevo
+              </button>
+            </p>
+          } @else {
+            <p class="ayuda" role="status">Cargando políticas…</p>
+          }
+          @if (invalido('idPolitica')) {
+            <span class="error-campo" id="error-idPolitica"
+              >Elige una política de cancelación.</span
+            >
+          }
+        </div>
+      </fieldset>
+
+      <fieldset [disabled]="enviando()">
+        <legend>Servicios</legend>
+        @if (servicios.hasValue()) {
+          <div
+            class="servicios"
+            role="group"
+            aria-label="Servicios del alojamiento"
+            [attr.aria-describedby]="invalido('idsServicios') ? 'error-idsServicios' : null"
+          >
+            @for (servicioDisponible of servicios.value(); track servicioDisponible.idServicio) {
+              <label
+                class="servicio"
+                [class.marcado]="servicioMarcado(servicioDisponible.idServicio)"
+                [attr.title]="servicioDisponible.descripcion"
+              >
+                <input
+                  type="checkbox"
+                  [checked]="servicioMarcado(servicioDisponible.idServicio)"
+                  [disabled]="enviando()"
+                  (change)="alternarServicio(servicioDisponible.idServicio)"
+                />
+                {{ servicioDisponible.nombre }}
+              </label>
+            } @empty {
+              <p class="ayuda">No hay servicios disponibles. Comunícate con un Administrador.</p>
+            }
+          </div>
+        } @else if (servicios.error()) {
+          <p class="alerta">
+            No pudimos cargar los servicios.
+            <button type="button" class="boton-texto" (click)="servicios.reload()">
+              Intentar de nuevo
+            </button>
+          </p>
+        } @else {
+          <p class="ayuda" role="status">Cargando servicios…</p>
+        }
+        @if (invalido('idsServicios')) {
+          <span class="error-campo" id="error-idsServicios"
+            >Selecciona entre 1 y 20 servicios.</span
+          >
+        }
+      </fieldset>
+
+      <fieldset [disabled]="enviando()">
+        <legend>Imágenes</legend>
+        <app-selector-imagenes
+          [(archivos)]="imagenes"
+          [deshabilitado]="enviando()"
+          [invalido]="imagenesInvalidas()"
+          [idDescripcion]="imagenesInvalidas() ? 'error-imagenes' : null"
+        />
+        @if (imagenesInvalidas()) {
+          <span class="error-campo" id="error-imagenes"
+            >Agrega entre 1 y {{ maxImagenes }} imágenes.</span
+          >
+        }
+      </fieldset>
+
+      @if (faltantes().length) {
+        <div class="resumen-errores" #resumenErrores tabindex="-1" role="alert">
+          <p>Revisa estos campos antes de guardar:</p>
+          <ul>
+            @for (faltante of faltantes(); track faltante) {
+              <li>{{ faltante }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (error()) {
+        <p class="alerta" role="alert">{{ error() }}</p>
+      }
+
+      <div class="acciones">
+        <button type="submit" class="principal" [disabled]="enviando()">
+          {{ enviando() ? 'Guardando…' : 'Guardar publicación' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

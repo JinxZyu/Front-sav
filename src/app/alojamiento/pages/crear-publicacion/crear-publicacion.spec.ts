@@ -1,0 +1,279 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SesionService } from '../../../config/auth/sesion.service';
+import { crearToken } from '../../../config/auth/sesion.testing';
+import { environment } from '../../../../environments/environment';
+import { CrearPublicacion } from './crear-publicacion';
+
+describe('CrearPublicacion (HU-010)', () => {
+  let fixture: ComponentFixture<CrearPublicacion>;
+  let componente: CrearPublicacion;
+  let backend: HttpTestingController;
+  const api = environment.apiUrl;
+  const servicios = [
+    { idServicio: 's-1', nombre: 'Wifi', descripcion: null },
+    { idServicio: 's-2', nombre: 'Piscina', descripcion: 'Climatizada' },
+  ];
+  const politicas = [
+    {
+      idPolitica: 'p-1',
+      nombre: 'Flexible',
+      version: 1,
+      descripcion: 'Hasta 24 horas antes.',
+      anticipacionHoras: 24,
+      porcentajeDevolucion: 100,
+    },
+    {
+      idPolitica: 'p-2',
+      nombre: 'Estricta',
+      version: 1,
+      descripcion: null,
+      anticipacionHoras: null,
+      porcentajeDevolucion: null,
+    },
+  ];
+
+  const crear = async (responder = true) => {
+    localStorage.clear();
+    vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:x', revokeObjectURL: vi.fn() });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    TestBed.inject(SesionService).iniciar(
+      crearToken({
+        sub: 'sophie@correo.com',
+        role: 'ANFITRION',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    backend = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(CrearPublicacion);
+    componente = fixture.componentInstance;
+    fixture.detectChanges();
+    TestBed.tick();
+    if (responder) {
+      backend
+        .expectOne(`${api}/usuarios/mi_cuenta`)
+        .flush({ nombre: 'Sophia', apellido: 'Mora', correo: 'sophie@correo.com' });
+      backend.expectOne(`${api}/servicios`).flush(servicios);
+      backend.expectOne(`${api}/politicas-cancelacion/activas`).flush(politicas);
+      await fixture.whenStable();
+    }
+  };
+
+  const llenar = () => {
+    componente.formulario.setValue({
+      titulo: '  Cabaña frente al lago ',
+      descripcion: 'Vista al lago',
+      reglas: 'No fumar',
+      ubicacion: 'Vereda El Lago',
+      ciudad: 'Guatavita',
+      tipoAlojamiento: 'Cabaña',
+      capacidad: '4',
+      precioPorNoche: '250000',
+      tarifaLimpieza: '30000',
+      modoAceptacion: 'APROBACION',
+      idPolitica: 'p-1',
+      idsServicios: ['s-1'],
+    });
+    componente.imagenes.set([new File(['x'], 'sala.jpg', { type: 'image/jpeg' })]);
+  };
+
+  const elemento = () => fixture.nativeElement as HTMLElement;
+  const resumen = () => elemento().querySelector('.resumen-errores')?.textContent ?? '';
+
+  afterEach(() => {
+    backend.verify();
+    vi.unstubAllGlobals();
+  });
+
+  it('criterio 1: muestra a nombre de quién se publica, los servicios y las políticas', async () => {
+    await crear();
+    expect(elemento().querySelector('.propietario')?.textContent).toContain('Sophia Mora');
+    expect(elemento().querySelector('.propietario')?.textContent).toContain('sophie@correo.com');
+    expect(elemento().querySelectorAll('.servicio')).toHaveLength(2);
+    expect(
+      elemento().querySelectorAll('[aria-labelledby="etiqueta-politica"] .opcion'),
+    ).toHaveLength(2);
+    expect(elemento().textContent).toContain('Devolución: 100 %');
+    expect(componente.formatearPorcentaje(null)).toBe('');
+  });
+
+  it('criterio 1: crea la publicación y muestra que quedó en borrador', async () => {
+    await crear();
+    llenar();
+    componente.publicar();
+
+    const peticion = backend.expectOne(`${api}/alojamientos`);
+    const cuerpo = peticion.request.body as FormData;
+    expect(cuerpo.get('titulo')).toBe('Cabaña frente al lago');
+    expect(cuerpo.get('capacidad')).toBe('4');
+    expect(cuerpo.get('precioPorNoche')).toBe('250000');
+    expect(cuerpo.get('tarifaLimpieza')).toBe('30000');
+    expect(cuerpo.get('modoAceptacion')).toBe('APROBACION');
+    expect(cuerpo.getAll('idsServicios')).toEqual(['s-1']);
+    expect(cuerpo.getAll('imagenes')).toHaveLength(1);
+    peticion.flush({
+      idPublicacion: 'x',
+      titulo: 'Cabaña frente al lago',
+      estado: 'BORRADOR',
+      imagenes: [],
+    });
+    await fixture.whenStable();
+
+    const titulo = elemento().querySelector('h1');
+    expect(titulo?.textContent).toContain('¡Tu publicación quedó guardada!');
+    expect(document.activeElement === titulo || !document.body.contains(titulo)).toBe(true);
+    expect(elemento().textContent).toContain('Borrador');
+  });
+
+  it('envía tarifa de limpieza 0 si se deja vacía', async () => {
+    await crear();
+    llenar();
+    componente.formulario.controls.tarifaLimpieza.setValue('');
+    componente.publicar();
+    const peticion = backend.expectOne(`${api}/alojamientos`);
+    expect((peticion.request.body as FormData).get('tarifaLimpieza')).toBe('0');
+    peticion.flush({ titulo: 'x', estado: 'BORRADOR' });
+  });
+
+  it('criterio 2: informa los campos faltantes y no crea la publicación', async () => {
+    await crear();
+    componente.publicar();
+    await fixture.whenStable();
+
+    backend.expectNone(`${api}/alojamientos`);
+    expect(resumen()).toContain('Título');
+    expect(resumen()).toContain('Servicios');
+    expect(resumen()).toContain('Imágenes');
+    expect(elemento().querySelector('#error-titulo')).not.toBeNull();
+    expect(elemento().querySelector('#error-imagenes')).not.toBeNull();
+    expect(
+      elemento().querySelector('input[formControlName="titulo"]')?.getAttribute('aria-invalid'),
+    ).toBe('true');
+  });
+
+  it('el resumen de faltantes se actualiza al completar los campos', async () => {
+    await crear();
+    componente.publicar();
+    await fixture.whenStable();
+
+    llenar();
+    await fixture.whenStable();
+    expect(elemento().querySelector('.resumen-errores')).toBeNull();
+  });
+
+  it('criterio 3: rechaza una capacidad de cero o con decimales', async () => {
+    await crear();
+    llenar();
+    componente.formulario.controls.capacidad.setValue('0');
+    componente.publicar();
+    await fixture.whenStable();
+    backend.expectNone(`${api}/alojamientos`);
+    expect(resumen()).toContain('Capacidad');
+
+    componente.formulario.controls.capacidad.setValue('2.5');
+    componente.publicar();
+    backend.expectNone(`${api}/alojamientos`);
+  });
+
+  it('criterio 4: rechaza un precio por noche de cero', async () => {
+    await crear();
+    llenar();
+    componente.formulario.controls.precioPorNoche.setValue('0');
+    componente.publicar();
+    await fixture.whenStable();
+
+    backend.expectNone(`${api}/alojamientos`);
+    expect(resumen()).toContain('Precio por noche');
+  });
+
+  it('marca y desmarca servicios', async () => {
+    await crear();
+    const casilla = elemento().querySelector<HTMLInputElement>('.servicio input');
+    casilla?.click();
+    await fixture.whenStable();
+    expect(componente.formulario.controls.idsServicios.value).toEqual(['s-1']);
+    expect(componente.servicioMarcado('s-1')).toBe(true);
+
+    casilla?.click();
+    await fixture.whenStable();
+    expect(componente.formulario.controls.idsServicios.value).toEqual([]);
+  });
+
+  it('criterio 5 y errores del backend: muestra el mensaje y conserva lo escrito', async () => {
+    await crear();
+    llenar();
+    componente.publicar();
+    backend
+      .expectOne(`${api}/alojamientos`)
+      .flush(
+        { mensaje: 'Solo un usuario con rol ANFITRION puede crear alojamientos.' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('form [role="alert"]:not(.resumen-errores)')?.textContent).toBe(
+      'Solo un usuario con rol ANFITRION puede crear alojamientos.',
+    );
+    expect(componente.formulario.controls.titulo.value).toBe('  Cabaña frente al lago ');
+    expect(componente.imagenes()).toHaveLength(1);
+  });
+
+  it('ignora envíos repetidos y bloquea el formulario mientras guarda', async () => {
+    await crear();
+    llenar();
+    componente.publicar();
+    componente.publicar();
+    await fixture.whenStable();
+
+    expect(elemento().querySelector<HTMLFieldSetElement>('fieldset')?.disabled).toBe(true);
+    backend.expectOne(`${api}/alojamientos`).flush({ titulo: 'x', estado: 'BORRADOR' });
+  });
+
+  it('permite crear otra publicación con el formulario limpio', async () => {
+    await crear();
+    llenar();
+    componente.publicar();
+    backend.expectOne(`${api}/alojamientos`).flush({ titulo: 'x', estado: 'BORRADOR' });
+    await fixture.whenStable();
+
+    elemento().querySelector<HTMLButtonElement>('.exito button')?.click();
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('form')).not.toBeNull();
+    expect(componente.formulario.controls.titulo.value).toBe('');
+    expect(componente.formulario.controls.tarifaLimpieza.value).toBe('0');
+    expect(componente.imagenes()).toEqual([]);
+    expect(elemento().querySelector('.resumen-errores')).toBeNull();
+  });
+
+  it('permite reintentar si no cargan los servicios o las políticas', async () => {
+    await crear(false);
+    backend.expectOne(`${api}/usuarios/mi_cuenta`).flush({ nombre: 'Sophia', apellido: 'Mora' });
+    backend.expectOne(`${api}/servicios`).flush('Error', { status: 500, statusText: 'Error' });
+    backend
+      .expectOne(`${api}/politicas-cancelacion/activas`)
+      .flush('Error', { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+
+    const botones = [...elemento().querySelectorAll<HTMLButtonElement>('.boton-texto')];
+    expect(botones).toHaveLength(2);
+    botones.forEach((boton) => boton.click());
+    TestBed.tick();
+    backend.expectOne(`${api}/servicios`).flush([]);
+    backend.expectOne(`${api}/politicas-cancelacion/activas`).flush([]);
+    await fixture.whenStable();
+
+    expect(elemento().textContent).toContain('No hay servicios disponibles');
+    expect(elemento().textContent).toContain('No hay políticas de cancelación activas');
+  });
+
+  it('muestra que está cargando los servicios y las políticas', async () => {
+    await crear(false);
+    expect(elemento().textContent).toContain('Cargando servicios…');
+    expect(elemento().textContent).toContain('Cargando políticas…');
+    backend.match(() => true).forEach((pendiente) => pendiente.flush([]));
+  });
+});

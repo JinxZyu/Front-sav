@@ -31,6 +31,12 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
       Mi cuenta
     </a>
+    @if (sesion.tieneRol('ANFITRION')) {
+      <a role="menuitem" class="opcion" routerLink="/alojamientos/nuevo" (click)="cerrar()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /><path d="M12 13v5" /><path d="M9.5 15.5h5" /></svg>
+        Publicar alojamiento
+      </a>
+    }
     <button type="button" role="menuitem" class="opcion salir" (click)="cerrarSesion()">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
