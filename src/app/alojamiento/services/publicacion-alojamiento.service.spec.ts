@@ -118,4 +118,11 @@ describe('PublicacionAlojamientoService', () => {
     expect(peticion.request.method).toBe('PATCH');
     peticion.flush({ estadoActual: 'PENDIENTE_REVISION' });
   });
+
+  it('pausa y reactiva una publicación', () => {
+    servicio.pausar('p-1').subscribe();
+    servicio.reactivar('p-1').subscribe();
+    expect(backend.expectOne(`${api}/publicaciones/p-1/pausar`).request.method).toBe('PATCH');
+    expect(backend.expectOne(`${api}/publicaciones/p-1/reactivar`).request.method).toBe('PATCH');
+  });
 });
