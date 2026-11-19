@@ -1,26 +1,15 @@
 import { HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CampoContrasena } from '../../../shared/components/campo-contrasena/campo-contrasena';
+import { contrasenasIguales } from '../../../shared/utils/validadores';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
 type Paso = 'correo' | 'codigo' | 'listo';
-
-const contrasenasIguales = (grupo: AbstractControl): ValidationErrors | null => {
-  const nueva = grupo.get('nuevaContrasena')?.value;
-  const confirmacion = grupo.get('confirmacion')?.value;
-  return nueva && confirmacion && nueva !== confirmacion ? { noCoinciden: true } : null;
-};
 
 @Component({
   selector: 'app-recuperar-contrasena',

@@ -11,6 +11,10 @@ import { AutenticacionService } from '../../services/autenticacion.service';
 
 type EstadoCuenta = 'normal' | 'desactivada' | 'sin-verificar';
 
+const AVISOS: Record<string, string> = {
+  'correo-actualizado': 'Tu correo se actualizó. Inicia sesión con tu nuevo correo.',
+};
+
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink, CampoContrasena],
@@ -26,7 +30,9 @@ export class Login {
 
   readonly enviando = signal(false);
   readonly error = signal<string | null>(null);
-  readonly aviso = signal<string | null>(null);
+  readonly aviso = signal<string | null>(
+    AVISOS[this.ruta.snapshot.queryParamMap.get('aviso') ?? ''] ?? null,
+  );
   readonly estadoCuenta = signal<EstadoCuenta>('normal');
 
   readonly formulario = inject(FormBuilder).nonNullable.group({

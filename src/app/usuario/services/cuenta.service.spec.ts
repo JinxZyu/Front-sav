@@ -53,4 +53,28 @@ describe('CuentaService', () => {
     TestBed.tick();
     expect(servicio.actual.hasValue()).toBe(false);
   });
+
+  it('actualiza el perfil, confirma el correo y cambia la contraseña', () => {
+    const respuestas: string[] = [];
+    servicio
+      .actualizarPerfil({ nombre: 'Ana', apellido: 'Pérez', correo: 'a@b.co' })
+      .subscribe((texto) => respuestas.push(texto));
+    servicio.confirmarCambioCorreo('123456').subscribe((texto) => respuestas.push(texto));
+    servicio
+      .cambiarContrasena({ contrasenaActual: 'a', nuevaContrasena: 'b' })
+      .subscribe((texto) => respuestas.push(texto));
+
+    const perfil = backend.expectOne(`${url}/perfil`);
+    expect(perfil.request.method).toBe('PUT');
+    perfil.flush('uno');
+    const correo = backend.expectOne(`${url}/correo/confirmar`);
+    expect(correo.request.method).toBe('POST');
+    expect(correo.request.body).toEqual({ codigo: '123456' });
+    correo.flush('dos');
+    const contrasena = backend.expectOne(`${url}/contrasena`);
+    expect(contrasena.request.method).toBe('PATCH');
+    contrasena.flush('tres');
+
+    expect(respuestas).toEqual(['uno', 'dos', 'tres']);
+  });
 });

@@ -8,29 +8,58 @@
       </div>
     </header>
 
-    <h2>Datos de la cuenta</h2>
-    <dl class="datos">
-      <div>
-        <dt>Nombre</dt>
-        <dd>{{ datos.nombre }}</dd>
+    <div class="titulo-seccion">
+      <h2>Datos de la cuenta</h2>
+      @if (!editando()) {
+        <button type="button" class="editar" (click)="editar()" [disabled]="cuenta.isLoading()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+          Editar
+        </button>
+      }
+    </div>
+
+    @if (aviso()) {
+      <p class="aviso" role="status">{{ aviso() }}</p>
+    }
+
+    @if (error(); as error) {
+      <div class="alerta recarga" role="alert">
+        <span>No pudimos actualizar tus datos: {{ error }}</span>
+        <button type="button" class="reintentar" (click)="reintentar()">Intentar de nuevo</button>
       </div>
-      <div>
-        <dt>Apellido</dt>
-        <dd>{{ datos.apellido }}</dd>
-      </div>
-      <div class="ancho">
-        <dt>Correo electrónico</dt>
-        <dd>{{ datos.correo }}</dd>
-      </div>
-      <div>
-        <dt>Tipo de documento</dt>
-        <dd>{{ tipoDocumento() }}</dd>
-      </div>
-      <div>
-        <dt>Número de documento</dt>
-        <dd>{{ datos.documentoIdentidad }}</dd>
-      </div>
-    </dl>
+    }
+
+    @if (editando()) {
+      <app-editar-perfil [cuenta]="datos" (cancelado)="editando.set(false)" (guardado)="alGuardar($event)" />
+    } @else {
+      <dl class="datos">
+        <div>
+          <dt>Nombre</dt>
+          <dd>{{ datos.nombre }}</dd>
+        </div>
+        <div>
+          <dt>Apellido</dt>
+          <dd>{{ datos.apellido }}</dd>
+        </div>
+        <div class="ancho">
+          <dt>Correo electrónico</dt>
+          <dd>{{ datos.correo }}</dd>
+        </div>
+        <div>
+          <dt>Tipo de documento</dt>
+          <dd>{{ tipoDocumento() }}</dd>
+        </div>
+        <div>
+          <dt>Número de documento</dt>
+          <dd>{{ datos.documentoIdentidad }}</dd>
+        </div>
+      </dl>
+    }
+
+    <div class="titulo-seccion seguridad">
+      <h2>Seguridad</h2>
+    </div>
+    <app-cambiar-contrasena />
   } @else if (error(); as error) {
     <h1 id="titulo-cuenta">Mi cuenta</h1>
     <p class="alerta" role="alert">{{ error }}</p>

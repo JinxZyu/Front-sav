@@ -6,8 +6,7 @@
   padding: 2.5rem 1rem;
   background:
     radial-gradient(circle at 15% 10%, rgb(37 99 235 / 12%), transparent 45%),
-    radial-gradient(circle at 85% 90%, rgb(124 58 237 / 12%), transparent 45%),
-    #f8fafc;
+    radial-gradient(circle at 85% 90%, rgb(124 58 237 / 12%), transparent 45%), #f8fafc;
 }
 
 *,
@@ -68,10 +67,75 @@ h1 {
 }
 
 h2 {
-  margin: 1.5rem 0 1rem;
   color: #334155;
   font-size: 1rem;
   font-weight: 700;
+}
+
+.titulo-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.titulo-seccion h2 {
+  margin: 0;
+}
+
+.titulo-seccion.seguridad {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.editar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border: 1.5px solid #6366f1;
+  border-radius: 999px;
+  background: transparent;
+  color: #4f46e5;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editar:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.editar:hover:not(:disabled) {
+  background: rgb(99 102 241 / 8%);
+}
+
+.editar:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.editar svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.aviso {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.88rem;
 }
 
 .datos {
@@ -105,6 +169,20 @@ dd {
   border-radius: 0.75rem;
   background: #fff1f2;
   color: #be123c;
+}
+
+.alerta.recarga {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.alerta.recarga .reintentar {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
 }
 
 .reintentar {
