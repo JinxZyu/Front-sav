@@ -1,15 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { distinctUntilChanged } from 'rxjs';
 import { CampoContrasena } from '../../../shared/components/campo-contrasena/campo-contrasena';
+import { PAIS_POR_DEFECTO } from '../../../shared/models/ubicacion.models';
+import { UbicacionService } from '../../../shared/services/ubicacion.service';
 import { PATRON_CON_TEXTO } from '../../../shared/utils/validadores';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import {
   INDICATIVOS_TELEFONO,
   INDICATIVO_POR_DEFECTO,
   ejemploTelefono,
+  indicativoDePais,
   telefonoInternacional,
   telefonoValido,
 } from '../../../shared/utils/telefono';
@@ -28,6 +32,7 @@ export class Registro {
   private readonly autenticacion = inject(AutenticacionService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ubicacion = inject(UbicacionService);
 
   readonly tiposDocumento = TIPOS_DOCUMENTO;
   readonly indicativos = INDICATIVOS_TELEFONO;
@@ -48,6 +53,8 @@ export class Registro {
     documentoIdentidad: ['', [Validators.required, Validators.pattern(PATRON_DOCUMENTO)]],
     indicativo: [INDICATIVO_POR_DEFECTO, [Validators.required]],
     telefono: ['', [Validators.required, telefonoValido('indicativo')]],
+    idPais: ['', [Validators.required]],
+    idCiudad: ['', [Validators.required]],
     contrasena: ['', [Validators.required, Validators.minLength(8)]],
     rol: ['HUESPED' as RegistroRequest['rol'], [Validators.required]],
   });
@@ -57,10 +64,65 @@ export class Registro {
   });
   readonly ejemplo = computed(() => ejemploTelefono(this.indicativo()));
 
+  private readonly idPais = toSignal(this.formulario.controls.idPais.valueChanges, {
+    initialValue: '',
+  });
+
+  readonly paises = rxResource({ stream: () => this.ubicacion.paises() });
+
+  readonly ciudades = rxResource({
+    params: () => this.idPais() || undefined,
+    stream: ({ params }) => this.ubicacion.ciudades(params),
+  });
+
+  readonly listaPaises = computed(() => (this.paises.hasValue() ? this.paises.value() : []));
+  readonly listaCiudades = computed(() => (this.ciudades.hasValue() ? this.ciudades.value() : []));
+
+  readonly errorPaises = computed(() =>
+    this.paises.status() === 'error'
+      ? mensajeDeError(this.paises.error(), 'No pudimos cargar los países.')
+      : null,
+  );
+
+  readonly errorCiudades = computed(() =>
+    this.ciudades.status() === 'error'
+      ? mensajeDeError(this.ciudades.error(), 'No pudimos cargar las ciudades.')
+      : null,
+  );
+
   constructor() {
     this.formulario.controls.indicativo.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.formulario.controls.telefono.updateValueAndValidity());
+
+    this.formulario.controls.idPais.valueChanges
+      .pipe(distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((idPais) => this.alCambiarPais(idPais));
+
+    effect(() => {
+      const paises = this.listaPaises();
+      untracked(() => {
+        const control = this.formulario.controls.idPais;
+        const porDefecto = paises.find((pais) => pais.codigoIso2 === PAIS_POR_DEFECTO);
+        if (!control.value && porDefecto) {
+          control.setValue(porDefecto.idPais);
+        }
+      });
+    });
+  }
+
+  private alCambiarPais(idPais: string): void {
+    this.formulario.controls.idCiudad.setValue('');
+    const pais = this.listaPaises().find((opcion) => opcion.idPais === idPais);
+    const indicativo = pais ? indicativoDePais(pais.codigoIso2) : null;
+    const control = this.formulario.controls.indicativo;
+    if (
+      indicativo &&
+      control.pristine &&
+      this.indicativos.some((o) => o.indicativo === indicativo)
+    ) {
+      control.setValue(indicativo);
+    }
   }
 
   invalido(campo: keyof typeof this.formulario.controls): boolean {
@@ -75,14 +137,17 @@ export class Registro {
       return;
     }
 
-    const { indicativo, ...datos } = this.formulario.getRawValue();
+    const datos = this.formulario.getRawValue();
     const solicitud: RegistroRequest = {
-      ...datos,
       nombre: datos.nombre.trim(),
       apellido: datos.apellido.trim(),
       correo: datos.correo.trim().toLowerCase(),
-      telefono: telefonoInternacional(datos.telefono, indicativo) ?? datos.telefono.trim(),
+      tipoDocumento: datos.tipoDocumento,
       documentoIdentidad: datos.documentoIdentidad.trim(),
+      telefono: telefonoInternacional(datos.telefono, datos.indicativo) ?? datos.telefono.trim(),
+      contrasena: datos.contrasena,
+      idCiudad: datos.idCiudad,
+      rol: datos.rol,
     };
 
     this.enviando.set(true);
