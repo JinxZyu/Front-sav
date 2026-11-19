@@ -23,13 +23,14 @@ export class UbicacionService {
 const NOMBRES_REGION = new Intl.DisplayNames(['es'], { type: 'region', fallback: 'none' });
 
 function enEspanol(pais: Pais): Pais {
+  const codigoIso2 = pais.codigoIso2.trim().toUpperCase();
   let nombre: string | undefined;
   try {
-    nombre = NOMBRES_REGION.of(pais.codigoIso2.toUpperCase());
+    nombre = NOMBRES_REGION.of(codigoIso2);
   } catch {
     nombre = undefined;
   }
-  return nombre ? { ...pais, nombre } : pais;
+  return { ...pais, codigoIso2, nombre: nombre ?? pais.nombre };
 }
 
 function ordenarPorNombre(paises: Pais[]): Pais[] {

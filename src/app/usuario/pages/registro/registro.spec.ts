@@ -300,6 +300,39 @@ describe('Registro (HU-001)', () => {
   });
 });
 
+describe('Registro (HU-001) con códigos de país en minúscula', () => {
+  it('igual elige Colombia por defecto y ajusta el indicativo', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(Registro);
+    const backend = TestBed.inject(HttpTestingController);
+    const urlPaises = `${environment.apiUrl}/autenticacion/ubicaciones/paises`;
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlPaises).flush([
+      { idPais: 'p-es', codigoIso2: 'es', nombre: 'Spain' },
+      { idPais: 'p-co', codigoIso2: 'co', nombre: 'Colombia' },
+    ]);
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(`${urlPaises}/p-co/ciudades`).flush([]);
+    await fixture.whenStable();
+
+    const formulario = fixture.componentInstance.formulario;
+    expect(formulario.controls.idPais.value).toBe('p-co');
+    formulario.controls.idPais.setValue('p-es');
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(`${urlPaises}/p-es/ciudades`).flush([]);
+    await fixture.whenStable();
+    expect(formulario.controls.indicativo.value).toBe('34');
+    backend.verify();
+  });
+});
+
 describe('Registro (HU-001) sin países disponibles', () => {
   it('avisa si no se pudieron cargar los países y permite reintentar', async () => {
     TestBed.configureTestingModule({

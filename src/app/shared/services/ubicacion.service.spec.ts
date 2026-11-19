@@ -31,6 +31,15 @@ describe('UbicacionService', () => {
     expect(nombres).toEqual(['Alemania', 'Colombia', 'Desconocido', 'España']);
   });
 
+  it('entrega los códigos de país en mayúsculas', () => {
+    let codigos: string[] = [];
+    servicio.paises().subscribe((paises) => (codigos = paises.map((pais) => pais.codigoIso2)));
+    backend
+      .expectOne(`${api}/paises`)
+      .flush([{ idPais: 'p-co', codigoIso2: ' co ', nombre: 'Colombia' }]);
+    expect(codigos).toEqual(['CO']);
+  });
+
   it('consulta las ciudades de un país', () => {
     servicio.ciudades('p co').subscribe();
     const peticion = backend.expectOne(`${api}/paises/p%20co/ciudades`);
