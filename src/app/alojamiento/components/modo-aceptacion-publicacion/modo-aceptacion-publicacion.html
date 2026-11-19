@@ -1,0 +1,60 @@
+<div class="encabezado">
+  <h3 id="titulo-modo">Aceptación de reservas</h3>
+  @if (editable() && actual.hasValue() && !editando()) {
+    <button type="button" class="texto" (click)="cambiar()">Cambiar</button>
+  }
+</div>
+
+@if (editando()) {
+  <fieldset class="opciones" aria-labelledby="titulo-modo" [disabled]="guardando()">
+    @for (modo of modos; track modo.valor) {
+      <label class="opcion">
+        <input
+          type="radio"
+          name="modo-aceptacion"
+          [value]="modo.valor"
+          [checked]="seleccion() === modo.valor"
+          (change)="seleccion.set(modo.valor)"
+        />
+        <span>
+          <strong>{{ modo.titulo }}</strong>
+          <span class="nota">{{ modo.descripcion }}</span>
+        </span>
+      </label>
+    }
+  </fieldset>
+  <div class="acciones">
+    <button
+      type="button"
+      class="principal"
+      [disabled]="guardando() || !seleccion()"
+      (click)="guardar()"
+    >
+      {{ guardando() ? 'Guardando…' : 'Guardar' }}
+    </button>
+    <button type="button" class="secundario" [disabled]="guardando()" (click)="cancelar()">
+      Cancelar
+    </button>
+  </div>
+} @else if (actual.hasValue()) {
+  @if (modoActual(); as modo) {
+    <p class="valor">{{ modo.titulo }}</p>
+    <p class="nota">{{ modo.descripcion }}</p>
+  } @else {
+    <p class="nota">Aún no has elegido cómo aceptar las reservas.</p>
+  }
+} @else if (errorCarga(); as errorCarga) {
+  <p class="mensaje falla" role="alert">
+    {{ errorCarga }}
+    <button type="button" class="texto" (click)="actual.reload()">Reintentar</button>
+  </p>
+} @else {
+  <div class="cargando" aria-busy="true" aria-label="Cargando modo de aceptación"></div>
+}
+
+@if (error(); as error) {
+  <p class="mensaje falla" role="alert">{{ error }}</p>
+}
+@if (aviso(); as aviso) {
+  <p class="mensaje exito" role="status">{{ aviso }}</p>
+}

@@ -64,6 +64,7 @@ describe('DetallePublicacion (HU-011)', () => {
   const elemento = () => fixture.nativeElement as HTMLElement;
 
   const RESPUESTAS_SECCIONES: Record<string, object> = {
+    '/modo-aceptacion': { idPublicacion: 'p-1', modoAceptacion: 'APROBACION' },
     '/configuracion-comercial': {
       idPublicacion: 'p-1',
       tarifaLimpieza: 30000,
@@ -163,6 +164,9 @@ describe('DetallePublicacion (HU-011)', () => {
     );
     expect(condiciones?.querySelector('app-tarifas-publicacion')?.textContent).toContain(
       'Desayuno',
+    );
+    expect(condiciones?.querySelector('app-modo-aceptacion-publicacion')?.textContent).toContain(
+      'Con mi aprobación',
     );
   });
 

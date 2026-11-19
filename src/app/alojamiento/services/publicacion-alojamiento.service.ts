@@ -7,6 +7,8 @@ import {
   ConfiguracionComercial,
   DetallePublicacion,
   MisPublicaciones,
+  ModoAceptacion,
+  ModoAceptacionDePublicacion,
   NuevaConfiguracionComercial,
   NuevaPublicacion,
   PoliticaCancelacion,
@@ -96,6 +98,22 @@ export class PublicacionAlojamientoService {
     return this.http.put<ConfiguracionComercial>(
       `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/configuracion-comercial`,
       datos,
+    );
+  }
+
+  modoAceptacionDe(idPublicacion: string): Observable<ModoAceptacionDePublicacion> {
+    return this.http.get<ModoAceptacionDePublicacion>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/modo-aceptacion`,
+    );
+  }
+
+  cambiarModoAceptacion(
+    idPublicacion: string,
+    modoAceptacion: ModoAceptacion,
+  ): Observable<ModoAceptacionDePublicacion> {
+    return this.http.patch<ModoAceptacionDePublicacion>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/modo-aceptacion`,
+      { modoAceptacion },
     );
   }
 

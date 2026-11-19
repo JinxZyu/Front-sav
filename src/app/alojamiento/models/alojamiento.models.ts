@@ -169,3 +169,9 @@ export interface NuevaConfiguracionComercial {
   tarifaLimpieza: number;
   serviciosAdicionales: { nombre: string; descripcion: string | null; costo: number }[];
 }
+
+export interface ModoAceptacionDePublicacion {
+  idPublicacion: string;
+  modoAceptacion: string;
+  fechaActualizacion: string | null;
+}
