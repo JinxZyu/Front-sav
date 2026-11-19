@@ -60,6 +60,11 @@
       <h2>Seguridad</h2>
     </div>
     <app-cambiar-contrasena />
+
+    <div class="titulo-seccion seguridad">
+      <h2>Desactivar cuenta</h2>
+    </div>
+    <app-desactivar-cuenta />
   } @else if (error(); as error) {
     <h1 id="titulo-cuenta">Mi cuenta</h1>
     <p class="alerta" role="alert">{{ error }}</p>

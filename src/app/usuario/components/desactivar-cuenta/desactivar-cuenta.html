@@ -1,0 +1,28 @@
+@if (confirmando()) {
+  <div #panel class="confirmacion" tabindex="-1" role="group" aria-labelledby="titulo-desactivar">
+    <p id="titulo-desactivar" class="titulo">¿Seguro que quieres desactivar tu cuenta?</p>
+    <ul>
+      <li>Se cerrará tu sesión y no podrás usar la plataforma hasta reactivarla.</li>
+      <li>Tu información no se elimina: puedes reactivar la cuenta iniciando sesión con tu correo y contraseña.</li>
+      @if (esAnfitrion()) {
+        <li>Tus publicaciones se pausarán y las reservas futuras ya confirmadas se conservarán.</li>
+      }
+    </ul>
+
+    @if (error()) {
+      <p class="alerta" role="alert">{{ error() }}</p>
+    }
+
+    <div class="acciones">
+      <button type="button" class="secundario" (click)="cancelar()" [disabled]="enviando()">Cancelar</button>
+      <button type="button" class="peligro" (click)="desactivar()" [disabled]="enviando()">
+        {{ enviando() ? 'Desactivando…' : 'Sí, desactivar mi cuenta' }}
+      </button>
+    </div>
+  </div>
+} @else {
+  <div class="resumen">
+    <p>Desactiva tu cuenta temporalmente. Podrás reactivarla cuando quieras.</p>
+    <button #botonAbrir type="button" class="secundario peligro-texto" (click)="abrir()">Desactivar cuenta</button>
+  </div>
+}

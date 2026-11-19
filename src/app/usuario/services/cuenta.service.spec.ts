@@ -77,4 +77,13 @@ describe('CuentaService', () => {
 
     expect(respuestas).toEqual(['uno', 'dos', 'tres']);
   });
+
+  it('desactiva la cuenta propia', () => {
+    let respuesta = '';
+    servicio.desactivar().subscribe((texto) => (respuesta = texto));
+    const peticion = backend.expectOne(`${url}/desactivar`);
+    expect(peticion.request.method).toBe('PATCH');
+    peticion.flush('Tu cuenta ha sido desactivada correctamente.');
+    expect(respuesta).toBe('Tu cuenta ha sido desactivada correctamente.');
+  });
 });
