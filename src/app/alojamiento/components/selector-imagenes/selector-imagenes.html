@@ -1,0 +1,64 @@
+<div
+  class="zona"
+  [class.arrastrando]="arrastrando()"
+  [class.invalida]="invalido()"
+  (dragover)="alArrastrar($event)"
+  (dragleave)="arrastrando.set(false)"
+  (drop)="alSoltar($event)"
+>
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <circle cx="9" cy="10" r="2" />
+    <path d="m21 16-5-5-9 9" />
+  </svg>
+  <p>Arrastra tus fotos aquí o</p>
+  <label class="boton" [class.deshabilitado]="deshabilitado() || archivos().length >= maximo">
+    elige imágenes
+    <input
+      type="file"
+      multiple
+      [accept]="formatos"
+      [disabled]="deshabilitado() || archivos().length >= maximo"
+      (change)="alSeleccionar($event)"
+      [attr.aria-describedby]="idDescripcion()"
+    />
+  </label>
+  <p class="ayuda">
+    JPG, PNG o WEBP · máximo 5 MB cada una · de 1 a {{ maximo }} imágenes ({{
+      archivos().length
+    }}/{{ maximo }})
+  </p>
+</div>
+
+@if (avisos().length) {
+  <ul class="avisos" role="alert">
+    @for (aviso of avisos(); track $index) {
+      <li>{{ aviso }}</li>
+    }
+  </ul>
+}
+
+@if (archivos().length) {
+  <ul class="miniaturas">
+    @for (archivo of archivos(); track archivo; let primera = $first) {
+      <li>
+        <img [src]="vista(archivo)" [alt]="archivo.name" />
+        @if (primera) {
+          <span class="portada">Portada</span>
+        }
+        <button
+          type="button"
+          class="quitar"
+          (click)="quitar(archivo)"
+          [disabled]="deshabilitado()"
+          [attr.aria-label]="'Quitar ' + archivo.name"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </li>
+    }
+  </ul>
+}

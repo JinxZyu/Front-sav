@@ -166,6 +166,27 @@ describe('MenuUsuario (HU-004)', () => {
     expect(navegar).toHaveBeenCalled();
   });
 
+  it('al Anfitrión le ofrece publicar un alojamiento', async () => {
+    await crear('ANFITRION');
+    await responderCuenta();
+    disparador()?.click();
+    await fixture.whenStable();
+
+    const enlaces = [...elemento().querySelectorAll<HTMLAnchorElement>('a.opcion')];
+    expect(enlaces.map((enlace) => enlace.getAttribute('href'))).toEqual([
+      '/usuario/mi-cuenta',
+      '/alojamientos/nuevo',
+    ]);
+  });
+
+  it('al Huésped no le ofrece publicar', async () => {
+    await crear('HUESPED');
+    await responderCuenta();
+    disparador()?.click();
+    await fixture.whenStable();
+    expect(elemento().textContent).not.toContain('Publicar alojamiento');
+  });
+
   it('cierra la sesión y lleva al inicio de sesión', async () => {
     await crear();
     await responderCuenta();
