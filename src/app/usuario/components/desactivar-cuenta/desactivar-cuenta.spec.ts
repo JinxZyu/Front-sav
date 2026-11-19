@@ -45,7 +45,7 @@ describe('DesactivarCuenta (HU-008)', () => {
 
   afterEach(() => {
     backend.verify();
-    fixture.nativeElement.remove();
+    (fixture.nativeElement as HTMLElement).remove();
   });
 
   it('pide confirmar antes de desactivar y mueve el foco a la confirmación', async () => {
@@ -84,6 +84,23 @@ describe('DesactivarCuenta (HU-008)', () => {
     boton('Sí, desactivar mi cuenta')?.click();
     const peticion = backend.expectOne(url);
     expect(peticion.request.method).toBe('PATCH');
+    peticion.flush('Tu cuenta ha sido desactivada correctamente.');
+
+    expect(sesion.autenticado()).toBe(false);
+    expect(navegar).toHaveBeenCalledWith(['/usuario/login'], {
+      queryParams: { aviso: 'cuenta-desactivada' },
+    });
+  });
+
+  it('cierra la sesión aunque se salga de la pantalla antes de la respuesta', async () => {
+    await crear();
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    componente.abrir();
+    componente.desactivar();
+    const peticion = backend.expectOne(url);
+
+    fixture.destroy();
+    expect(peticion.cancelled).toBe(false);
     peticion.flush('Tu cuenta ha sido desactivada correctamente.');
 
     expect(sesion.autenticado()).toBe(false);

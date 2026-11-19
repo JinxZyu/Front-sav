@@ -1,6 +1,5 @@
 import {
   Component,
-  DestroyRef,
   ElementRef,
   Injector,
   afterNextRender,
@@ -9,7 +8,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { SesionService } from '../../../config/auth/sesion.service';
@@ -26,7 +24,6 @@ export class DesactivarCuenta {
   private readonly cuentaService = inject(CuentaService);
   private readonly sesion = inject(SesionService);
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly botonAbrir = viewChild<ElementRef<HTMLButtonElement>>('botonAbrir');
   private readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
@@ -58,10 +55,7 @@ export class DesactivarCuenta {
     this.enviando.set(true);
     this.cuentaService
       .desactivar()
-      .pipe(
-        finalize(() => this.enviando.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .pipe(finalize(() => this.enviando.set(false)))
       .subscribe({
         next: () => {
           this.sesion.cerrar();
