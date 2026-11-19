@@ -141,6 +141,19 @@ describe('SelectorImagenes (HU-010)', () => {
     expect(crearUrl).not.toHaveBeenCalled();
   });
 
+  it('descarta las imágenes que terminan de revisarse cuando el selector ya se bloqueó', async () => {
+    await seleccionar([imagen('a.jpg')]);
+    const campo = elemento().querySelector<HTMLInputElement>('input[type="file"]');
+    Object.defineProperty(campo, 'files', { value: [imagen('b.jpg')], configurable: true });
+    campo?.dispatchEvent(new Event('change'));
+    fixture.componentInstance.deshabilitado.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.archivos().map((archivo) => archivo.name)).toEqual(['a.jpg']);
+    expect(elemento().querySelectorAll('img')).toHaveLength(1);
+  });
+
   it('quita una imagen y libera su vista previa', async () => {
     await seleccionar([imagen('a.jpg'), imagen('b.jpg')]);
     elemento().querySelector<HTMLButtonElement>('button[aria-label="Quitar a.jpg"]')?.click();
