@@ -4,7 +4,11 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SesionService } from '../../config/auth/sesion.service';
-import { Cuenta } from '../models/usuario.models';
+import {
+  ActualizarPerfilRequest,
+  CambiarContrasenaRequest,
+  Cuenta,
+} from '../models/usuario.models';
 
 @Injectable({ providedIn: 'root' })
 export class CuentaService {
@@ -19,5 +23,25 @@ export class CuentaService {
 
   consultar(): Observable<Cuenta> {
     return this.http.get<Cuenta>(`${this.api}/usuarios/mi_cuenta`);
+  }
+
+  actualizarPerfil(datos: ActualizarPerfilRequest): Observable<string> {
+    return this.http.put(`${this.api}/usuarios/mi_cuenta/perfil`, datos, {
+      responseType: 'text',
+    });
+  }
+
+  confirmarCambioCorreo(codigo: string): Observable<string> {
+    return this.http.post(
+      `${this.api}/usuarios/mi_cuenta/correo/confirmar`,
+      { codigo },
+      { responseType: 'text' },
+    );
+  }
+
+  cambiarContrasena(datos: CambiarContrasenaRequest): Observable<string> {
+    return this.http.patch(`${this.api}/usuarios/mi_cuenta/contrasena`, datos, {
+      responseType: 'text',
+    });
   }
 }

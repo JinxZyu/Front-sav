@@ -109,4 +109,50 @@ describe('MiCuenta (HU-006)', () => {
       'Sophia Mora',
     );
   });
+
+  it('criterio 1: al editar y guardar vuelve a los datos con el aviso y los recarga', async () => {
+    crear();
+    backend.expectOne(url).flush(cuenta);
+    await fixture.whenStable();
+    const elemento = fixture.nativeElement as HTMLElement;
+
+    elemento.querySelector<HTMLButtonElement>('button.editar')?.click();
+    await fixture.whenStable();
+    expect(elemento.querySelector('app-editar-perfil')).not.toBeNull();
+    expect(elemento.querySelector('button.editar')).toBeNull();
+
+    elemento.querySelector<HTMLButtonElement>('app-editar-perfil button[type="submit"]')?.click();
+    backend.expectOne(`${url}/perfil`).flush('Perfil actualizado correctamente.');
+    TestBed.tick();
+    backend.expectOne(url).flush({ ...cuenta, nombre: 'Sofía' });
+    await fixture.whenStable();
+
+    expect(elemento.querySelector('app-editar-perfil')).toBeNull();
+    expect(elemento.querySelector('.aviso')?.textContent).toBe('Perfil actualizado correctamente.');
+    expect(valor('Nombre')).toBe('Sofía');
+  });
+
+  it('cancelar la edición vuelve a mostrar los datos', async () => {
+    crear();
+    backend.expectOne(url).flush(cuenta);
+    await fixture.whenStable();
+    const elemento = fixture.nativeElement as HTMLElement;
+
+    elemento.querySelector<HTMLButtonElement>('button.editar')?.click();
+    await fixture.whenStable();
+    elemento.querySelector<HTMLButtonElement>('app-editar-perfil button.secundario')?.click();
+    await fixture.whenStable();
+
+    expect(elemento.querySelector('app-editar-perfil')).toBeNull();
+    expect(valor('Nombre')).toBe('Sophia');
+  });
+
+  it('incluye la sección para cambiar la contraseña', async () => {
+    crear();
+    backend.expectOne(url).flush(cuenta);
+    await fixture.whenStable();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('app-cambiar-contrasena'),
+    ).not.toBeNull();
+  });
 });

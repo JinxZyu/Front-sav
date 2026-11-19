@@ -1,0 +1,129 @@
+@switch (paso()) {
+  @case ('datos') {
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+      <div class="fila">
+        <label>
+          Nombre
+          <input
+            type="text"
+            formControlName="nombre"
+            autocomplete="given-name"
+            [readonly]="enviando()"
+            [class.invalido]="invalido(formulario.controls.nombre)"
+            [attr.aria-invalid]="invalido(formulario.controls.nombre)"
+          />
+          @if (invalido(formulario.controls.nombre)) {
+            <span class="error-campo">Escribe tu nombre (máximo 50 caracteres).</span>
+          }
+        </label>
+        <label>
+          Apellido
+          <input
+            type="text"
+            formControlName="apellido"
+            autocomplete="family-name"
+            [readonly]="enviando()"
+            [class.invalido]="invalido(formulario.controls.apellido)"
+            [attr.aria-invalid]="invalido(formulario.controls.apellido)"
+          />
+          @if (invalido(formulario.controls.apellido)) {
+            <span class="error-campo">Escribe tu apellido (máximo 50 caracteres).</span>
+          }
+        </label>
+      </div>
+
+      <label>
+        Correo electrónico
+        <input
+          type="email"
+          formControlName="correo"
+          autocomplete="email"
+          [readonly]="enviando()"
+          [class.invalido]="invalido(formulario.controls.correo)"
+          [attr.aria-invalid]="invalido(formulario.controls.correo)"
+        />
+        @if (invalido(formulario.controls.correo)) {
+          <span class="error-campo">Ingresa un correo válido.</span>
+        } @else {
+          <span class="ayuda"
+            >Si lo cambias, te enviaremos un código al nuevo correo para confirmarlo.</span
+          >
+        }
+      </label>
+
+      <div class="fila">
+        <label>
+          Tipo de documento
+          <input type="text" [value]="tipoDocumento()" disabled />
+        </label>
+        <label>
+          Número de documento
+          <input type="text" [value]="cuenta().documentoIdentidad" disabled />
+        </label>
+      </div>
+      <p class="ayuda candado">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+        El documento de identidad no se puede modificar.
+      </p>
+
+      @if (error()) {
+        <p class="alerta error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="acciones">
+        <button type="button" class="secundario" (click)="cancelar()" [disabled]="enviando()">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @case ('codigo') {
+    <form [formGroup]="formularioCodigo" (ngSubmit)="confirmarCorreo()" novalidate>
+      @if (aviso()) {
+        <p class="alerta exito" role="status">{{ aviso() }}</p>
+      }
+      <p class="explicacion">
+        Escribe el código que enviamos a <strong>{{ correoNuevo() }}</strong>. Vence en 5 minutos.
+        Al confirmarlo tendrás que iniciar sesión con tu nuevo correo.
+      </p>
+
+      <label>
+        Código de verificación
+        <input
+          type="text"
+          formControlName="codigo"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="6"
+          placeholder="000000"
+          [readonly]="enviando()"
+          [class.invalido]="invalido(formularioCodigo.controls.codigo)"
+          [attr.aria-invalid]="invalido(formularioCodigo.controls.codigo)"
+        />
+        @if (invalido(formularioCodigo.controls.codigo)) {
+          <span class="error-campo">El código tiene 6 números.</span>
+        }
+      </label>
+
+      @if (error()) {
+        <p class="alerta error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="acciones">
+        <button type="button" class="secundario" (click)="cancelar()" [disabled]="enviando()">
+          Mantener mi correo actual
+        </button>
+        <button type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Confirmando…' : 'Confirmar correo' }}
+        </button>
+      </div>
+    </form>
+  }
+}

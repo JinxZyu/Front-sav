@@ -4,6 +4,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CampoContrasena } from '../../../shared/components/campo-contrasena/campo-contrasena';
+import { PATRON_CON_TEXTO } from '../../../shared/utils/validadores';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import {
   INDICATIVOS_TELEFONO,
@@ -15,7 +16,6 @@ import {
 import { RegistroRequest, TIPOS_DOCUMENTO } from '../../models/usuario.models';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
-const PATRON_CON_TEXTO = /\S/;
 const PATRON_DOCUMENTO = /^[A-Za-z0-9]{5,20}$/;
 
 @Component({

@@ -1,0 +1,68 @@
+:host {
+  padding: 0;
+}
+
+input:not(:disabled) {
+  border-color: #cbd5e1;
+  background: #fff;
+}
+
+input:not(:disabled):focus {
+  border-color: #6366f1;
+}
+
+input.invalido {
+  border-color: #e11d48;
+  background: #fff5f7;
+}
+
+.resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.resumen > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.etiqueta-dato {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.puntos {
+  color: #1e293b;
+  letter-spacing: 0.15em;
+}
+
+.resumen button,
+.acciones button {
+  margin-top: 0;
+  padding: 0.6rem 1.3rem;
+}
+
+.alerta {
+  margin-bottom: 0.9rem;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+@media (width < 32rem) {
+  .fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .acciones {
+    flex-direction: column-reverse;
+  }
+}

@@ -1,0 +1,85 @@
+@if (aviso()) {
+  <p class="alerta exito" role="status">{{ aviso() }}</p>
+}
+
+@if (abierto()) {
+  <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <label>
+      Contraseña actual
+      <app-campo-contrasena>
+        <input
+          #campo
+          type="password"
+          formControlName="contrasenaActual"
+          autocomplete="current-password"
+          [readonly]="enviando()"
+          [class.invalido]="invalido(formulario.controls.contrasenaActual)"
+          [attr.aria-invalid]="invalido(formulario.controls.contrasenaActual)"
+        />
+      </app-campo-contrasena>
+      @if (invalido(formulario.controls.contrasenaActual)) {
+        <span class="error-campo">Escribe tu contraseña actual.</span>
+      }
+    </label>
+
+    <div class="fila">
+      <label>
+        Contraseña nueva
+        <app-campo-contrasena>
+          <input
+            #campo
+            type="password"
+            formControlName="nuevaContrasena"
+            autocomplete="new-password"
+            [readonly]="enviando()"
+            [class.invalido]="invalido(formulario.controls.nuevaContrasena)"
+            [attr.aria-invalid]="invalido(formulario.controls.nuevaContrasena)"
+          />
+        </app-campo-contrasena>
+        @if (invalido(formulario.controls.nuevaContrasena)) {
+          <span class="error-campo">Debe tener al menos 8 caracteres.</span>
+        }
+      </label>
+      <label>
+        Confirma la contraseña nueva
+        <app-campo-contrasena>
+          <input
+            #campo
+            type="password"
+            formControlName="confirmacion"
+            autocomplete="new-password"
+            [readonly]="enviando()"
+            [class.invalido]="invalido(formulario.controls.confirmacion) || noCoinciden()"
+            [attr.aria-invalid]="invalido(formulario.controls.confirmacion) || noCoinciden()"
+          />
+        </app-campo-contrasena>
+        @if (noCoinciden()) {
+          <span class="error-campo">Las contraseñas no coinciden.</span>
+        } @else if (invalido(formulario.controls.confirmacion)) {
+          <span class="error-campo">Confirma tu contraseña nueva.</span>
+        }
+      </label>
+    </div>
+
+    @if (error()) {
+      <p class="alerta error" role="alert">{{ error() }}</p>
+    }
+
+    <div class="acciones">
+      <button type="button" class="secundario" (click)="cancelar()" [disabled]="enviando()">
+        Cancelar
+      </button>
+      <button type="submit" [disabled]="enviando()">
+        {{ enviando() ? 'Guardando…' : 'Cambiar contraseña' }}
+      </button>
+    </div>
+  </form>
+} @else {
+  <div class="resumen">
+    <div>
+      <span class="etiqueta-dato">Contraseña</span>
+      <span class="puntos" aria-label="Contraseña oculta">••••••••</span>
+    </div>
+    <button type="button" class="secundario" (click)="abrir()">Cambiar contraseña</button>
+  </div>
+}

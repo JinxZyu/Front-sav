@@ -21,7 +21,7 @@ describe('Login (HU-002)', () => {
     exp: Math.floor(Date.now() / 1000) + 3600,
   });
 
-  const crear = async (volverA?: string, correo?: string) => {
+  const crear = async (volverA?: string, correo?: string, aviso?: string) => {
     localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
@@ -35,6 +35,7 @@ describe('Login (HU-002)', () => {
               queryParamMap: convertToParamMap({
                 ...(volverA ? { volverA } : {}),
                 ...(correo ? { correo } : {}),
+                ...(aviso ? { aviso } : {}),
               }),
             },
           },
@@ -296,5 +297,16 @@ describe('Login (HU-002)', () => {
     elemento.querySelector<HTMLButtonElement>('app-campo-contrasena button')?.click();
     await fixture.whenStable();
     expect(campo?.type).toBe('text');
+  });
+
+  it('avisa que el correo se actualizó al llegar desde Mi cuenta', async () => {
+    await crear(undefined, 'nuevo@correo.com', 'correo-actualizado');
+    expect(componente.formulario.controls.correo.value).toBe('nuevo@correo.com');
+    expect(componente.aviso()).toBe('Tu correo se actualizó. Inicia sesión con tu nuevo correo.');
+  });
+
+  it('ignora avisos desconocidos en la URL', async () => {
+    await crear(undefined, undefined, 'cualquier-cosa');
+    expect(componente.aviso()).toBeNull();
   });
 });

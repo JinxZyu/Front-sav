@@ -1,0 +1,77 @@
+:host {
+  padding: 0;
+}
+
+input:not(:disabled) {
+  border-color: #cbd5e1;
+  background: #fff;
+}
+
+input:not(:disabled):focus {
+  border-color: #6366f1;
+}
+
+input.invalido {
+  border-color: #e11d48;
+  background: #fff5f7;
+}
+
+input:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.ayuda {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.candado {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: -0.3rem;
+}
+
+.candado svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.explicacion {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.acciones button {
+  margin-top: 0;
+  padding: 0.7rem 1.4rem;
+}
+
+@media (width < 32rem) {
+  .fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .acciones {
+    flex-direction: column-reverse;
+  }
+}

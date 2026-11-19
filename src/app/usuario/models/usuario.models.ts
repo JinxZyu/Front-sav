@@ -41,3 +41,14 @@ export interface Cuenta {
   documentoIdentidad: string;
   rol: string;
 }
+
+export interface ActualizarPerfilRequest {
+  nombre: string;
+  apellido: string;
+  correo: string;
+}
+
+export interface CambiarContrasenaRequest {
+  contrasenaActual: string;
+  nuevaContrasena: string;
+}
