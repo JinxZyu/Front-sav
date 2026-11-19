@@ -109,6 +109,38 @@ describe('DesactivarCuenta (HU-008)', () => {
     });
   });
 
+  it('no cierra otra sesión iniciada mientras esperaba la respuesta', async () => {
+    await crear();
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    componente.desactivar();
+    const peticion = backend.expectOne(url);
+
+    fixture.destroy();
+    sesion.cerrar();
+    const otraSesion = crearToken({
+      sub: 'otra@b.co',
+      role: 'HUESPED',
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+    sesion.iniciar(otraSesion);
+    peticion.flush('Tu cuenta ha sido desactivada correctamente.');
+
+    expect(sesion.token()).toBe(otraSesion);
+    expect(navegar).not.toHaveBeenCalled();
+  });
+
+  it('tampoco navega si la sesión ya se había cerrado', async () => {
+    await crear();
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    componente.desactivar();
+    const peticion = backend.expectOne(url);
+
+    sesion.cerrar();
+    peticion.flush('Tu cuenta ha sido desactivada correctamente.');
+
+    expect(navegar).not.toHaveBeenCalled();
+  });
+
   it('criterios 3 y 4: informa si la cuenta tiene una restricción y la deja como estaba', async () => {
     await crear();
     componente.abrir();

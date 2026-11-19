@@ -53,11 +53,15 @@ export class DesactivarCuenta {
     }
     this.error.set(null);
     this.enviando.set(true);
+    const tokenDeLaSolicitud = this.sesion.token();
     this.cuentaService
       .desactivar()
       .pipe(finalize(() => this.enviando.set(false)))
       .subscribe({
         next: () => {
+          if (this.sesion.token() !== tokenDeLaSolicitud) {
+            return;
+          }
           this.sesion.cerrar();
           void this.router.navigate([INICIO_SIN_SESION], {
             queryParams: { aviso: 'cuenta-desactivada' },
