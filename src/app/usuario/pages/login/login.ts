@@ -13,6 +13,8 @@ type EstadoCuenta = 'normal' | 'desactivada' | 'sin-verificar';
 
 const AVISOS: Record<string, string> = {
   'correo-actualizado': 'Tu correo se actualizó. Inicia sesión con tu nuevo correo.',
+  'cuenta-desactivada':
+    'Tu cuenta fue desactivada. Si quieres volver, inicia sesión y podrás reactivarla.',
 };
 
 @Component({

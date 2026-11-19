@@ -2,6 +2,7 @@ import { Component, computed, inject, linkedSignal, signal } from '@angular/core
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { Cuenta, TIPOS_DOCUMENTO } from '../../models/usuario.models';
 import { CambiarContrasena } from '../../components/cambiar-contrasena/cambiar-contrasena';
+import { DesactivarCuenta } from '../../components/desactivar-cuenta/desactivar-cuenta';
 import { EditarPerfil } from '../../components/editar-perfil/editar-perfil';
 import { CuentaService } from '../../services/cuenta.service';
 
@@ -13,7 +14,7 @@ const NOMBRES_ROL: Record<string, string> = {
 
 @Component({
   selector: 'app-mi-cuenta',
-  imports: [EditarPerfil, CambiarContrasena],
+  imports: [EditarPerfil, CambiarContrasena, DesactivarCuenta],
   templateUrl: './mi-cuenta.html',
   styleUrl: './mi-cuenta.css',
 })

@@ -154,6 +154,9 @@ describe('MiCuenta (HU-006)', () => {
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('app-cambiar-contrasena'),
     ).not.toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('app-desactivar-cuenta'),
+    ).not.toBeNull();
   });
 
   it('mantiene el editor si falla la recarga después de pedir el cambio de correo', async () => {

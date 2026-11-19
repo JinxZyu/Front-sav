@@ -39,6 +39,12 @@ export class CuentaService {
     );
   }
 
+  desactivar(): Observable<string> {
+    return this.http.patch(`${this.api}/usuarios/mi_cuenta/desactivar`, null, {
+      responseType: 'text',
+    });
+  }
+
   cambiarContrasena(datos: CambiarContrasenaRequest): Observable<string> {
     return this.http.patch(`${this.api}/usuarios/mi_cuenta/contrasena`, datos, {
       responseType: 'text',

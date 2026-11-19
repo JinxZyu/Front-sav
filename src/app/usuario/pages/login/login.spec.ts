@@ -309,4 +309,9 @@ describe('Login (HU-002)', () => {
     await crear(undefined, undefined, 'cualquier-cosa');
     expect(componente.aviso()).toBeNull();
   });
+
+  it('avisa que la cuenta se desactivó al llegar desde Mi cuenta', async () => {
+    await crear(undefined, undefined, 'cuenta-desactivada');
+    expect(componente.aviso()).toContain('Tu cuenta fue desactivada');
+  });
 });
