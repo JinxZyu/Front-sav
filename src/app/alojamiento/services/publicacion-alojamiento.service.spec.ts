@@ -125,4 +125,19 @@ describe('PublicacionAlojamientoService', () => {
     expect(backend.expectOne(`${api}/publicaciones/p-1/pausar`).request.method).toBe('PATCH');
     expect(backend.expectOne(`${api}/publicaciones/p-1/reactivar`).request.method).toBe('PATCH');
   });
+
+  it('consulta y cambia la política de cancelación de una publicación', () => {
+    servicio.politicaDe('p-1').subscribe();
+    servicio.cambiarPolitica('p-1', 'pol-2').subscribe();
+    const consulta = backend.expectOne(
+      (peticion) => peticion.method === 'GET' && peticion.url.endsWith('/p-1/politica-cancelacion'),
+    );
+    const cambio = backend.expectOne(
+      (peticion) =>
+        peticion.method === 'PATCH' && peticion.url.endsWith('/p-1/politica-cancelacion'),
+    );
+    expect(cambio.request.body).toEqual({ idPolitica: 'pol-2' });
+    consulta.flush({});
+    cambio.flush({});
+  });
 });

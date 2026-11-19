@@ -1,0 +1,87 @@
+import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
+import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import { formatearPorcentaje } from '../../models/alojamiento.models';
+import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
+
+@Component({
+  selector: 'app-politica-publicacion',
+  templateUrl: './politica-publicacion.html',
+  styleUrl: '../../styles/configuracion.css',
+})
+export class PoliticaPublicacion {
+  private readonly servicio = inject(PublicacionAlojamientoService);
+  private readonly destruccion = inject(DestroyRef);
+
+  readonly idPublicacion = input.required<string>();
+  readonly editable = input(true);
+  readonly guardado = output();
+
+  readonly actual = rxResource({
+    params: () => this.idPublicacion(),
+    stream: ({ params }) => this.servicio.politicaDe(params),
+  });
+
+  readonly editando = signal(false);
+  readonly opciones = rxResource({
+    params: () => (this.editando() ? true : undefined),
+    stream: () => this.servicio.politicas(),
+  });
+
+  readonly seleccion = signal('');
+  readonly guardando = signal(false);
+  readonly aviso = signal<string | null>(null);
+  readonly error = signal<string | null>(null);
+
+  readonly errorCarga = computed(() =>
+    this.actual.status() === 'error'
+      ? mensajeDeError(this.actual.error(), 'No pudimos consultar la política de cancelación.')
+      : null,
+  );
+
+  readonly errorOpciones = computed(() =>
+    this.opciones.status() === 'error'
+      ? mensajeDeError(this.opciones.error(), 'No pudimos cargar las políticas disponibles.')
+      : null,
+  );
+
+  readonly porcentaje = formatearPorcentaje;
+
+  cambiar(): void {
+    this.seleccion.set(this.actual.hasValue() ? this.actual.value().idPolitica : '');
+    this.aviso.set(null);
+    this.error.set(null);
+    this.editando.set(true);
+  }
+
+  cancelar(): void {
+    this.editando.set(false);
+    this.error.set(null);
+  }
+
+  guardar(): void {
+    const idPolitica = this.seleccion();
+    if (!idPolitica || this.guardando()) {
+      return;
+    }
+    this.error.set(null);
+    this.guardando.set(true);
+    this.servicio
+      .cambiarPolitica(this.idPublicacion(), idPolitica)
+      .pipe(
+        finalize(() => this.guardando.set(false)),
+        takeUntilDestroyed(this.destruccion),
+      )
+      .subscribe({
+        next: (politica) => {
+          this.actual.set(politica);
+          this.editando.set(false);
+          this.aviso.set('Guardamos la política de cancelación.');
+          this.guardado.emit();
+        },
+        error: (error: unknown) =>
+          this.error.set(mensajeDeError(error, 'No pudimos guardar la política de cancelación.')),
+      });
+  }
+}

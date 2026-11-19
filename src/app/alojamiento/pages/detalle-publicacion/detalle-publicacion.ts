@@ -6,13 +6,14 @@ import { map } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AccionesEstado } from '../../components/acciones-estado/acciones-estado';
 import { ImagenPublicacion } from '../../components/imagen-publicacion/imagen-publicacion';
+import { PoliticaPublicacion } from '../../components/politica-publicacion/politica-publicacion';
 import { estadoPublicacion, modoAceptacion } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
 import { formatearFecha, formatearPesos } from '../../utils/formato';
 
 @Component({
   selector: 'app-detalle-publicacion',
-  imports: [RouterLink, ImagenPublicacion, AccionesEstado],
+  imports: [RouterLink, ImagenPublicacion, AccionesEstado, PoliticaPublicacion],
   templateUrl: './detalle-publicacion.html',
   styleUrl: './detalle-publicacion.css',
 })
