@@ -155,4 +155,68 @@ describe('MiCuenta (HU-006)', () => {
       (fixture.nativeElement as HTMLElement).querySelector('app-cambiar-contrasena'),
     ).not.toBeNull();
   });
+
+  it('mantiene el editor si falla la recarga después de pedir el cambio de correo', async () => {
+    crear();
+    backend.expectOne(url).flush(cuenta);
+    await fixture.whenStable();
+    const elemento = fixture.nativeElement as HTMLElement;
+
+    elemento.querySelector<HTMLButtonElement>('button.editar')?.click();
+    await fixture.whenStable();
+    const correo = elemento.querySelector<HTMLInputElement>(
+      'app-editar-perfil input[formControlName="correo"]',
+    );
+    if (correo) {
+      correo.value = 'nuevo@correo.com';
+      correo.dispatchEvent(new Event('input'));
+    }
+    elemento.querySelector<HTMLButtonElement>('app-editar-perfil button[type="submit"]')?.click();
+    backend.expectOne(`${url}/perfil`).flush('Se envió un código al nuevo correo.');
+    TestBed.tick();
+    backend.expectOne(url).flush('Error', { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+
+    expect(elemento.querySelector('app-editar-perfil')).not.toBeNull();
+    expect(elemento.textContent).toContain('Escribe el código que enviamos a nuevo@correo.com');
+    expect(elemento.querySelector('h1')?.textContent).toBe('Sophia Mora');
+  });
+
+  it('no deja abrir el editor mientras se recarga la cuenta', async () => {
+    crear();
+    backend.expectOne(url).flush(cuenta);
+    await fixture.whenStable();
+    const elemento = fixture.nativeElement as HTMLElement;
+
+    elemento.querySelector<HTMLButtonElement>('button.editar')?.click();
+    await fixture.whenStable();
+    const nombre = elemento.querySelector<HTMLInputElement>(
+      'app-editar-perfil input[formControlName="nombre"]',
+    );
+    if (nombre) {
+      nombre.value = 'Sofía';
+      nombre.dispatchEvent(new Event('input'));
+    }
+    elemento.querySelector<HTMLButtonElement>('app-editar-perfil button[type="submit"]')?.click();
+    backend.expectOne(`${url}/perfil`).flush('Perfil actualizado correctamente.');
+    TestBed.tick();
+    fixture.detectChanges();
+
+    const recarga = backend.expectOne(url);
+    const boton = elemento.querySelector<HTMLButtonElement>('button.editar');
+    expect(boton?.disabled).toBe(true);
+    fixture.componentInstance.editar();
+    fixture.detectChanges();
+    expect(elemento.querySelector('app-editar-perfil')).toBeNull();
+
+    recarga.flush({ ...cuenta, nombre: 'Sofía' });
+    await fixture.whenStable();
+    elemento.querySelector<HTMLButtonElement>('button.editar')?.click();
+    await fixture.whenStable();
+
+    expect(
+      elemento.querySelector<HTMLInputElement>('app-editar-perfil input[formControlName="nombre"]')
+        ?.value,
+    ).toBe('Sofía');
+  });
 });

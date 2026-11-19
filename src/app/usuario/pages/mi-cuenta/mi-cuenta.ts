@@ -1,6 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
-import { TIPOS_DOCUMENTO } from '../../models/usuario.models';
+import { Cuenta, TIPOS_DOCUMENTO } from '../../models/usuario.models';
 import { CambiarContrasena } from '../../components/cambiar-contrasena/cambiar-contrasena';
 import { EditarPerfil } from '../../components/editar-perfil/editar-perfil';
 import { CuentaService } from '../../services/cuenta.service';
@@ -22,7 +22,10 @@ export class MiCuenta {
   readonly editando = signal(false);
   readonly aviso = signal<string | null>(null);
 
-  readonly datos = computed(() => (this.cuenta.hasValue() ? this.cuenta.value() : null));
+  readonly datos = linkedSignal<Cuenta | null, Cuenta | null>({
+    source: () => (this.cuenta.hasValue() ? this.cuenta.value() : null),
+    computation: (actual, previo) => actual ?? previo?.value ?? null,
+  });
 
   readonly iniciales = computed(() => {
     const datos = this.datos();
@@ -48,6 +51,9 @@ export class MiCuenta {
   );
 
   editar(): void {
+    if (this.cuenta.isLoading()) {
+      return;
+    }
     this.aviso.set(null);
     this.editando.set(true);
   }

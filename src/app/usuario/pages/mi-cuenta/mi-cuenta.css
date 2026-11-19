@@ -105,7 +105,12 @@ h2 {
   cursor: pointer;
 }
 
-.editar:hover {
+.editar:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.editar:hover:not(:disabled) {
   background: rgb(99 102 241 / 8%);
 }
 
