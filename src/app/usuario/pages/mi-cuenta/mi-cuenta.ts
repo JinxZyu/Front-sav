@@ -37,7 +37,7 @@ export class MiCuenta {
   });
 
   readonly error = computed(() =>
-    this.cuenta.error()
+    !this.cuenta.isLoading() && this.cuenta.error()
       ? mensajeDeError(this.cuenta.error(), 'No pudimos cargar los datos de tu cuenta.')
       : null,
   );

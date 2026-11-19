@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, CanMatchFn, Router, UrlSegment, UrlTree } from '@angular/router';
+import { CanActivateChildFn, CanMatchFn, Router, UrlSegment, UrlTree } from '@angular/router';
 import { Rol } from '../auth/sesion.models';
 import { SesionService } from '../auth/sesion.service';
 import { INICIO_CON_SESION, INICIO_SIN_SESION } from '../rutas';
@@ -28,7 +28,7 @@ export const rolGuard =
     return sesion.tieneRol(...roles) || router.parseUrl(INICIO_CON_SESION);
   };
 
-export const sinSesionGuard: CanActivateFn = () =>
+export const sinSesionGuard: CanActivateChildFn = () =>
   !inject(SesionService).autenticado() || inject(Router).parseUrl(INICIO_CON_SESION);
 
 export const paginaInicial = (): string =>

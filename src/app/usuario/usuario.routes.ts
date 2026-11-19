@@ -10,7 +10,7 @@ export const USUARIO_ROUTES: Routes = [
   },
   {
     path: '',
-    canActivate: [sinSesionGuard],
+    canActivateChild: [sinSesionGuard],
     loadComponent: () =>
       import('./components/panel-acceso/panel-acceso').then((m) => m.PanelAcceso),
     children: [

@@ -96,6 +96,12 @@ describe('MiCuenta (HU-006)', () => {
 
     (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.reintentar')?.click();
     TestBed.tick();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('[role="alert"]')).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.reintentar')).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[role="status"]')).not.toBeNull();
+
     backend.expectOne(url).flush(cuenta);
     await fixture.whenStable();
 

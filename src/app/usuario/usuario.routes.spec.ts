@@ -25,6 +25,6 @@ describe('rutas del módulo usuario', () => {
 
   it('el inicio de sesión y el registro no se abren con la sesión iniciada', () => {
     const panel = USUARIO_ROUTES.find((ruta) => ruta.path === '');
-    expect(panel?.canActivate).toEqual([sinSesionGuard]);
+    expect(panel?.canActivateChild).toEqual([sinSesionGuard]);
   });
 });

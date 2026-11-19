@@ -1,12 +1,23 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { CanMatchFn, Route, Router, UrlSegment, UrlTree, provideRouter } from '@angular/router';
+import {
+  CanMatchFn,
+  Route,
+  Router,
+  RouterOutlet,
+  UrlSegment,
+  UrlTree,
+  provideRouter,
+} from '@angular/router';
 import { SesionService } from '../auth/sesion.service';
 import { crearToken } from '../auth/sesion.testing';
 import { autenticadoGuard, paginaInicial, rolGuard, sinSesionGuard } from './auth.guard';
 
 @Component({ template: '' })
 class PaginaVacia {}
+
+@Component({ imports: [RouterOutlet], template: '<router-outlet />' })
+class PanelVacio {}
 
 describe('guards de sesión', () => {
   let sesion: SesionService;
@@ -107,5 +118,40 @@ describe('guards de sesión', () => {
       entrarComo('HUESPED');
       expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/publicaciones');
     });
+  });
+});
+
+describe('sinSesionGuard al navegar entre las pantallas de acceso', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          { path: 'publicaciones', component: PaginaVacia },
+          {
+            path: 'usuario',
+            canActivateChild: [sinSesionGuard],
+            component: PanelVacio,
+            children: [
+              { path: 'login', component: PaginaVacia },
+              { path: 'registro', component: PaginaVacia },
+            ],
+          },
+        ]),
+      ],
+    });
+  });
+
+  it('se vuelve a evaluar al cambiar de login a registro con la sesión ya iniciada', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/usuario/login');
+    expect(router.url).toBe('/usuario/login');
+
+    TestBed.inject(SesionService).iniciar(
+      crearToken({ sub: 'a@b.co', role: 'HUESPED', exp: Math.floor(Date.now() / 1000) + 3600 }),
+    );
+    await router.navigateByUrl('/usuario/registro');
+
+    expect(router.url).toBe('/publicaciones');
   });
 });
