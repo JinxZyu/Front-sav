@@ -28,7 +28,11 @@ describe('rutas de administración', () => {
     expect(elemento.querySelector('app-gestion-usuarios')).not.toBeNull();
     expect(
       [...elemento.querySelectorAll('nav a')].map((enlace) => enlace.getAttribute('href')),
-    ).toEqual(['/administracion/usuarios', '/administracion/publicaciones']);
+    ).toEqual([
+      '/administracion/usuarios',
+      '/administracion/publicaciones',
+      '/administracion/tarifas',
+    ]);
   });
 
   it('cada sección carga su página', async () => {
