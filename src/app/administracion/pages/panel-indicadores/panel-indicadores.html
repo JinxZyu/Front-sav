@@ -1,0 +1,79 @@
+<section class="contenedor" aria-labelledby="titulo-indicadores">
+  <div class="cabecera">
+    <div>
+      <h1 id="titulo-indicadores">Indicadores</h1>
+      <p class="subtitulo">
+        @if (datos(); as datos) {
+          Datos al {{ fecha(datos.fechaCorteDatos) }}
+        } @else {
+          Resumen de la operación de la plataforma.
+        }
+      </p>
+    </div>
+    <button
+      type="button"
+      class="actualizar"
+      [disabled]="consulta.isLoading()"
+      (click)="consulta.reload()"
+    >
+      {{ consulta.isLoading() ? 'Actualizando…' : 'Actualizar' }}
+    </button>
+  </div>
+
+  @if (error(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else if (datos(); as datos) {
+    <ul class="cifras" aria-label="Cifras principales">
+      <li>
+        <span class="nombre">Usuarios</span>
+        <span class="cifra">{{ numero(datos.usuarios.total) }}</span>
+        <span class="detalle">
+          {{ contar(datos.usuarios.activos, 'activo', 'activos') }} ·
+          {{ contar(datos.usuarios.huespedes, 'huésped', 'huéspedes') }} ·
+          {{ contar(datos.usuarios.anfitriones, 'anfitrión', 'anfitriones') }}
+        </span>
+      </li>
+      <li>
+        <span class="nombre">Publicaciones activas</span>
+        <span class="cifra">{{ numero(datos.publicacionesActivas) }}</span>
+        <span class="detalle">Visibles en el marketplace</span>
+      </li>
+      <li>
+        <span class="nombre">Reservas</span>
+        <span class="cifra">{{ numero(totalReservas()) }}</span>
+        <span class="detalle">En todos los estados</span>
+      </li>
+      <li>
+        <span class="nombre">Ingresos estimados</span>
+        <span class="cifra">{{ pesos(datos.ingresosEstimados) }}</span>
+        <span class="detalle">Suma de los pagos aprobados</span>
+      </li>
+    </ul>
+
+    <div class="graficas">
+      <section class="tarjeta" aria-labelledby="titulo-reservas-estado">
+        <h2 id="titulo-reservas-estado">Reservas por estado</h2>
+        <app-barras-indicador [barras]="reservas()" unidad="reservas" />
+      </section>
+
+      <section class="tarjeta" aria-labelledby="titulo-ciudades">
+        <h2 id="titulo-ciudades">Ciudades con mayor demanda</h2>
+        <p class="nota">Según las cotizaciones solicitadas.</p>
+        @if (ciudades().length > 0) {
+          <app-barras-indicador [barras]="ciudades()" unidad="cotizaciones" />
+        } @else {
+          <p class="nota">Aún no hay cotizaciones registradas.</p>
+        }
+      </section>
+    </div>
+  } @else {
+    <ul class="cifras" aria-busy="true" aria-label="Cargando indicadores">
+      @for (indice of [1, 2, 3, 4]; track indice) {
+        <li class="esqueleto"></li>
+      }
+    </ul>
+  }
+</section>

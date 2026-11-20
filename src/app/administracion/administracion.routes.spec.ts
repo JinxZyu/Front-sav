@@ -6,7 +6,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { ADMINISTRACION_ROUTES } from './administracion.routes';
 
 describe('rutas de administración', () => {
-  it('la entrada lleva a usuarios dentro del panel con sus secciones', async () => {
+  it('la entrada lleva a los indicadores dentro del panel con sus secciones', async () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -17,18 +17,19 @@ describe('rutas de administración', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/administracion');
     TestBed.inject(HttpTestingController).expectOne((peticion) =>
-      peticion.url.endsWith('/administracion/usuarios'),
+      peticion.url.endsWith('/administracion/dashboard/indicadores'),
     );
 
-    expect(TestBed.inject(Router).url).toBe('/administracion/usuarios');
+    expect(TestBed.inject(Router).url).toBe('/administracion/indicadores');
     const elemento = harness.routeNativeElement as HTMLElement;
     const actual = elemento.querySelector('nav a[aria-current="page"]') as HTMLAnchorElement;
-    expect(actual.textContent?.trim()).toBe('Usuarios');
-    expect(actual.getAttribute('href')).toBe('/administracion/usuarios');
-    expect(elemento.querySelector('app-gestion-usuarios')).not.toBeNull();
+    expect(actual.textContent?.trim()).toBe('Indicadores');
+    expect(actual.getAttribute('href')).toBe('/administracion/indicadores');
+    expect(elemento.querySelector('app-panel-indicadores')).not.toBeNull();
     expect(
       [...elemento.querySelectorAll('nav a')].map((enlace) => enlace.getAttribute('href')),
     ).toEqual([
+      '/administracion/indicadores',
       '/administracion/usuarios',
       '/administracion/publicaciones',
       '/administracion/tarifas',

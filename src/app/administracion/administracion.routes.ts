@@ -8,7 +8,13 @@ export const ADMINISTRACION_ROUTES: Routes = [
         (m) => m.PanelAdministracion,
       ),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'usuarios' },
+      { path: '', pathMatch: 'full', redirectTo: 'indicadores' },
+      {
+        path: 'indicadores',
+        title: 'Indicadores',
+        loadComponent: () =>
+          import('./pages/panel-indicadores/panel-indicadores').then((m) => m.PanelIndicadores),
+      },
       {
         path: 'usuarios',
         title: 'Usuarios',
