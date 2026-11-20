@@ -32,22 +32,22 @@
       <button
         type="button"
         class="principal"
-        [disabled]="guardando() || !seleccion()"
+        [disabled]="guardando() || !seleccionValida()"
         (click)="guardar()"
       >
         {{ guardando() ? 'Guardando…' : 'Guardar' }}
       </button>
-      <button type="button" class="secundario" [disabled]="guardando()" (click)="cancelar()">
-        Cancelar
-      </button>
+      <ng-container [ngTemplateOutlet]="botonCancelar" />
     </div>
   } @else if (errorOpciones(); as errorOpciones) {
     <p class="mensaje falla" role="alert">
       {{ errorOpciones }}
       <button type="button" class="texto" (click)="opciones.reload()">Reintentar</button>
     </p>
+    <div class="acciones"><ng-container [ngTemplateOutlet]="botonCancelar" /></div>
   } @else {
     <div class="cargando" aria-busy="true" aria-label="Cargando políticas"></div>
+    <div class="acciones"><ng-container [ngTemplateOutlet]="botonCancelar" /></div>
   }
 } @else if (actual.hasValue()) {
   <p class="valor">{{ actual.value().nombre }}</p>
@@ -80,3 +80,9 @@
 @if (aviso(); as aviso) {
   <p class="mensaje exito" role="status">{{ aviso }}</p>
 }
+
+<ng-template #botonCancelar>
+  <button type="button" class="secundario" [disabled]="guardando()" (click)="cancelar()">
+    Cancelar
+  </button>
+</ng-template>
