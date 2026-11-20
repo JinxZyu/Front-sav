@@ -58,6 +58,11 @@
             }
           </ul>
 
+          <h2>Propietario del inmueble</h2>
+          <p class="texto">
+            {{ datos.publicacion.propietarioInmueble || 'El anfitrión no indicó el propietario.' }}
+          </p>
+
           <h2>Descripción</h2>
           <p class="texto">{{ datos.publicacion.descripcion }}</p>
 

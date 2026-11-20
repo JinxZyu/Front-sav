@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { SECCIONES_ADMINISTRACION } from '../../models/secciones.models';
+import { Component, inject } from '@angular/core';
+import { ActivatedRoute, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { SECCIONES_ADMINISTRACION, SeccionAdministracion } from '../../models/secciones.models';
 
 @Component({
   selector: 'app-panel-administracion',
@@ -9,5 +9,9 @@ import { SECCIONES_ADMINISTRACION } from '../../models/secciones.models';
   styleUrl: './panel-administracion.css',
 })
 export class PanelAdministracion {
-  protected readonly secciones = SECCIONES_ADMINISTRACION;
+  private readonly datos = inject(ActivatedRoute).snapshot.data;
+
+  protected readonly secciones: readonly SeccionAdministracion[] =
+    this.datos['secciones'] ?? SECCIONES_ADMINISTRACION;
+  protected readonly nombre: string = this.datos['nombre'] ?? 'Secciones de administración';
 }

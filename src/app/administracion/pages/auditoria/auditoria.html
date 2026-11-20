@@ -1,0 +1,158 @@
+<section class="contenedor" aria-labelledby="titulo-auditoria">
+  <h1 id="titulo-auditoria">Auditoría</h1>
+  <p class="subtitulo">Consulta quién hizo qué, cuándo, sobre qué y con qué resultado.</p>
+
+  <form class="filtros-auditoria" aria-label="Filtrar eventos" (submit)="$event.preventDefault()">
+    <label>
+      <span>Usuario</span>
+      <select (change)="filtrar('idUsuario', $event)">
+        <option value="" [selected]="filtros().idUsuario === ''">Todos</option>
+        @for (usuario of usuarios(); track usuario.idUsuario) {
+          <option
+            [value]="usuario.idUsuario"
+            [selected]="filtros().idUsuario === usuario.idUsuario"
+          >
+            {{ nombre(usuario) }} · {{ usuario.correo }}
+          </option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>Sobre</span>
+      <select (change)="filtrar('entidad', $event)">
+        <option value="" [selected]="filtros().entidad === ''">Todo</option>
+        @for (opcion of entidades; track opcion.valor) {
+          <option [value]="opcion.valor" [selected]="filtros().entidad === opcion.valor">
+            {{ opcion.nombre }}
+          </option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>Resultado</span>
+      <select (change)="filtrar('resultado', $event)">
+        <option value="" [selected]="filtros().resultado === ''">Todos</option>
+        @for (opcion of resultados; track opcion.valor) {
+          <option [value]="opcion.valor" [selected]="filtros().resultado === opcion.valor">
+            {{ opcion.nombre }}
+          </option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>Desde</span>
+      <input
+        type="date"
+        [value]="filtros().desde"
+        [attr.aria-invalid]="fechasInvalidas()"
+        (change)="filtrar('desde', $event)"
+      />
+    </label>
+    <label>
+      <span>Hasta</span>
+      <input
+        type="date"
+        [value]="filtros().hasta"
+        [attr.aria-invalid]="fechasInvalidas()"
+        (change)="filtrar('hasta', $event)"
+      />
+    </label>
+    @if (hayFiltros()) {
+      <button type="button" class="enlace limpiar" (click)="limpiar()">Limpiar filtros</button>
+    }
+  </form>
+
+  @if (fechasInvalidas()) {
+    <p class="alerta" role="alert">La fecha inicial no puede ser posterior a la final.</p>
+  } @else if (error(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else if (datos(); as datos) {
+    @if (filas().length > 0) {
+      <p class="resumen" aria-live="polite">
+        {{ datos.totalResultados }} {{ datos.totalResultados === 1 ? 'evento' : 'eventos' }}
+      </p>
+      <ul class="lista eventos">
+        @for (fila of filas(); track fila.evento.idEvento) {
+          <li class="evento">
+            <div class="cabeza">
+              <span class="accion">{{ fila.accion }}</span>
+              <span class="etiqueta" [class]="fila.resultado.tono">
+                {{ fila.resultado.etiqueta }}
+              </span>
+            </div>
+            <p class="meta">
+              <span>{{ fila.quien }}</span>
+              <span>{{ fecha(fila.evento.fechaEvento) }}</span>
+            </p>
+            @if (fila.entidad) {
+              <p class="sobre">
+                {{ fila.entidad }}
+                @if (fila.referencia) {
+                  ·
+                  @if (fila.enlace) {
+                    <a [routerLink]="fila.enlace">{{ fila.referencia }}</a>
+                  } @else {
+                    {{ fila.referencia }}
+                  }
+                }
+              </p>
+            }
+            @if (fila.detalle.length > 0) {
+              <details>
+                <summary>Ver detalle</summary>
+                <dl>
+                  @for (campo of fila.detalle; track $index) {
+                    <div>
+                      <dt>{{ campo.nombre }}</dt>
+                      <dd>{{ campo.valor }}</dd>
+                    </div>
+                  }
+                </dl>
+              </details>
+            }
+          </li>
+        }
+      </ul>
+      @if (datos.totalPaginas > 1) {
+        <nav class="paginacion" aria-label="Páginas de eventos">
+          <button
+            type="button"
+            class="secundario"
+            [disabled]="pagina() === 0 || consulta.isLoading()"
+            (click)="irA(pagina() - 1)"
+          >
+            Anterior
+          </button>
+          <span>Página {{ pagina() + 1 }} de {{ datos.totalPaginas }}</span>
+          <button
+            type="button"
+            class="secundario"
+            [disabled]="pagina() + 1 >= datos.totalPaginas || consulta.isLoading()"
+            (click)="irA(pagina() + 1)"
+          >
+            Siguiente
+          </button>
+        </nav>
+      }
+    } @else {
+      <div class="vacio">
+        @if (hayFiltros()) {
+          <h2>No hay eventos con estos filtros</h2>
+          <p>Prueba con otras fechas u otro usuario.</p>
+        } @else {
+          <h2>Todavía no hay eventos registrados</h2>
+          <p>Aquí aparecerán los inicios de sesión, cambios y errores de la plataforma.</p>
+        }
+      </div>
+    }
+  } @else {
+    <ul class="lista" aria-busy="true" aria-label="Cargando eventos">
+      @for (indice of [1, 2, 3]; track indice) {
+        <li class="esqueleto"></li>
+      }
+    </ul>
+  }
+</section>

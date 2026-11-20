@@ -40,6 +40,7 @@ import {
   ModoAceptacion,
   ESTADOS_CON_REVISION_DE_CAMBIOS,
   MAXIMO_MENSAJE_CAMBIOS,
+  MAXIMO_PROPIETARIO,
   motivoSinEdicion,
   PoliticaCancelacion,
   TIPOS_ALOJAMIENTO,
@@ -79,6 +80,7 @@ const ETIQUETAS = {
   habitaciones: 'Habitaciones',
   camas: 'Camas',
   banos: 'Baños',
+  propietarioInmueble: 'Propietario del inmueble',
   precioPorNoche: 'Precio por noche',
   tarifaLimpieza: 'Tarifa de limpieza',
   modoAceptacion: 'Cómo aceptas las reservas',
@@ -153,6 +155,14 @@ export class CrearPublicacion {
   });
 
   readonly cuenta = inject(CuentaService).actual;
+  readonly maximoPropietario = MAXIMO_PROPIETARIO;
+  readonly nombreAnfitrion = computed(() => {
+    if (!this.cuenta.hasValue()) {
+      return null;
+    }
+    const { nombre, apellido } = this.cuenta.value();
+    return `${nombre} ${apellido}`.trim() || null;
+  });
   readonly modos = MODOS_ACEPTACION;
   readonly maxImagenes = MAX_IMAGENES;
 
@@ -183,6 +193,7 @@ export class CrearPublicacion {
     habitaciones: ['1', cantidadEspacio],
     camas: ['1', cantidadEspacio],
     banos: ['1', cantidadEspacio],
+    propietarioInmueble: ['', [Validators.maxLength(MAXIMO_PROPIETARIO)]],
     precioPorNoche: [
       '',
       [Validators.required, Validators.pattern(PATRON_ENTERO), Validators.min(1)],
@@ -226,6 +237,7 @@ export class CrearPublicacion {
       ['Habitaciones', original.habitaciones, valores.habitaciones],
       ['Camas', original.camas, valores.camas],
       ['Baños', original.banos, valores.banos],
+      ['Propietario del inmueble', original.propietarioInmueble ?? '', valores.propietarioInmueble],
     ];
     const campos = comparaciones
       .filter(([, antes, ahora]) => String(antes).trim() !== String(ahora).trim())
@@ -356,6 +368,7 @@ export class CrearPublicacion {
       habitaciones: Number(valores.habitaciones),
       camas: Number(valores.camas),
       banos: Number(valores.banos),
+      propietarioInmueble: valores.propietarioInmueble.trim(),
       precioPorNoche: Number(valores.precioPorNoche),
       tarifaLimpieza: Number(valores.tarifaLimpieza || 0),
       modoAceptacion: valores.modoAceptacion as ModoAceptacion,
@@ -442,6 +455,14 @@ export class CrearPublicacion {
     }
   }
 
+  soyPropietario(): void {
+    const nombre = this.nombreAnfitrion();
+    if (nombre) {
+      this.formulario.controls.propietarioInmueble.setValue(nombre);
+      this.formulario.controls.propietarioInmueble.markAsDirty();
+    }
+  }
+
   private rellenar(detalle: DetallePublicacion): void {
     this.formulario.reset({
       titulo: detalle.titulo,
@@ -455,6 +476,7 @@ export class CrearPublicacion {
       habitaciones: String(detalle.habitaciones),
       camas: String(detalle.camas),
       banos: String(detalle.banos),
+      propietarioInmueble: detalle.propietarioInmueble ?? '',
       precioPorNoche: String(detalle.precioPorNoche),
       tarifaLimpieza: String(detalle.tarifaLimpieza ?? 0),
       modoAceptacion: MODOS_ACEPTACION.some((modo) => modo.valor === detalle.modoAceptacion)

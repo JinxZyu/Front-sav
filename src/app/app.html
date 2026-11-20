@@ -8,6 +8,8 @@
       <a routerLink="/reservas/alojamientos" routerLinkActive="activo" class="opcional">Reservas</a>
     } @else if (sesion.tieneRol('ADMINISTRADOR')) {
       <a routerLink="/administracion" routerLinkActive="activo">Administración</a>
+    } @else if (sesion.tieneRol('AUDITOR_OPERACION')) {
+      <a routerLink="/auditoria" routerLinkActive="activo">Auditoría</a>
     } @else {
       <a routerLink="/publicaciones" routerLinkActive="activo">Alojamientos</a>
     }

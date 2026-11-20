@@ -35,6 +35,10 @@ describe('enlaceNotificacion', () => {
     expect(enlaceNotificacion(notificacion({ idPublicacion: null }), 'ADMINISTRADOR')).toBeNull();
   });
 
+  it('al auditor de operación no lo lleva a reservas ni publicaciones', () => {
+    expect(enlaceNotificacion(notificacion(), 'AUDITOR_OPERACION')).toBeNull();
+  });
+
   it('lleva al administrador al reporte que pidió', () => {
     const reporte = notificacion({
       idReserva: null,

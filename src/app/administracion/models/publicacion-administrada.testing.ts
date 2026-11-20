@@ -37,6 +37,7 @@ export const publicacionParaRevisar = (estado = 'PENDIENTE_REVISION'): Publicaci
     habitaciones: 2,
     camas: 3,
     banos: 1,
+    propietarioInmueble: 'Inversiones Rojas',
     servicios: [{ idServicio: 's-1', nombre: 'Wifi', descripcion: null }],
     imagenes: [
       { idImagen: 'i-1', rutaImagen: 'https://img.test/1.jpg', orden: 1, esPortada: true },

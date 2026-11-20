@@ -4,17 +4,19 @@ import { Observable, finalize } from 'rxjs';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import { FormularioDocumento } from '../../components/formulario-documento/formulario-documento';
 import { FormularioMotivo } from '../../components/formulario-motivo/formulario-motivo';
 import {
   MAXIMO_MOTIVO_RESTRICCION,
   NOMBRES_ESTADO_CUENTA,
   NOMBRES_ROL,
+  NuevoDocumento,
   UsuarioAdministrado,
 } from '../../models/usuario-administrado.models';
 import { GestionUsuariosService } from '../../services/gestion-usuarios.service';
 import { normalizar } from '../../utils/texto';
 
-type TipoAccion = 'restringir' | 'levantar';
+type TipoAccion = 'restringir' | 'levantar' | 'documento';
 
 interface AccionEnCurso {
   idUsuario: string;
@@ -23,7 +25,7 @@ interface AccionEnCurso {
 
 @Component({
   selector: 'app-gestion-usuarios',
-  imports: [FormularioMotivo],
+  imports: [FormularioMotivo, FormularioDocumento],
   templateUrl: './gestion-usuarios.html',
   styleUrls: ['../../styles/pagina-administracion.css', './gestion-usuarios.css'],
 })
@@ -125,6 +127,14 @@ export class GestionUsuarios {
       this.servicio.levantarRestriccion(usuario.idUsuario),
       `Levantaste la restricción de ${this.nombre(usuario)}`,
       'No pudimos levantar la restricción.',
+    );
+  }
+
+  protected modificarDocumento(usuario: UsuarioAdministrado, documento: NuevoDocumento): void {
+    this.ejecutar(
+      this.servicio.modificarDocumento(usuario.idUsuario, documento),
+      `Actualizaste el documento de ${this.nombre(usuario)}`,
+      'No pudimos actualizar el documento.',
     );
   }
 

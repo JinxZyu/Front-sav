@@ -1,6 +1,8 @@
 <section class="contenedor" aria-labelledby="titulo-usuarios">
   <h1 id="titulo-usuarios">Usuarios</h1>
-  <p class="subtitulo">Consulta las cuentas y restringe el acceso de quien lo necesite.</p>
+  <p class="subtitulo">
+    Consulta las cuentas, corrige su documento y restringe el acceso de quien lo necesite.
+  </p>
 
   @if (error(); as error) {
     <div class="alerta" role="alert">
@@ -71,6 +73,13 @@
                 (confirmar)="restringir(usuario, $event)"
                 (cancelar)="cerrar()"
               />
+            } @else if (enCurso(usuario, 'documento')) {
+              <app-formulario-documento
+                [enviando]="enviando()"
+                [error]="errorAccion()"
+                (confirmar)="modificarDocumento(usuario, $event)"
+                (cancelar)="cerrar()"
+              />
             } @else if (enCurso(usuario, 'levantar')) {
               <div class="confirmacion" role="group" aria-label="Confirmar levantamiento">
                 <p class="texto-confirmacion">
@@ -105,6 +114,14 @@
               <p class="nota">Esta es tu cuenta.</p>
             } @else {
               <div class="botones">
+                <button
+                  type="button"
+                  class="secundario"
+                  [disabled]="enviando()"
+                  (click)="abrir(usuario, 'documento')"
+                >
+                  Modificar documento
+                </button>
                 @if (usuario.restringido) {
                   <button
                     type="button"

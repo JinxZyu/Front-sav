@@ -268,6 +268,74 @@ describe('GestionUsuarios (HU-009)', () => {
     expect(boton(tarjeta('Óscar Ruiz'), 'Restringir')).toBeDefined();
   });
 
+  it('criterio 6: modifica el tipo y el número de documento de la cuenta', async () => {
+    crear();
+    await listar();
+    const mostrar = vi.spyOn(TestBed.inject(AvisosService), 'mostrar');
+
+    boton(tarjeta('Óscar Ruiz'), 'Modificar documento').click();
+    await actualizar();
+    const formulario = tarjeta('Óscar Ruiz').querySelector('form') as HTMLFormElement;
+    const tipo = formulario.querySelector('select') as HTMLSelectElement;
+    const numero = formulario.querySelector('input') as HTMLInputElement;
+    expect(document.activeElement).toBe(tipo);
+
+    formulario.dispatchEvent(new Event('submit'));
+    await actualizar();
+    backend.expectNone(`${api}/u-2/documento`);
+    expect(numero.getAttribute('aria-invalid')).toBe('true');
+
+    numero.value = '12.345';
+    numero.dispatchEvent(new Event('input'));
+    formulario.dispatchEvent(new Event('submit'));
+    await actualizar();
+    backend.expectNone(`${api}/u-2/documento`);
+
+    tipo.value = 'CE';
+    tipo.dispatchEvent(new Event('change'));
+    numero.value = ' AB12345 ';
+    numero.dispatchEvent(new Event('input'));
+    formulario.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(boton(formulario, 'Guardando').disabled).toBe(true);
+    const peticion = backend.expectOne(`${api}/u-2/documento`);
+    expect(peticion.request.body).toEqual({ tipoDocumento: 'CE', documentoIdentidad: 'AB12345' });
+    peticion.flush('El documento de la cuenta se actualizó correctamente.');
+    fixture.detectChanges();
+
+    expect(mostrar).toHaveBeenCalledWith(
+      'Actualizaste el documento de Óscar Ruiz',
+      'El documento de la cuenta se actualizó correctamente.',
+    );
+    await listar();
+    expect(tarjeta('Óscar Ruiz').querySelector('form')).toBeNull();
+  });
+
+  it('muestra si el documento ya pertenece a otra cuenta', async () => {
+    crear();
+    await listar();
+
+    boton(tarjeta('Óscar Ruiz'), 'Modificar documento').click();
+    await actualizar();
+    const formulario = tarjeta('Óscar Ruiz').querySelector('form') as HTMLFormElement;
+    const numero = formulario.querySelector('input') as HTMLInputElement;
+    numero.value = '99999';
+    numero.dispatchEvent(new Event('input'));
+    formulario.dispatchEvent(new Event('submit'));
+    backend
+      .expectOne(`${api}/u-2/documento`)
+      .flush('Ya existe otra cuenta con ese documento.', { status: 409, statusText: 'Conflict' });
+    await actualizar();
+
+    expect(formulario.querySelector('[role="alert"]')?.textContent).toContain(
+      'Ya existe otra cuenta con ese documento.',
+    );
+    boton(formulario, 'Cancelar').click();
+    await actualizar();
+    expect(tarjeta('Óscar Ruiz').querySelector('form')).toBeNull();
+  });
+
   it('criterio 5: levanta la restricción avisando que las publicaciones siguen pausadas', async () => {
     crear();
     await listar();

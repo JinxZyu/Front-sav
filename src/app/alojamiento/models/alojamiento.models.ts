@@ -48,6 +48,7 @@ export interface NuevaPublicacion {
   habitaciones: number;
   camas: number;
   banos: number;
+  propietarioInmueble: string;
   precioPorNoche: number;
   tarifaLimpieza: number;
   modoAceptacion: ModoAceptacion;
@@ -110,6 +111,7 @@ export interface DetallePublicacion {
   habitaciones: number;
   camas: number;
   banos: number;
+  propietarioInmueble?: string | null;
   servicios: ServicioDisponible[];
   imagenes: ImagenPublicacion[];
 }
@@ -198,3 +200,4 @@ export interface ModoAceptacionDePublicacion {
 export const ESTADOS_CON_REVISION_DE_CAMBIOS = ['ACTIVA', 'PAUSADA'];
 
 export const MAXIMO_MENSAJE_CAMBIOS = 1000;
+export const MAXIMO_PROPIETARIO = 120;

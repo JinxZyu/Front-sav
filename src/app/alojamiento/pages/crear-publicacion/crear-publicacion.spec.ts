@@ -102,6 +102,7 @@ describe('CrearPublicacion (HU-010)', () => {
       habitaciones: '2',
       camas: '3',
       banos: '1',
+      propietarioInmueble: '  Inversiones Rojas ',
       precioPorNoche: '250000',
       tarifaLimpieza: '30000',
       modoAceptacion: 'APROBACION',
@@ -147,6 +148,7 @@ describe('CrearPublicacion (HU-010)', () => {
     expect(cuerpo.get('habitaciones')).toBe('2');
     expect(cuerpo.get('camas')).toBe('3');
     expect(cuerpo.get('banos')).toBe('1');
+    expect(cuerpo.get('propietarioInmueble')).toBe('Inversiones Rojas');
     expect(cuerpo.get('precioPorNoche')).toBe('250000');
     expect(cuerpo.get('tarifaLimpieza')).toBe('30000');
     expect(cuerpo.get('modoAceptacion')).toBe('APROBACION');
@@ -164,6 +166,26 @@ describe('CrearPublicacion (HU-010)', () => {
     const [aviso] = TestBed.inject(AvisosService).avisos();
     expect(aviso.titulo).toBe('Publicación creada');
     expect(aviso.detalle).toContain('"Cabaña frente al lago" quedó en borrador');
+  });
+
+  it('el propietario del inmueble es opcional y el anfitrión puede indicar que es él', async () => {
+    await crear();
+    const campo = elemento().querySelector<HTMLInputElement>(
+      'input[formcontrolname="propietarioInmueble"]',
+    ) as HTMLInputElement;
+    expect(campo.closest('label')?.textContent).toContain('(opcional)');
+    expect(componente.formulario.controls.propietarioInmueble.valid).toBe(true);
+
+    const boton = [...elemento().querySelectorAll<HTMLButtonElement>('button')].find((item) =>
+      item.textContent?.includes('El propietario soy yo'),
+    ) as HTMLButtonElement;
+    expect(boton.textContent).toContain('Sophia Mora');
+    boton.click();
+    fixture.detectChanges();
+    expect(campo.value).toBe('Sophia Mora');
+
+    componente.formulario.controls.propietarioInmueble.setValue('x'.repeat(121));
+    expect(componente.formulario.controls.propietarioInmueble.valid).toBe(false);
   });
 
   it('envía tarifa de limpieza 0 si se deja vacía', async () => {

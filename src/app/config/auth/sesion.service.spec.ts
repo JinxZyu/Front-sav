@@ -56,6 +56,14 @@ describe('SesionService', () => {
     expect(servicio.tieneRol('HUESPED', 'ANFITRION')).toBe(false);
   });
 
+  it('reconoce al auditor de operación', () => {
+    servicio.iniciar(crearToken({ sub: 'a@b.co', role: 'AUDITOR_OPERACION', exp: enUnaHora() }));
+
+    expect(servicio.rol()).toBe('AUDITOR_OPERACION');
+    expect(servicio.tieneRol('AUDITOR_OPERACION')).toBe(true);
+    expect(servicio.tieneRol('ADMINISTRADOR')).toBe(false);
+  });
+
   it('ignora un token vencido', () => {
     servicio.iniciar(crearToken({ sub: 'a@b.co', role: 'HUESPED', exp: 1 }));
     expect(servicio.autenticado()).toBe(false);
@@ -111,7 +119,9 @@ describe('SesionService', () => {
   });
 
   it('lee correctamente un correo con tildes', () => {
-    servicio.iniciar(crearToken({ sub: 'josé.núñez@correo.com', role: 'HUESPED', exp: enUnaHora() }));
+    servicio.iniciar(
+      crearToken({ sub: 'josé.núñez@correo.com', role: 'HUESPED', exp: enUnaHora() }),
+    );
     expect(servicio.correo()).toBe('josé.núñez@correo.com');
   });
 });

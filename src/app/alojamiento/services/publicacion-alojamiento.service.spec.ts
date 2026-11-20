@@ -42,6 +42,7 @@ describe('PublicacionAlojamientoService', () => {
         habitaciones: 2,
         camas: 3,
         banos: 2,
+        propietarioInmueble: 'Ana Gómez',
         precioPorNoche: 250000,
         tarifaLimpieza: 0,
         modoAceptacion: 'INMEDIATA',
@@ -59,6 +60,7 @@ describe('PublicacionAlojamientoService', () => {
     expect(cuerpo.get('habitaciones')).toBe('2');
     expect(cuerpo.get('camas')).toBe('3');
     expect(cuerpo.get('banos')).toBe('2');
+    expect(cuerpo.get('propietarioInmueble')).toBe('Ana Gómez');
     expect(cuerpo.get('precioPorNoche')).toBe('250000');
     expect(cuerpo.get('tarifaLimpieza')).toBe('0');
     expect(cuerpo.getAll('idsServicios')).toEqual(['s-1', 's-2']);
@@ -104,6 +106,7 @@ describe('PublicacionAlojamientoService', () => {
         habitaciones: 2,
         camas: 3,
         banos: 2,
+        propietarioInmueble: '',
         precioPorNoche: 250000,
         tarifaLimpieza: 0,
         modoAceptacion: 'APROBACION',

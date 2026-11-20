@@ -38,6 +38,7 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     habitaciones: 2,
     camas: 3,
     banos: 1,
+    propietarioInmueble: 'Ana Gómez',
     servicios: [{ idServicio: 's-2', nombre: 'Piscina', descripcion: null }],
     imagenes: [],
     ...cambios,
@@ -143,6 +144,7 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
       habitaciones: '2',
       camas: '3',
       banos: '1',
+      propietarioInmueble: 'Ana Gómez',
       precioPorNoche: '250000',
       tarifaLimpieza: '30000',
       modoAceptacion: 'APROBACION',
@@ -236,6 +238,25 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
       queryParams: { aviso: 'en-revision' },
       replaceUrl: true,
     });
+  });
+
+  it('cambiar el propietario del inmueble de una publicación activa pasa a revisión', async () => {
+    await crear();
+    expect(componente.formulario.controls.propietarioInmueble.value).toBe('Ana Gómez');
+    componente.formulario.controls.propietarioInmueble.setValue('Inversiones Rojas');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.revision-cambios strong')?.textContent).toBe(
+      'Propietario del inmueble',
+    );
+    componente.mensajeCambios.setValue('Vendimos la casa.');
+    componente.publicar();
+    const peticion = backend.expectOne(`${api}/publicaciones/p-9`);
+    const cuerpo = peticion.request.body as FormData;
+    expect(cuerpo.get('propietarioInmueble')).toBe('Inversiones Rojas');
+    expect(cuerpo.get('mensajeCambios')).toBe('Vendimos la casa.');
+    peticion.flush({ idPublicacion: 'p-9', estado: 'PENDIENTE_REVISION', imagenes: [] });
   });
 
   it('cambiar solo el precio no pide mensaje ni pasa a revisión', async () => {

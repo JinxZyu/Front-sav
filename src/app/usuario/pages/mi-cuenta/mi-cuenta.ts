@@ -10,6 +10,7 @@ const NOMBRES_ROL: Record<string, string> = {
   HUESPED: 'Huésped',
   ANFITRION: 'Anfitrión',
   ADMINISTRADOR: 'Administrador',
+  AUDITOR_OPERACION: 'Auditor de operación',
 };
 
 @Component({

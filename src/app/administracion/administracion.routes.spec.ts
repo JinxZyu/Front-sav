@@ -34,6 +34,7 @@ describe('rutas de administración', () => {
       '/administracion/publicaciones',
       '/administracion/tarifas',
       '/administracion/reportes',
+      '/administracion/auditoria',
     ]);
   });
 

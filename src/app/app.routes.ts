@@ -47,5 +47,10 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./administracion/administracion.routes').then((m) => m.ADMINISTRACION_ROUTES),
   },
+  {
+    path: 'auditoria',
+    canMatch: [rolGuard('AUDITOR_OPERACION')],
+    loadChildren: () => import('./administracion/auditor.routes').then((m) => m.AUDITOR_ROUTES),
+  },
   { path: '**', redirectTo: paginaInicial },
 ];

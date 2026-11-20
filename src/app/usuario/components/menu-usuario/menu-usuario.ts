@@ -7,6 +7,7 @@ const NOMBRES_ROL = {
   HUESPED: 'Huésped',
   ANFITRION: 'Anfitrión',
   ADMINISTRADOR: 'Administrador',
+  AUDITOR_OPERACION: 'Auditor de operación',
 } as const;
 
 @Component({

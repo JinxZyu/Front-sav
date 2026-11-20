@@ -17,6 +17,7 @@ export const NOMBRES_ROL: Record<Rol, string> = {
   HUESPED: 'Huésped',
   ANFITRION: 'Anfitrión',
   ADMINISTRADOR: 'Administrador',
+  AUDITOR_OPERACION: 'Auditor de operación',
 };
 
 export const NOMBRES_ESTADO_CUENTA: Record<EstadoCuenta, string> = {
@@ -24,5 +25,10 @@ export const NOMBRES_ESTADO_CUENTA: Record<EstadoCuenta, string> = {
   ACTIVA: 'Activa',
   INACTIVA: 'Inactiva',
 };
+
+export interface NuevoDocumento {
+  tipoDocumento: string;
+  documentoIdentidad: string;
+}
 
 export const MAXIMO_MOTIVO_RESTRICCION = 255;

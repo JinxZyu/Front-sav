@@ -1,0 +1,81 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+label {
+  color: #334155;
+  font-weight: 600;
+}
+
+select,
+input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+}
+
+input[aria-invalid='true'] {
+  border-color: #fb7185;
+}
+
+select:focus-visible,
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.ayuda {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.ayuda.error-campo {
+  color: #e11d48;
+}
+
+.alerta {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.8rem;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.botones button {
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.principal {
+  border: 0;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.secundario {
+  border: 1.5px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+}
+
+.botones button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
