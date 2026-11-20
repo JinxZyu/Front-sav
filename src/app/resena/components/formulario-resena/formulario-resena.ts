@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -18,6 +19,7 @@ export class FormularioResena {
 
   readonly idReserva = input.required<string>();
   readonly creada = output<ResenaCreada>();
+  readonly conflicto = output<void>();
 
   protected readonly calificaciones = CALIFICACIONES;
   protected readonly maximo = MAXIMO_COMENTARIO;
@@ -51,8 +53,12 @@ export class FormularioResena {
       .pipe(finalize(() => this.enviando.set(false)))
       .subscribe({
         next: (resena) => this.creada.emit(resena),
-        error: (error: unknown) =>
-          this.error.set(mensajeDeError(error, 'No pudimos publicar tu reseña.')),
+        error: (error: unknown) => {
+          this.error.set(mensajeDeError(error, 'No pudimos publicar tu reseña.'));
+          if (error instanceof HttpErrorResponse && error.status === 409) {
+            this.conflicto.emit();
+          }
+        },
       });
   }
 }

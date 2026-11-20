@@ -283,4 +283,24 @@ describe('DetalleReserva del huésped', () => {
     expect(elemento().textContent).toContain('Ya calificaste esta estadía');
     expect(elemento().querySelector('app-formulario-resena')).toBeNull();
   });
+
+  it('HU-040: si la reseña ya existía, recarga la reserva y muestra el agradecimiento', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ estado: 'COMPLETADA' }));
+
+    elemento().querySelectorAll<HTMLInputElement>('input[type="radio"]')[4].click();
+    const comentario = elemento().querySelector<HTMLTextAreaElement>('textarea')!;
+    comentario.value = 'Excelente.';
+    comentario.dispatchEvent(new Event('input'));
+    boton('Publicar reseña')!.click();
+    await responder(
+      `${api}/r-1/resenas`,
+      { mensaje: 'Esta reserva ya tiene una reseña registrada.' },
+      409,
+    );
+    await responder(consulta, reservaPropia({ estado: 'COMPLETADA', resenada: true }));
+
+    expect(elemento().textContent).toContain('Ya calificaste esta estadía');
+    expect(elemento().querySelector('app-formulario-resena')).toBeNull();
+  });
 });

@@ -54,6 +54,7 @@
             <app-formulario-resena
               [idReserva]="reserva.idReserva"
               (creada)="resenaPublicada.set(true)"
+              (conflicto)="consulta.reload()"
             />
           </section>
         }

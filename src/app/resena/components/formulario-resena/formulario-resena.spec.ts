@@ -9,6 +9,7 @@ describe('FormularioResena (HU-040)', () => {
   let fixture: ComponentFixture<FormularioResena>;
   let backend: HttpTestingController;
   let creadas: ResenaCreada[];
+  let conflictos: number;
   const url = `${environment.apiUrl}/reservas/r-1/resenas`;
 
   const crear = () => {
@@ -19,7 +20,9 @@ describe('FormularioResena (HU-040)', () => {
     fixture = TestBed.createComponent(FormularioResena);
     fixture.componentRef.setInput('idReserva', 'r-1');
     creadas = [];
+    conflictos = 0;
     fixture.componentInstance.creada.subscribe((resena) => creadas.push(resena));
+    fixture.componentInstance.conflicto.subscribe(() => conflictos++);
     fixture.detectChanges();
   };
 
@@ -82,5 +85,18 @@ describe('FormularioResena (HU-040)', () => {
       'ya tiene una reseña registrada',
     );
     expect(creadas.length).toBe(0);
+    expect(conflictos).toBe(1);
+  });
+
+  it('no avisa conflicto cuando falla por otro motivo', async () => {
+    crear();
+    estrella(5).click();
+    escribir('Excelente.');
+    enviar();
+    backend.expectOne(url).flush(null, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('[role="alert"]')).not.toBeNull();
+    expect(conflictos).toBe(0);
   });
 });
