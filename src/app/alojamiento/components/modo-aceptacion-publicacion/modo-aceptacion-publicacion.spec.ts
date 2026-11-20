@@ -110,4 +110,19 @@ describe('ModoAceptacionPublicacion (HU-021)', () => {
     expect(elemento().textContent).toContain('Aún no has elegido');
     expect(botonPorTexto('Cambiar')).toBeUndefined();
   });
+
+  it('cierra la edición y no guarda si deja de ser editable', async () => {
+    await crear();
+    botonPorTexto('Cambiar')?.click();
+    await fixture.whenStable();
+    elemento().querySelectorAll<HTMLInputElement>('input[type="radio"]')[1].click();
+
+    fixture.componentRef.setInput('editable', false);
+    await fixture.whenStable();
+    fixture.componentInstance.guardar();
+
+    backend.expectNone(url);
+    expect(elemento().querySelector('input')).toBeNull();
+    expect(botonPorTexto('Cambiar')).toBeUndefined();
+  });
 });

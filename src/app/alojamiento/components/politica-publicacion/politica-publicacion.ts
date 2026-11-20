@@ -1,4 +1,14 @@
-import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+} from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
@@ -7,6 +17,7 @@ import { PublicacionAlojamientoService } from '../../services/publicacion-alojam
 
 @Component({
   selector: 'app-politica-publicacion',
+  imports: [NgTemplateOutlet],
   templateUrl: './politica-publicacion.html',
   styleUrl: '../../styles/configuracion.css',
 })
@@ -23,13 +34,20 @@ export class PoliticaPublicacion {
     stream: ({ params }) => this.servicio.politicaDe(params),
   });
 
-  readonly editando = signal(false);
+  readonly editando = linkedSignal({ source: this.editable, computation: () => false });
   readonly opciones = rxResource({
     params: () => (this.editando() ? true : undefined),
     stream: () => this.servicio.politicas(),
   });
 
   readonly seleccion = signal('');
+  readonly seleccionValida = computed(() => {
+    const idPolitica = this.seleccion();
+    return (
+      this.opciones.hasValue() &&
+      this.opciones.value().some((politica) => politica.idPolitica === idPolitica)
+    );
+  });
   readonly guardando = signal(false);
   readonly aviso = signal<string | null>(null);
   readonly error = signal<string | null>(null);
@@ -62,7 +80,7 @@ export class PoliticaPublicacion {
 
   guardar(): void {
     const idPolitica = this.seleccion();
-    if (!idPolitica || this.guardando()) {
+    if (!this.editable() || !this.seleccionValida() || this.guardando()) {
       return;
     }
     this.error.set(null);

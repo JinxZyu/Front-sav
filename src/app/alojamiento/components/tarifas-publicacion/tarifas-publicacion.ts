@@ -1,4 +1,13 @@
-import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+} from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -68,7 +77,7 @@ export class TarifasPublicacion {
     servicios: this.fb.array<FormGroup>([], nombresUnicos),
   });
 
-  readonly editando = signal(false);
+  readonly editando = linkedSignal({ source: this.editable, computation: () => false });
   readonly guardando = signal(false);
   readonly intento = signal(false);
   readonly aviso = signal<string | null>(null);
@@ -115,7 +124,7 @@ export class TarifasPublicacion {
   }
 
   guardar(): void {
-    if (this.guardando()) {
+    if (!this.editable() || this.guardando()) {
       return;
     }
     this.intento.set(true);
