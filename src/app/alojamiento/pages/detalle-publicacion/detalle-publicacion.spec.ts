@@ -114,7 +114,10 @@ describe('DetallePublicacion (HU-011)', () => {
     const texto = elemento().textContent ?? '';
     expect(elemento().querySelector('h1')?.textContent).toBe('Cabaña frente al lago');
     expect(elemento().querySelector('.estado')?.textContent?.trim()).toBe('En revisión');
-    expect(texto).toContain('Cabaña · Guatavita · Vereda El Lago');
+    expect(elemento().querySelector('.subtitulo .tipo')?.textContent?.trim()).toBe('Cabaña');
+    expect(elemento().querySelector('.subtitulo .lugar')?.textContent?.trim()).toBe(
+      'Vereda El Lago, Guatavita',
+    );
     expect(texto).toContain('Vista al embalse.');
     expect(texto).toContain('No fumar');
     expect(texto).toContain('Wifi');

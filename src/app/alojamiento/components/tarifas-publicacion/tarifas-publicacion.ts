@@ -52,7 +52,6 @@ const nombresUnicos = (control: AbstractControl): ValidationErrors | null => {
   imports: [ReactiveFormsModule],
   templateUrl: './tarifas-publicacion.html',
   styleUrls: ['../../styles/configuracion.css', './tarifas-publicacion.css'],
-  host: { '[class.editando]': 'editando()' },
 })
 export class TarifasPublicacion {
   private readonly servicio = inject(PublicacionAlojamientoService);

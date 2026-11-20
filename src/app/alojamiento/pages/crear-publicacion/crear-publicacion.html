@@ -412,7 +412,12 @@
       </fieldset>
 
       <fieldset [disabled]="enviando()">
-        <legend>Servicios</legend>
+        <legend>Servicios incluidos</legend>
+        <p class="ayuda">
+          Lo que el alojamiento ya ofrece sin costo extra, como wifi o piscina. Los servicios
+          adicionales con costo (desayuno, transporte…) los agregas después desde el detalle de la
+          publicación.
+        </p>
         @if (servicios.hasValue()) {
           <div
             class="servicios"
