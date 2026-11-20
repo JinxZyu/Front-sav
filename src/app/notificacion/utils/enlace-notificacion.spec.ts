@@ -35,6 +35,24 @@ describe('enlaceNotificacion', () => {
     expect(enlaceNotificacion(notificacion({ idPublicacion: null }), 'ADMINISTRADOR')).toBeNull();
   });
 
+  it('lleva al administrador al reporte que pidió', () => {
+    const reporte = notificacion({
+      idReserva: null,
+      idPublicacion: null,
+      tipo: 'EXPORTACION_REPORTE',
+      mensaje:
+        'El reporte está listo para descargar. Identificador: 3f2b8c1d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
+    });
+    expect(enlaceNotificacion(reporte, 'ADMINISTRADOR')).toEqual({
+      ruta: ['/administracion/reportes', '3f2b8c1d-4e5f-4a6b-8c7d-9e0f1a2b3c4d'],
+      texto: 'Ver reporte',
+    });
+    expect(enlaceNotificacion(reporte, 'ANFITRION')).toBeNull();
+    expect(
+      enlaceNotificacion({ ...reporte, mensaje: 'El reporte está listo.' }, 'ADMINISTRADOR'),
+    ).toBeNull();
+  });
+
   it('sin reserva ni publicación no ofrece enlace', () => {
     expect(
       enlaceNotificacion(notificacion({ idReserva: null, idPublicacion: null }), 'HUESPED'),

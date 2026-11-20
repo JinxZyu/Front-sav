@@ -1,0 +1,71 @@
+<section class="contenedor" aria-labelledby="titulo-reportes">
+  <h1 id="titulo-reportes">Reportes</h1>
+  <p class="subtitulo">
+    Exporta el reporte de gestión con usuarios, publicaciones, reservas, ingresos estimados y la
+    demanda por ciudad, ubicación y tipo de alojamiento.
+  </p>
+
+  <section class="tarjeta" aria-labelledby="titulo-generar">
+    <h2 id="titulo-generar">Generar un reporte</h2>
+    <p class="nota">Queda registrado quién lo pidió y cuándo.</p>
+    <div class="formatos" role="group" aria-label="Formato del reporte">
+      @for (opcion of formatos; track opcion.valor) {
+        <button
+          type="button"
+          [attr.aria-pressed]="formato() === opcion.valor"
+          (click)="elegir(opcion.valor)"
+        >
+          {{ opcion.nombre }}
+        </button>
+      }
+    </div>
+    @if (errorSolicitud(); as error) {
+      <p class="alerta" role="alert">{{ error }}</p>
+    }
+    <div class="botones">
+      <button type="button" class="principal" [disabled]="solicitando()" (click)="generar()">
+        {{ solicitando() ? 'Solicitando…' : 'Generar reporte' }}
+      </button>
+    </div>
+  </section>
+
+  @if (noEncontrada()) {
+    <div class="vacio">
+      <h2>No encontramos este reporte</h2>
+      <p>Puede que no exista o que lo haya pedido otro administrador.</p>
+    </div>
+  } @else if (errorConsulta(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else if (exportacion(); as exportacion) {
+    <section class="tarjeta solicitado" aria-labelledby="titulo-solicitado">
+      <div class="encabezado">
+        <h2 id="titulo-solicitado">Reporte en {{ nombreFormato(exportacion.formato) }}</h2>
+        <span class="etiqueta" [class]="estado(exportacion.estado).tono">
+          {{ estado(exportacion.estado).etiqueta }}
+        </span>
+      </div>
+      <p class="nota">Solicitado el {{ fechaHora(exportacion.fechaSolicitud) }}</p>
+      <p class="detalle-estado" aria-live="polite">{{ estado(exportacion.estado).detalle }}</p>
+      @if (exportacion.estado === 'COMPLETADO') {
+        @if (errorDescarga(); as error) {
+          <p class="alerta" role="alert">{{ error }}</p>
+        }
+        <div class="botones">
+          <button
+            type="button"
+            class="principal"
+            [disabled]="descargando()"
+            (click)="descargar(exportacion)"
+          >
+            {{ descargando() ? 'Descargando…' : 'Descargar ' + nombreFormato(exportacion.formato) }}
+          </button>
+        </div>
+      }
+    </section>
+  } @else if (consulta.isLoading()) {
+    <div class="esqueleto" aria-busy="true" aria-label="Consultando el reporte"></div>
+  }
+</section>

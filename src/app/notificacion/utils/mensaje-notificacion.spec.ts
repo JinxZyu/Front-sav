@@ -28,6 +28,14 @@ describe('mensajeLegible', () => {
     expect(mensaje).not.toContain('2026-11-21T');
   });
 
+  it('quita el identificador del reporte con su rótulo', () => {
+    expect(
+      mensajeLegible(
+        'El reporte está listo para descargar. Identificador: 3f2b8c1d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
+      ),
+    ).toBe('El reporte está listo para descargar.');
+  });
+
   it('deja intactas las palabras en mayúsculas que no son estados', () => {
     expect(mensajeLegible('Revisa tu SOLICITUD pronto.')).toBe('Revisa tu SOLICITUD pronto.');
   });
