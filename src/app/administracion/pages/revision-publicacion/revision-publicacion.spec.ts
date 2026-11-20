@@ -88,6 +88,7 @@ describe('RevisionPublicacion (HU-014)', () => {
     expect(texto).toContain('Calle 60 # 5-10');
     expect(texto).toContain('Hasta 4 huéspedes');
     expect(texto).toContain('2 habitaciones');
+    expect(texto).toContain('Inversiones Rojas');
     expect(texto).toContain('Loft con vista a los cerros.');
     expect(texto).toContain('Wifi');
     expect(texto).toContain('Desayuno');
@@ -457,6 +458,13 @@ describe('RevisionPublicacion (HU-014)', () => {
     expect(decision.textContent).toContain('seguirá pausada como la dejó el anfitrión');
     expect(decision.textContent).not.toContain('quedará publicada');
     expect(decision.querySelector('button.principal')?.textContent?.trim()).toBe('Aprobar cambios');
+  });
+
+  it('avisa si el anfitrión no indicó el propietario del inmueble', async () => {
+    await abrir();
+    const datos = publicacionParaRevisar();
+    await responder({ ...datos, publicacion: { ...datos.publicacion, propietarioInmueble: null } });
+    expect(elemento().textContent).toContain('El anfitrión no indicó el propietario.');
   });
 
   it('sin solicitud de cambios no muestra esa sección', async () => {

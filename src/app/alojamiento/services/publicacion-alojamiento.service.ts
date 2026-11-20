@@ -135,6 +135,7 @@ function comoFormulario(datos: NuevaPublicacion): FormData {
   formulario.append('habitaciones', String(datos.habitaciones));
   formulario.append('camas', String(datos.camas));
   formulario.append('banos', String(datos.banos));
+  formulario.append('propietarioInmueble', datos.propietarioInmueble);
   formulario.append('precioPorNoche', String(datos.precioPorNoche));
   formulario.append('tarifaLimpieza', String(datos.tarifaLimpieza));
   formulario.append('modoAceptacion', datos.modoAceptacion);

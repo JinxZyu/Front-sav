@@ -249,6 +249,36 @@
       </fieldset>
 
       <fieldset [disabled]="enviando()">
+        <legend>Propietario del inmueble</legend>
+        <label>
+          <span>Nombre del propietario <span class="opcional">(opcional)</span></span>
+          <input
+            type="text"
+            formControlName="propietarioInmueble"
+            [readonly]="enviando()"
+            [class.invalido]="invalido('propietarioInmueble')"
+            [attr.aria-invalid]="invalido('propietarioInmueble')"
+            aria-describedby="ayuda-propietario"
+            placeholder="Ej.: Ana Gómez"
+            [maxlength]="maximoPropietario"
+          />
+          <span
+            class="ayuda"
+            id="ayuda-propietario"
+            [class.error-campo]="invalido('propietarioInmueble')"
+          >
+            Escribe tu nombre si el inmueble es tuyo, o el de la persona dueña. Solo lo ven tú y el
+            equipo de revisión.
+          </span>
+        </label>
+        @if (nombreAnfitrion(); as nombre) {
+          <button type="button" class="enlace-propietario" (click)="soyPropietario()">
+            El propietario soy yo ({{ nombre }})
+          </button>
+        }
+      </fieldset>
+
+      <fieldset [disabled]="enviando()">
         <legend>Capacidad y precios</legend>
         <div class="fila tres">
           <label>

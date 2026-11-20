@@ -95,6 +95,12 @@
             }
           </dd>
         </div>
+        @if (publicacion.propietarioInmueble; as propietario) {
+          <div>
+            <dt>Propietario del inmueble</dt>
+            <dd>{{ propietario }}</dd>
+          </div>
+        }
         <div>
           <dt>Aceptación de reservas</dt>
           <dd>{{ modo(publicacion.modoAceptacion) }}</dd>

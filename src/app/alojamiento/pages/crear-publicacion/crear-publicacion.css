@@ -320,3 +320,26 @@ button {
 .ayuda.error-campo {
   color: #e11d48;
 }
+
+.opcional {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.enlace-propietario {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #4f46e5;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.enlace-propietario:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}

@@ -161,6 +161,17 @@ describe('DetallePublicacion (HU-011)', () => {
     );
   });
 
+  it('muestra el propietario del inmueble solo si el anfitrión lo indicó', async () => {
+    crear();
+    backend.expectOne(url).flush(detalle({ imagenes: [], propietarioInmueble: 'Ana Gómez' }));
+    await responderSecciones();
+
+    const fila = [...elemento().querySelectorAll('.datos div')].find(
+      (item) => item.querySelector('dt')?.textContent?.trim() === 'Propietario del inmueble',
+    );
+    expect(fila?.querySelector('dd')?.textContent?.trim()).toBe('Ana Gómez');
+  });
+
   it('muestra las condiciones de reserva de la publicación', async () => {
     crear();
     backend.expectOne(url).flush(detalle({ imagenes: [] }));
