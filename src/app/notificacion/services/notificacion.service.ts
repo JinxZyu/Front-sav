@@ -20,6 +20,8 @@ export class NotificacionService {
 
   private readonly recibidas = signal<Recibidas | null>(null);
   private readonly vistas = signal<Record<string, number>>({});
+  private consultasEnviadas = 0;
+  private ultimaConsultaAplicada = 0;
 
   readonly nuevas = computed(() => {
     const usuario = this.usuario();
@@ -34,8 +36,13 @@ export class NotificacionService {
 
   misNotificaciones(): Observable<Notificacion[]> {
     const usuario = this.usuario();
+    const orden = ++this.consultasEnviadas;
     return this.http.get<Notificacion[]>(this.url).pipe(
       tap((notificaciones) => {
+        if (orden < this.ultimaConsultaAplicada) {
+          return;
+        }
+        this.ultimaConsultaAplicada = orden;
         this.recordar(usuario, leerGuardadas(usuario));
         this.recibidas.set({ usuario, notificaciones });
       }),

@@ -73,4 +73,20 @@ describe('NotificacionService', () => {
     expect(servicio.nuevas()).toBe(0);
     expect(servicio.ultimaVista()).toBe(new Date('2026-11-18T10:00:00Z').getTime());
   });
+
+  it('una respuesta antigua no reemplaza las notificaciones más recientes', () => {
+    const antigua = notificacion({ fechaCreacion: '2026-11-18T10:00:00Z' });
+    const reciente = notificacion({ idNotificacion: 'n-2', fechaCreacion: '2026-11-18T10:05:00Z' });
+    const recibidasPorLaPagina: unknown[] = [];
+    servicio.misNotificaciones().subscribe((lista) => recibidasPorLaPagina.push(lista));
+    servicio.misNotificaciones().subscribe();
+    const [primera, segunda] = backend.match(url);
+
+    segunda.flush([reciente, antigua]);
+    primera.flush([antigua]);
+    servicio.marcarVistas([antigua]);
+
+    expect(recibidasPorLaPagina).toEqual([[antigua]]);
+    expect(servicio.nuevas()).toBe(1);
+  });
 });
