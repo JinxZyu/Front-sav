@@ -7,6 +7,8 @@ import {
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { SesionService } from '../../../config/auth/sesion.service';
+import { crearToken } from '../../../config/auth/sesion.testing';
 import { environment } from '../../../../environments/environment';
 import { EventoAuditoria, PaginaAuditoria } from '../../models/auditoria.models';
 import { publicacionAdministrada } from '../../models/publicacion-administrada.testing';
@@ -42,7 +44,7 @@ describe('Auditoria (HU-046)', () => {
   const api = `${environment.apiUrl}/administracion`;
   const eventos = `${api}/auditoria/eventos`;
 
-  const abrir = async () => {
+  const abrir = async (rol = 'ADMINISTRADOR') => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -51,6 +53,9 @@ describe('Auditoria (HU-046)', () => {
       ],
     });
     backend = TestBed.inject(HttpTestingController);
+    TestBed.inject(SesionService).iniciar(
+      crearToken({ sub: 'persona@test.co', role: rol, exp: Math.floor(Date.now() / 1000) + 3600 }),
+    );
     harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/administracion/auditoria');
   };
@@ -101,7 +106,10 @@ describe('Auditoria (HU-046)', () => {
     await refrescar();
   };
 
-  afterEach(() => backend.verify());
+  afterEach(() => {
+    backend.verify();
+    TestBed.inject(SesionService).cerrar();
+  });
 
   it('criterio 1: muestra quién, cuándo, sobre qué y con qué resultado', async () => {
     await abrir();
@@ -164,6 +172,29 @@ describe('Auditoria (HU-046)', () => {
       'Usuario · Hugo Pérez',
     );
     expect(restriccion.querySelector('details')).toBeNull();
+  });
+
+  it('el auditor de operación ve los mismos datos sin enlaces a la administración', async () => {
+    await abrir('AUDITOR_OPERACION');
+    listas();
+    await responder(
+      pagina([
+        evento(),
+        evento({
+          idEvento: 'ev-2',
+          entidadAfectada: 'EXPORTACION_REPORTE',
+          idEntidadAfectada: 'e-1',
+        }),
+      ]),
+    );
+
+    const [bloqueo, reporte] = tarjetas();
+    expect(bloqueo.querySelector('.sobre')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Publicación · Loft en Chapinero',
+    );
+    expect(bloqueo.querySelector('.meta')?.textContent).toContain('Ana Gómez · ana@test.co');
+    expect(elemento().querySelector('.sobre a')).toBeNull();
+    expect(reporte.querySelector('.sobre')?.textContent).toContain('Reporte');
   });
 
   it('criterio 2: filtra por usuario, entidad, resultado y fechas', async () => {

@@ -53,6 +53,12 @@
         Administración
       </a>
     }
+    @if (sesion.tieneRol('AUDITOR_OPERACION')) {
+      <a role="menuitem" class="opcion" routerLink="/auditoria" (click)="cerrar()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" /><path d="m9 12 2 2 4-4" /></svg>
+        Auditoría
+      </a>
+    }
     <button type="button" role="menuitem" class="opcion salir" (click)="cerrarSesion()">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

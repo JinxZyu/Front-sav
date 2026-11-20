@@ -5,7 +5,7 @@ import { USUARIO_ROUTES } from './usuario/usuario.routes';
 describe('rutas de la aplicación', () => {
   it('cada módulo carga sus propias rutas', async () => {
     const modulos = routes.filter((ruta) => ruta.loadChildren);
-    expect(modulos.length).toBe(8);
+    expect(modulos.length).toBe(9);
     for (const ruta of modulos) {
       const hijas = await (ruta.loadChildren as () => Promise<unknown>)();
       expect(Array.isArray(hijas)).toBe(true);
@@ -30,7 +30,7 @@ describe('rutas de la aplicación', () => {
     for (const path of ['cancelacion', 'notificaciones', 'reservas']) {
       expect(ruta(path)?.canMatch).toEqual([autenticadoGuard]);
     }
-    for (const path of ['alojamientos', 'disponibilidad', 'administracion']) {
+    for (const path of ['alojamientos', 'disponibilidad', 'administracion', 'auditoria']) {
       expect(ruta(path)?.canMatch).toHaveLength(1);
     }
     for (const path of ['usuario', 'publicaciones']) {

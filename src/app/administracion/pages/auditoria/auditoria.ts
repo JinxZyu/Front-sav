@@ -3,6 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
+import { SesionService } from '../../../config/auth/sesion.service';
 import { mensajeLegible } from '../../../notificacion/utils/mensaje-notificacion';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import {
@@ -97,6 +98,7 @@ export class Auditoria {
   private readonly servicio = inject(AuditoriaService);
   private readonly gestionUsuarios = inject(GestionUsuariosService);
   private readonly gestionPublicaciones = inject(GestionPublicacionesService);
+  private readonly administrador = inject(SesionService).tieneRol('ADMINISTRADOR');
 
   protected readonly entidades = ENTIDADES_AUDITORIA;
   protected readonly resultados = RESULTADOS_AUDITORIA;
@@ -187,10 +189,10 @@ export class Auditoria {
     let referencia = id ? id.slice(0, 8) : null;
     let enlace: string[] | null = null;
     if (id && evento.entidadAfectada === 'PUBLICACION') {
-      enlace = ['/administracion/publicaciones', id];
+      enlace = this.administrador ? ['/administracion/publicaciones', id] : null;
       referencia = this.titulos().get(id) ?? referencia;
     } else if (id && evento.entidadAfectada === 'EXPORTACION_REPORTE') {
-      enlace = ['/administracion/reportes', id];
+      enlace = this.administrador ? ['/administracion/reportes', id] : null;
     } else if (id && evento.entidadAfectada === 'USUARIO') {
       const afectado = usuarios.get(id);
       referencia = afectado ? nombreUsuario(afectado) : referencia;

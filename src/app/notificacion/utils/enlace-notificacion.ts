@@ -11,7 +11,7 @@ const RUTAS_RESERVA: Partial<Record<Rol, string>> = {
   HUESPED: '/reservas',
 };
 
-const RUTAS_PUBLICACION: Record<Rol, string> = {
+const RUTAS_PUBLICACION: Partial<Record<Rol, string>> = {
   ANFITRION: '/alojamientos',
   ADMINISTRADOR: '/administracion/publicaciones',
   HUESPED: '/publicaciones',
@@ -34,9 +34,10 @@ export function enlaceNotificacion(
   if (notificacion.idReserva && rutaReserva) {
     return { ruta: [rutaReserva, notificacion.idReserva], texto: 'Ver reserva' };
   }
-  if (notificacion.idPublicacion) {
+  const rutaPublicacion = RUTAS_PUBLICACION[rol ?? 'HUESPED'];
+  if (notificacion.idPublicacion && rutaPublicacion) {
     return {
-      ruta: [RUTAS_PUBLICACION[rol ?? 'HUESPED'], notificacion.idPublicacion],
+      ruta: [rutaPublicacion, notificacion.idPublicacion],
       texto: 'Ver publicación',
     };
   }

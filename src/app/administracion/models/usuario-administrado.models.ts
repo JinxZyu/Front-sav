@@ -17,6 +17,7 @@ export const NOMBRES_ROL: Record<Rol, string> = {
   HUESPED: 'Huésped',
   ANFITRION: 'Anfitrión',
   ADMINISTRADOR: 'Administrador',
+  AUDITOR_OPERACION: 'Auditor de operación',
 };
 
 export const NOMBRES_ESTADO_CUENTA: Record<EstadoCuenta, string> = {
