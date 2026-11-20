@@ -100,7 +100,7 @@ describe('MisPublicaciones (HU-011)', () => {
       'Portada de Cabaña frente al lago',
     );
     expect(sinFoto.querySelector('app-imagen-publicacion')).toBeNull();
-    expect(sinFoto.querySelector('.sin-foto')).not.toBeNull();
+    expect(sinFoto.querySelector('.sin-foto')?.textContent?.trim()).toBe('Sin foto');
     restaurar();
   });
 
