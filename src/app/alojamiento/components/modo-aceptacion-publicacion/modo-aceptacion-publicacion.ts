@@ -1,4 +1,13 @@
-import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+} from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
@@ -36,7 +45,7 @@ export class ModoAceptacionPublicacion {
       : null,
   );
 
-  readonly editando = signal(false);
+  readonly editando = linkedSignal({ source: this.editable, computation: () => false });
   readonly seleccion = signal<ModoAceptacion | ''>('');
   readonly guardando = signal(false);
   readonly aviso = signal<string | null>(null);
@@ -56,7 +65,7 @@ export class ModoAceptacionPublicacion {
 
   guardar(): void {
     const modo = this.seleccion();
-    if (!modo || this.guardando()) {
+    if (!this.editable() || !modo || this.guardando()) {
       return;
     }
     this.error.set(null);

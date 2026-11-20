@@ -169,4 +169,47 @@ describe('PoliticaPublicacion (HU-019)', () => {
 
     expect(botonPorTexto('Cambiar')).toBeUndefined();
   });
+
+  it('no deja guardar una política que no está entre las activas', async () => {
+    await crear(politica({ idPolitica: 'pol-vieja', activa: false }));
+    await abrirEdicion();
+
+    const radios = [...elemento().querySelectorAll<HTMLInputElement>('input[type="radio"]')];
+    expect(radios.some((radio) => radio.checked)).toBe(false);
+    expect(botonPorTexto('Guardar')?.disabled).toBe(true);
+    fixture.componentInstance.guardar();
+    backend.expectNone(url);
+
+    radios[1].click();
+    fixture.detectChanges();
+    expect(botonPorTexto('Guardar')?.disabled).toBe(false);
+  });
+
+  it('mantiene Cancelar cuando fallan las políticas disponibles', async () => {
+    await crear();
+    botonPorTexto('Cambiar')?.click();
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlActivas).flush('Error', { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+
+    expect(botonPorTexto('Reintentar')).toBeDefined();
+    botonPorTexto('Cancelar')?.click();
+    await fixture.whenStable();
+    expect(elemento().querySelector('.valor')?.textContent).toBe('Flexible');
+  });
+
+  it('cierra la edición y no guarda si deja de ser editable', async () => {
+    await crear();
+    await abrirEdicion();
+    elemento().querySelectorAll<HTMLInputElement>('input[type="radio"]')[1].click();
+
+    fixture.componentRef.setInput('editable', false);
+    await fixture.whenStable();
+    fixture.componentInstance.guardar();
+
+    backend.expectNone(url);
+    expect(elemento().querySelector('input')).toBeNull();
+    expect(botonPorTexto('Cambiar')).toBeUndefined();
+  });
 });

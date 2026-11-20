@@ -212,4 +212,19 @@ describe('TarifasPublicacion (HU-020)', () => {
     expect(elemento().textContent).toContain('Desayuno');
     expect(botonPorTexto('Cambiar')).toBeUndefined();
   });
+
+  it('cierra la edición y no guarda si deja de ser editable', async () => {
+    await crear();
+    componente.cambiar();
+    await fixture.whenStable();
+    componente.formulario.controls.tarifaLimpieza.setValue('1');
+
+    fixture.componentRef.setInput('editable', false);
+    await fixture.whenStable();
+    componente.guardar();
+
+    backend.expectNone(url);
+    expect(elemento().querySelector('form')).toBeNull();
+    expect(botonPorTexto('Cambiar')).toBeUndefined();
+  });
 });
