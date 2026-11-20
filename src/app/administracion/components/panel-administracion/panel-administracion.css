@@ -1,0 +1,40 @@
+:host {
+  box-sizing: border-box;
+  display: block;
+  min-height: calc(100dvh - 4.5rem);
+  padding-top: 1.5rem;
+  background: #f8fafc;
+}
+
+.secciones {
+  display: flex;
+  gap: 0.4rem;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  overflow-x: auto;
+}
+
+.secciones a {
+  flex: none;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  color: #475569;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.secciones a:hover {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.secciones a.activa {
+  background: #1e1b4b;
+  color: #fff;
+}
+
+.secciones a:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}

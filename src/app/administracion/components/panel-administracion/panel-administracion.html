@@ -1,0 +1,8 @@
+<nav class="secciones" aria-label="Secciones de administración">
+  @for (seccion of secciones; track seccion.ruta) {
+    <a [routerLink]="seccion.ruta" routerLinkActive="activa" ariaCurrentWhenActive="page">
+      {{ seccion.nombre }}
+    </a>
+  }
+</nav>
+<router-outlet />

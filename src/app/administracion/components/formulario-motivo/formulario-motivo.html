@@ -1,0 +1,31 @@
+<form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+  <label [for]="id">{{ etiqueta() }}</label>
+  <textarea
+    #campo
+    rows="3"
+    [id]="id"
+    formControlName="motivo"
+    [attr.aria-invalid]="invalido()"
+    [attr.aria-describedby]="id + '-ayuda'"
+  ></textarea>
+  <span class="ayuda" [id]="id + '-ayuda'" [class.error-campo]="invalido()">
+    @if (invalido() && !excedido()) {
+      Escribe el motivo.
+    } @else {
+      {{ largo() }} de {{ maximo() }} caracteres
+    }
+  </span>
+
+  @if (error(); as error) {
+    <p class="alerta" role="alert">{{ error }}</p>
+  }
+
+  <div class="botones">
+    <button type="submit" class="peligro" [disabled]="enviando()">
+      {{ enviando() ? accionEnCurso() : accion() }}
+    </button>
+    <button type="button" class="secundario" [disabled]="enviando()" (click)="cancelar.emit()">
+      Cancelar
+    </button>
+  </div>
+</form>

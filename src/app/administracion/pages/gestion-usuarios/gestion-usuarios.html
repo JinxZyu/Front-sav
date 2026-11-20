@@ -1,0 +1,145 @@
+<section class="contenedor" aria-labelledby="titulo-usuarios">
+  <h1 id="titulo-usuarios">Usuarios</h1>
+  <p class="subtitulo">Consulta las cuentas y restringe el acceso de quien lo necesite.</p>
+
+  @if (error(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else if (usuarios(); as usuarios) {
+    <div class="herramientas">
+      <label class="buscador">
+        <span class="oculto">Buscar por nombre o correo</span>
+        <input
+          type="search"
+          placeholder="Buscar por nombre o correo"
+          [value]="busqueda()"
+          (input)="buscar($event)"
+        />
+      </label>
+      <div class="filtros" role="group" aria-label="Filtrar usuarios">
+        <button
+          type="button"
+          [attr.aria-pressed]="!soloRestringidos()"
+          (click)="soloRestringidos.set(false)"
+        >
+          Todos ({{ todos()?.length }})
+        </button>
+        <button
+          type="button"
+          [attr.aria-pressed]="soloRestringidos()"
+          (click)="soloRestringidos.set(true)"
+        >
+          Restringidos ({{ restringidos() }})
+        </button>
+      </div>
+    </div>
+
+    @if (usuarios.length > 0) {
+      <ul class="lista">
+        @for (usuario of usuarios; track usuario.idUsuario) {
+          <li class="usuario" [class.restringido]="usuario.restringido">
+            <div class="cabecera">
+              <div class="identidad">
+                <h2>{{ nombre(usuario) }}</h2>
+                <p class="correo">{{ usuario.correo }}</p>
+              </div>
+              <div class="etiquetas">
+                <span class="etiqueta">{{ rol(usuario) }}</span>
+                @if (estado(usuario); as estado) {
+                  <span class="etiqueta">{{ estado }}</span>
+                }
+                @if (usuario.restringido) {
+                  <span class="etiqueta rechazo">Restringida</span>
+                }
+              </div>
+            </div>
+
+            @if (usuario.restringido && usuario.motivoRestriccion) {
+              <p class="motivo"><strong>Motivo:</strong> {{ usuario.motivoRestriccion }}</p>
+            }
+
+            @if (enCurso(usuario, 'restringir')) {
+              <app-formulario-motivo
+                etiqueta="Motivo de la restricción"
+                accion="Restringir cuenta"
+                accionEnCurso="Restringiendo…"
+                [maximo]="maximoMotivo"
+                [enviando]="enviando()"
+                [error]="errorAccion()"
+                (confirmar)="restringir(usuario, $event)"
+                (cancelar)="cerrar()"
+              />
+            } @else if (enCurso(usuario, 'levantar')) {
+              <div class="confirmacion" role="group" aria-label="Confirmar levantamiento">
+                <p class="texto-confirmacion">
+                  {{ nombre(usuario) }} podrá iniciar sesión de nuevo.
+                  @if (usuario.rol === 'ANFITRION') {
+                    Sus publicaciones seguirán pausadas hasta que las reactive.
+                  }
+                </p>
+                @if (errorAccion(); as error) {
+                  <p class="alerta" role="alert">{{ error }}</p>
+                }
+                <div class="botones">
+                  <button
+                    type="button"
+                    class="principal"
+                    [disabled]="enviando()"
+                    (click)="levantar(usuario)"
+                  >
+                    {{ enviando() ? 'Levantando…' : 'Levantar restricción' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="secundario"
+                    [disabled]="enviando()"
+                    (click)="cerrar()"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            } @else if (esPropio(usuario)) {
+              <p class="nota">Esta es tu cuenta.</p>
+            } @else {
+              <div class="botones">
+                @if (usuario.restringido) {
+                  <button
+                    type="button"
+                    class="secundario"
+                    [disabled]="enviando()"
+                    (click)="abrir(usuario, 'levantar')"
+                  >
+                    Levantar restricción
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="secundario peligro-texto"
+                    [disabled]="enviando()"
+                    (click)="abrir(usuario, 'restringir')"
+                  >
+                    Restringir
+                  </button>
+                }
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="vacio">
+        <h2>No hay usuarios que coincidan</h2>
+        <p>Prueba con otra búsqueda o quita el filtro.</p>
+      </div>
+    }
+  } @else {
+    <ul class="lista" aria-busy="true" aria-label="Cargando usuarios">
+      @for (indice of [1, 2, 3, 4]; track indice) {
+        <li class="esqueleto"></li>
+      }
+    </ul>
+  }
+</section>

@@ -98,6 +98,31 @@ describe('App', () => {
     expect(reservas.getAttribute('href')).toBe('/reservas');
   });
 
+  it('al administrador la barra le lleva a la administración', async () => {
+    TestBed.inject(SesionService).iniciar(
+      crearToken({
+        sub: 'admin@correo.com',
+        role: 'ADMINISTRADOR',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne((peticion) => peticion.url.endsWith('/usuarios/mi_cuenta'))
+      .flush({ nombre: 'Admin', apellido: 'SAV' });
+    await fixture.whenStable();
+
+    const enlaces = [...elemento(fixture).querySelectorAll<HTMLAnchorElement>('nav > a')];
+    expect(enlaces.map((enlace) => enlace.getAttribute('href'))).toEqual([
+      '/administracion',
+      '/publicaciones',
+    ]);
+    expect(enlaces[0].textContent?.trim()).toBe('Administración');
+    expect(enlaces[1].classList).toContain('opcional');
+    expect(elemento(fixture).textContent).not.toContain('Mis reservas');
+  });
+
   it('con sesión muestra la campana con las notificaciones nuevas', async () => {
     TestBed.inject(SesionService).iniciar(
       crearToken({
