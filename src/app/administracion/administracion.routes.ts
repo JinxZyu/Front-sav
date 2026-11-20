@@ -51,6 +51,11 @@ export const ADMINISTRACION_ROUTES: Routes = [
         loadComponent: () => import('./pages/reportes/reportes').then((m) => m.Reportes),
       },
       {
+        path: 'auditoria',
+        title: 'Auditoría',
+        loadComponent: () => import('./pages/auditoria/auditoria').then((m) => m.Auditoria),
+      },
+      {
         path: 'reportes/:idExportacion',
         title: 'Reportes',
         loadComponent: () => import('./pages/reportes/reportes').then((m) => m.Reportes),

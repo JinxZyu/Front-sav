@@ -9,4 +9,5 @@ export const SECCIONES_ADMINISTRACION: readonly SeccionAdministracion[] = [
   { ruta: 'publicaciones', nombre: 'Publicaciones' },
   { ruta: 'tarifas', nombre: 'Tarifas' },
   { ruta: 'reportes', nombre: 'Reportes' },
+  { ruta: 'auditoria', nombre: 'Auditoría' },
 ];
