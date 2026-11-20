@@ -140,6 +140,29 @@ svg {
   font-size: 0.9rem;
 }
 
+.falla {
+  margin: 0;
+  padding: 1rem 0.6rem;
+  color: #be123c;
+  font-size: 0.9rem;
+}
+
+.reintentar {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.reintentar:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
 .todas {
   margin-top: 0.4rem;
   padding: 0.55rem;

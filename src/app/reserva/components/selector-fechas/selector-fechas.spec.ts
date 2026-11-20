@@ -83,6 +83,36 @@ describe('SelectorFechas', () => {
     expect(elemento().textContent).toContain('Elige el día de llegada.');
   });
 
+  it('muestra el mes de la llegada recibida y lo sigue cuando cambia', async () => {
+    const llegadaLejana = moverDias(inicioMesSiguiente, 40);
+    const fecha = new Date(`${llegadaLejana}T00:00:00`);
+    const titulo = new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' }).format(
+      new Date(fecha.getFullYear(), fecha.getMonth(), 1),
+    );
+    crear({ llegada: llegadaLejana });
+    await responder(datos);
+
+    const mes = () => elemento().querySelector('.mes')?.textContent?.trim().toLowerCase();
+    expect(mes()).toBe(titulo.toLowerCase());
+
+    fixture.componentRef.setInput('llegada', dia(1));
+    fixture.detectChanges();
+    const siguiente = new Date(`${inicioMesSiguiente}T00:00:00`);
+    expect(mes()).toBe(
+      new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' })
+        .format(siguiente)
+        .toLowerCase(),
+    );
+
+    fixture.componentRef.setInput('llegada', '');
+    fixture.detectChanges();
+    expect(mes()).toBe(
+      new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' })
+        .format(siguiente)
+        .toLowerCase(),
+    );
+  });
+
   it('no deja ir antes del mes actual', async () => {
     crear();
     await responder(datos);
@@ -120,7 +150,6 @@ describe('SelectorFechas', () => {
   it('si se elige un día que no sirve como salida empieza de nuevo desde ahí', async () => {
     crear({ llegada: dia(5) });
     await responder(datos);
-    await siguienteMes();
 
     expect(celda(12).disabled).toBe(false);
     celda(12).click();
@@ -133,7 +162,6 @@ describe('SelectorFechas', () => {
   it('con fechas completas un nuevo toque empieza otra llegada', async () => {
     crear({ llegada: dia(1), salida: dia(3) });
     await responder(datos);
-    await siguienteMes();
 
     celda(6).click();
     expect(elegidas).toEqual([{ llegada: dia(6), salida: '' }]);

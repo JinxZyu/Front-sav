@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ConsultaDisponibilidad } from '../../../disponibilidad/models/disponibilidad.models';
 import { DisponibilidadService } from '../../../disponibilidad/services/disponibilidad.service';
@@ -54,11 +54,20 @@ export class SelectorFechas {
     return datos ? criterioDeNoches(datos, this.hoy, this.limite) : null;
   });
 
-  protected readonly mes = signal(primerDiaDelMes(comoFecha(this.hoy) ?? new Date()));
+  private readonly primerMes = primerDiaDelMes(comoFecha(this.hoy) ?? new Date());
+
+  protected readonly mes = linkedSignal<string, Date>({
+    source: this.llegada,
+    computation: (llegada, anterior) => {
+      const fecha = comoFecha(llegada);
+      if (fecha && llegada >= this.hoy && llegada < this.limite) {
+        return primerDiaDelMes(fecha);
+      }
+      return anterior?.value ?? this.primerMes;
+    },
+  });
   protected readonly tituloMes = computed(() => capitalizar(NOMBRE_MES.format(this.mes())));
-  protected readonly esPrimerMes = computed(
-    () => comoDia(this.mes()) <= comoDia(primerDiaDelMes(comoFecha(this.hoy) ?? new Date())),
-  );
+  protected readonly esPrimerMes = computed(() => comoDia(this.mes()) <= comoDia(this.primerMes));
   protected readonly esUltimoMes = computed(() => {
     const siguiente = new Date(this.mes().getFullYear(), this.mes().getMonth() + 1, 1);
     return comoDia(siguiente) > this.limite;

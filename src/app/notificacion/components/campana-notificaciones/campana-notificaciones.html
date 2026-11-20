@@ -41,6 +41,11 @@
       } @else {
         <p class="vacio">No tienes notificaciones.</p>
       }
+    } @else if (fallo()) {
+      <p class="falla" role="alert">
+        No pudimos cargar tus notificaciones.
+        <button type="button" class="reintentar" (click)="reintentar()">Reintentar</button>
+      </p>
     } @else {
       <p class="vacio" aria-busy="true">Cargando notificaciones…</p>
     }

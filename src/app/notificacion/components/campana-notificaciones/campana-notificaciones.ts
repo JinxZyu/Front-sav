@@ -3,12 +3,14 @@ import {
   DestroyRef,
   ElementRef,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { EMPTY, catchError, switchMap, timer } from 'rxjs';
+import { EMPTY, Subject, catchError, merge, switchMap, tap, timer } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { Notificacion } from '../../models/notificacion.models';
@@ -36,7 +38,9 @@ export class CampanaNotificaciones {
   private readonly disparador = viewChild.required<ElementRef<HTMLButtonElement>>('disparador');
 
   protected readonly abierta = signal(false);
+  protected readonly fallo = signal(false);
   private readonly vistasAntes = signal(0);
+  private readonly recarga = new Subject<void>();
 
   protected readonly nuevas = this.servicio.nuevas;
   protected readonly contador = computed(() => (this.nuevas() > 9 ? '9+' : String(this.nuevas())));
@@ -59,10 +63,30 @@ export class CampanaNotificaciones {
   protected readonly fecha = formatearFechaHora;
 
   constructor() {
-    const consulta = timer(0, INTERVALO_MS)
-      .pipe(switchMap(() => this.servicio.misNotificaciones().pipe(catchError(() => EMPTY))))
+    const consulta = merge(timer(0, INTERVALO_MS), this.recarga)
+      .pipe(
+        switchMap(() =>
+          this.servicio.misNotificaciones().pipe(
+            tap(() => this.fallo.set(false)),
+            catchError(() => {
+              this.fallo.set(true);
+              return EMPTY;
+            }),
+          ),
+        ),
+      )
       .subscribe();
     inject(DestroyRef).onDestroy(() => consulta.unsubscribe());
+    effect(() => {
+      const notificaciones = this.servicio.recientes();
+      if (this.abierta() && notificaciones) {
+        untracked(() => this.servicio.marcarVistas(notificaciones));
+      }
+    });
+  }
+
+  protected reintentar(): void {
+    this.recarga.next();
   }
 
   protected alternar(): void {
@@ -72,10 +96,6 @@ export class CampanaNotificaciones {
     }
     this.vistasAntes.set(this.servicio.ultimaVista());
     this.abierta.set(true);
-    const notificaciones = this.servicio.recientes();
-    if (notificaciones) {
-      this.servicio.marcarVistas(notificaciones);
-    }
   }
 
   protected cerrar(): void {

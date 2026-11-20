@@ -14,7 +14,7 @@ describe('CampanaNotificaciones (HU-038)', () => {
   let backend: HttpTestingController;
   const url = `${environment.apiUrl}/notificaciones/mis-notificaciones`;
 
-  const crear = async (cantidad: number) => {
+  const preparar = async () => {
     localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
@@ -34,13 +34,16 @@ describe('CampanaNotificaciones (HU-038)', () => {
     fixture = TestBed.createComponent(CampanaNotificaciones);
     fixture.detectChanges();
     await new Promise((resolver) => setTimeout(resolver));
-    backend
-      .expectOne(url)
-      .flush(
-        Array.from({ length: cantidad }, (_, indice) =>
-          notificacion({ idNotificacion: `n-${indice}` }),
-        ),
-      );
+  };
+
+  const lista = (cantidad: number) =>
+    Array.from({ length: cantidad }, (_, indice) =>
+      notificacion({ idNotificacion: `n-${indice}` }),
+    );
+
+  const crear = async (cantidad: number) => {
+    await preparar();
+    backend.expectOne(url).flush(lista(cantidad));
     await fixture.whenStable();
   };
 
@@ -156,5 +159,41 @@ describe('CampanaNotificaciones (HU-038)', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
     expect(panel()).toBeNull();
+  });
+
+  it('si se abre antes de la respuesta marca como vistas las que llegan con la lista abierta', async () => {
+    await preparar();
+    enlace().click();
+    fixture.detectChanges();
+    expect(panel()?.textContent).toContain('Cargando notificaciones');
+
+    backend.expectOne(url).flush(lista(2));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const items = [...(panel()?.querySelectorAll('li') ?? [])];
+    expect(items).toHaveLength(2);
+    expect(items.every((item) => item.classList.contains('nueva'))).toBe(true);
+    expect(enlace().querySelector('.contador')).toBeNull();
+  });
+
+  it('si falla la carga lo indica y permite reintentar', async () => {
+    await preparar();
+    backend.expectOne(url).flush(null, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+
+    await abrir();
+    expect(panel()?.querySelector('[role="alert"]')?.textContent).toContain(
+      'No pudimos cargar tus notificaciones.',
+    );
+    expect(panel()?.textContent).not.toContain('Cargando notificaciones');
+
+    (panel()?.querySelector('button.reintentar') as HTMLButtonElement).click();
+    backend.expectOne(url).flush(lista(1));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(panel()?.querySelector('[role="alert"]')).toBeNull();
+    expect(panel()?.querySelectorAll('li')).toHaveLength(1);
   });
 });
