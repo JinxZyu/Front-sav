@@ -74,8 +74,35 @@ h1 {
 }
 
 .subtitulo {
-  margin: 0.4rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  margin: 0.5rem 0 0;
   color: #64748b;
+}
+
+.tipo {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lugar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.lugar svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
 }
 
 .estado {
