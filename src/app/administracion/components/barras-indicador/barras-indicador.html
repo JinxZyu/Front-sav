@@ -1,0 +1,13 @@
+<ul class="barras">
+  @for (barra of barras(); track barra.etiqueta) {
+    <li [attr.title]="barra.etiqueta + ': ' + numero(barra.valor) + ' ' + unidad()">
+      <span class="etiqueta">{{ barra.etiqueta }}</span>
+      <span class="pista" aria-hidden="true">
+        @if (barra.valor > 0) {
+          <span class="relleno" [style.width]="ancho(barra.valor)"></span>
+        }
+      </span>
+      <span class="valor">{{ numero(barra.valor) }}</span>
+    </li>
+  }
+</ul>
