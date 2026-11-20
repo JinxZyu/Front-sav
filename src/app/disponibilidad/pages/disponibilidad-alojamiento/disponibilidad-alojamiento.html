@@ -30,6 +30,7 @@
           <input
             type="date"
             formControlName="fechaInicio"
+            required
             [min]="minimo"
             [attr.aria-invalid]="invalidoNuevo('fechaInicio')"
             [attr.aria-describedby]="invalidoNuevo('fechaInicio') ? 'error-llegada' : null"
@@ -49,6 +50,7 @@
           <input
             type="date"
             formControlName="fechaFin"
+            required
             [min]="nuevo.controls.fechaInicio.value || minimo"
             [attr.aria-invalid]="
               invalidoNuevo('fechaFin') || (intentoNuevo() && nuevo.hasError('rango'))
@@ -95,19 +97,44 @@
               <fieldset class="fechas" [disabled]="procesando()">
                 <label>
                   Llegada
-                  <input type="date" formControlName="fechaInicio" />
+                  <input
+                    type="date"
+                    formControlName="fechaInicio"
+                    required
+                    [attr.aria-invalid]="invalidoEdicion('fechaInicio')"
+                    [attr.aria-describedby]="
+                      invalidoEdicion('fechaInicio') ? 'error-edicion-llegada' : null
+                    "
+                  />
+                  @if (invalidoEdicion('fechaInicio')) {
+                    <span class="error-campo" id="error-edicion-llegada">
+                      Elige la fecha de llegada.
+                    </span>
+                  }
                 </label>
                 <label>
                   Salida
                   <input
                     type="date"
                     formControlName="fechaFin"
+                    required
                     [min]="edicion.controls.fechaInicio.value"
-                    [attr.aria-invalid]="intentoEdicion() && edicion.invalid"
+                    [attr.aria-invalid]="invalidoEdicion('fechaFin') || rangoInvalidoEdicion()"
                     [attr.aria-describedby]="
-                      intentoEdicion() && edicion.invalid ? 'error-edicion' : null
+                      invalidoEdicion('fechaFin') || rangoInvalidoEdicion()
+                        ? 'error-edicion-salida'
+                        : null
                     "
                   />
+                  @if (invalidoEdicion('fechaFin')) {
+                    <span class="error-campo" id="error-edicion-salida">
+                      Elige la fecha de salida.
+                    </span>
+                  } @else if (rangoInvalidoEdicion()) {
+                    <span class="error-campo" id="error-edicion-salida">
+                      La salida debe ser posterior a la llegada.
+                    </span>
+                  }
                 </label>
                 <div class="acciones">
                   <button type="submit" class="principal">
@@ -118,11 +145,6 @@
                   </button>
                 </div>
               </fieldset>
-              @if (intentoEdicion() && edicion.invalid) {
-                <span class="error-campo" id="error-edicion">
-                  Elige ambas fechas; la salida debe ser posterior a la llegada.
-                </span>
-              }
             </form>
           } @else {
             <div class="resumen">
