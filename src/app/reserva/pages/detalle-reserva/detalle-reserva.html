@@ -30,6 +30,9 @@
       @case ('PENDIENTE_APROBACION') {
         <p class="explicacion">
           El anfitrión está revisando tu solicitud y aún no se ha hecho ningún cobro.
+          @if (reserva.retencionHasta) {
+            Tiene hasta el {{ fechaHora(reserva.retencionHasta) }} para responder.
+          }
         </p>
       }
       @case ('CONFIRMADA') {

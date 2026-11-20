@@ -25,5 +25,6 @@ export const reservaDeAlojamiento = (
   fechaSalida: '2026-12-12',
   estado: 'PENDIENTE_APROBACION',
   montoTotal: 820000,
+  retencionHasta: '2026-11-21T07:11:26Z',
   ...cambios,
 });

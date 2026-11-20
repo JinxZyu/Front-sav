@@ -2,9 +2,10 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, map } from 'rxjs';
+import { formatearFechaHora } from '../../../alojamiento/utils/formato';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { TarjetaReserva } from '../../components/tarjeta-reserva/tarjeta-reserva';
-import { ReservaPropia } from '../../models/reserva.models';
+import { ReservaDeAlojamiento, ReservaPropia } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
 
 interface FilaReserva {
@@ -69,7 +70,7 @@ export class ListaReservas {
       .reservasDeMisAlojamientos()
       .pipe(
         map(({ reservas }) =>
-          reservas.map((reserva) => comoFila(reserva, `Huésped: ${reserva.huesped}`)),
+          reservas.map((reserva) => comoFila(reserva, detalleParaAnfitrion(reserva))),
         ),
       );
   }
@@ -88,4 +89,11 @@ function comoFila(
     estado: reserva.estado,
     monto: reserva.montoTotal,
   };
+}
+
+function detalleParaAnfitrion(reserva: ReservaDeAlojamiento): string {
+  const huesped = `Huésped: ${reserva.huesped}`;
+  return reserva.estado === 'PENDIENTE_APROBACION' && reserva.retencionHasta
+    ? `${huesped} · Responde antes del ${formatearFechaHora(reserva.retencionHasta)}`
+    : huesped;
 }

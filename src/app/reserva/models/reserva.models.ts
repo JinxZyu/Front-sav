@@ -89,6 +89,7 @@ export interface ReservaDeAlojamiento {
   fechaSalida: string;
   estado: string;
   montoTotal: number;
+  retencionHasta: string | null;
 }
 
 export interface ReservasDeAlojamientos {

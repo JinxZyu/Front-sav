@@ -75,6 +75,15 @@ describe('DetalleReserva del huésped', () => {
     expect(aviso()).toBe('Creamos tu reserva.');
   });
 
+  it('HU-031: muestra el plazo que tiene el anfitrión para responder', async () => {
+    await abrir();
+    await responder(
+      consulta,
+      reservaPropia({ estado: 'PENDIENTE_APROBACION', retencionHasta: enDiezMinutos() }),
+    );
+    expect(elemento().textContent).toContain('Tiene hasta el');
+  });
+
   it('HU-030: muestra el plazo restante mientras las fechas están apartadas', async () => {
     await abrir();
     await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));

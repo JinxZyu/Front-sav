@@ -129,6 +129,8 @@ describe('ListaReservas del anfitrión (HU-031)', () => {
       '/reservas/alojamientos/r-2',
     ]);
     expect(tarjetas()[0].textContent).toContain('Huésped: Hugo Pérez');
+    expect(tarjetas()[0].textContent).toContain('Responde antes del');
+    expect(tarjetas()[1].textContent).not.toContain('Responde antes del');
     expect(tarjetas()[1].textContent).toContain('Confirmada');
   });
 
