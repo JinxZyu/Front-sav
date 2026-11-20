@@ -149,4 +149,13 @@ describe('DetalleSolicitud del anfitrión (HU-032 y HU-035)', () => {
     await responder(consulta, reservaDeAlojamiento({ estado: 'PENDIENTE_PAGO' }));
     expect(boton('Aprobar solicitud')).toBeUndefined();
   });
+
+  it('HU-040: explica que una estadía completada ya puede calificarse', async () => {
+    await abrir();
+    await responder(consulta, reservaDeAlojamiento({ estado: 'COMPLETADA' }));
+
+    expect(elemento().textContent).toContain('Completada');
+    expect(elemento().textContent).toContain('El huésped ya puede calificarla.');
+    expect(boton('Aprobar solicitud')).toBeUndefined();
+  });
 });

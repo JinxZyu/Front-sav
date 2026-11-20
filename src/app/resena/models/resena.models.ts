@@ -1,3 +1,18 @@
+export interface NuevaResena {
+  calificacion: number;
+  comentario: string;
+}
+
+export interface ResenaCreada {
+  idResena: string;
+  idReserva: string;
+  calificacion: number;
+  comentario: string;
+  visible: boolean;
+  fechaPublicacion: string;
+  mensaje: string;
+}
+
 export interface ResenaPublica {
   idResena: string;
   calificacion: number;

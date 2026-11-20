@@ -77,7 +77,7 @@ export class ListaReservas {
 }
 
 function comoFila(
-  reserva: Omit<ReservaPropia, 'idAlojamiento' | 'fechaSolicitud' | 'retencionHasta'>,
+  reserva: Omit<ReservaPropia, 'idAlojamiento' | 'fechaSolicitud' | 'retencionHasta' | 'resenada'>,
   detalle: string | null,
 ): FilaReserva {
   return {

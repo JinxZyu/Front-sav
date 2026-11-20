@@ -254,4 +254,33 @@ describe('DetalleReserva del huésped', () => {
     await responder(consulta, reservaPropia({ estado: 'CONFIRMADA' }));
     expect(boton('Pagar')).toBeUndefined();
   });
+
+  it('HU-040: invita a calificar una estadía completada y agradece al publicar', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ estado: 'COMPLETADA' }));
+
+    expect(elemento().textContent).toContain('Completada');
+    expect(elemento().textContent).toContain('Califica tu estadía');
+    expect(boton('Cancelar reserva')).toBeUndefined();
+    elemento().querySelectorAll<HTMLInputElement>('input[type="radio"]')[4].click();
+    const comentario = elemento().querySelector<HTMLTextAreaElement>('textarea')!;
+    comentario.value = 'Excelente.';
+    comentario.dispatchEvent(new Event('input'));
+    boton('Publicar reseña')!.click();
+    backend
+      .expectOne(`${api}/r-1/resenas`)
+      .flush({ idResena: 'e-1', idReserva: 'r-1', calificacion: 5, mensaje: 'Listo.' });
+    await refrescar();
+
+    expect(elemento().textContent).toContain('Ya calificaste esta estadía');
+    expect(elemento().querySelector('app-formulario-resena')).toBeNull();
+  });
+
+  it('HU-040: no vuelve a pedir la reseña si la reserva ya la tiene', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ estado: 'COMPLETADA', resenada: true }));
+
+    expect(elemento().textContent).toContain('Ya calificaste esta estadía');
+    expect(elemento().querySelector('app-formulario-resena')).toBeNull();
+  });
 });

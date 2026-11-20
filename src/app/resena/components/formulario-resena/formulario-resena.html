@@ -1,0 +1,44 @@
+<form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+  <fieldset
+    class="calificacion"
+    [attr.aria-invalid]="invalido('calificacion')"
+    [attr.aria-describedby]="invalido('calificacion') ? 'error-calificacion' : null"
+  >
+    <legend>¿Cómo calificas tu estadía?</legend>
+    <div class="estrellas">
+      @for (valor of calificaciones; track valor) {
+        <label [class.llena]="formulario.controls.calificacion.value >= valor">
+          <input type="radio" formControlName="calificacion" [value]="valor" />
+          <span class="oculto">{{ valor }} {{ valor === 1 ? 'estrella' : 'estrellas' }}</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />
+          </svg>
+        </label>
+      }
+    </div>
+    @if (invalido('calificacion')) {
+      <span class="error-campo" id="error-calificacion">Elige de 1 a 5 estrellas.</span>
+    }
+  </fieldset>
+
+  <label for="comentario">Cuéntale a otros huéspedes cómo te fue</label>
+  <textarea
+    id="comentario"
+    rows="4"
+    [attr.maxlength]="maximo"
+    formControlName="comentario"
+    [attr.aria-invalid]="invalido('comentario')"
+    [attr.aria-describedby]="invalido('comentario') ? 'error-comentario' : null"
+  ></textarea>
+  @if (invalido('comentario')) {
+    <span class="error-campo" id="error-comentario">Escribe un comentario sobre tu estadía.</span>
+  }
+
+  @if (error(); as error) {
+    <p class="alerta" role="alert">{{ error }}</p>
+  }
+
+  <button type="submit" class="principal" [disabled]="enviando()">
+    {{ enviando() ? 'Publicando…' : 'Publicar reseña' }}
+  </button>
+</form>

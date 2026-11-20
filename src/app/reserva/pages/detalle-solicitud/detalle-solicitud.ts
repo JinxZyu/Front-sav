@@ -26,6 +26,7 @@ const EXPLICACIONES: Record<string, string> = {
   RECHAZADA: 'La solicitud fue rechazada y las fechas quedaron libres.',
   EXPIRADA: 'El huésped no pagó a tiempo y las fechas quedaron libres.',
   CANCELADA: 'El huésped canceló esta reserva.',
+  COMPLETADA: 'La estadía terminó. El huésped ya puede calificarla.',
 };
 
 @Component({

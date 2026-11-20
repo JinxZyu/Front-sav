@@ -44,6 +44,20 @@
           cobro.
         </p>
       }
+      @case ('COMPLETADA') {
+        <p class="explicacion">Tu estadía terminó. ¡Gracias por hospedarte!</p>
+        @if (reserva.resenada || resenaPublicada()) {
+          <p class="explicacion">Ya calificaste esta estadía. ¡Gracias por tu reseña!</p>
+        } @else {
+          <section class="accion" aria-labelledby="titulo-resena">
+            <h2 id="titulo-resena">Califica tu estadía</h2>
+            <app-formulario-resena
+              [idReserva]="reserva.idReserva"
+              (creada)="resenaPublicada.set(true)"
+            />
+          </section>
+        }
+      }
       @case ('EXPIRADA') {
         <p class="explicacion">
           El plazo para pagar venció y las fechas quedaron libres. Puedes volver a reservar si

@@ -71,6 +71,7 @@ export interface ReservaPropia {
   estado: string;
   fechaSolicitud: string;
   retencionHasta: string | null;
+  resenada: boolean;
 }
 
 export interface MisReservas {
@@ -134,6 +135,7 @@ const ESTADOS_RESERVA: Record<string, EstadoReserva> = {
   RECHAZADA: { etiqueta: 'Rechazada', tono: 'cerrada' },
   EXPIRADA: { etiqueta: 'Vencida', tono: 'cerrada' },
   CANCELADA: { etiqueta: 'Cancelada', tono: 'cerrada' },
+  COMPLETADA: { etiqueta: 'Completada', tono: 'confirmada' },
 };
 
 const ESTADOS_CANCELABLES = ['PENDIENTE_APROBACION', 'PENDIENTE_PAGO', 'CONFIRMADA'];
