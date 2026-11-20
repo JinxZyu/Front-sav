@@ -1,0 +1,125 @@
+<section class="contenedor" aria-labelledby="titulo-alojamiento">
+  <a routerLink="/publicaciones" class="volver">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+    Ver más alojamientos
+  </a>
+
+  @if (datos(); as datos) {
+    <h1 id="titulo-alojamiento">{{ datos.publicacion.titulo }}</h1>
+    <p class="subtitulo">
+      {{ datos.publicacion.tipoAlojamiento }} en {{ datos.publicacion.ciudad }} · Hasta
+      {{ datos.publicacion.capacidad }}
+      {{ datos.publicacion.capacidad === 1 ? 'huésped' : 'huéspedes' }}
+    </p>
+
+    @if (imagenes().length > 0) {
+      <ul
+        class="galeria"
+        [attr.data-cantidad]="imagenes().length"
+        aria-label="Fotos del alojamiento"
+      >
+        @for (imagen of imagenes(); track imagen.idImagen; let indice = $index) {
+          <li>
+            <app-imagen-publicacion
+              [ruta]="imagen.rutaImagen"
+              [descripcion]="'Foto ' + (indice + 1) + ' de ' + datos.publicacion.titulo"
+            />
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="cuerpo">
+      <div class="informacion">
+        <ul class="espacios" aria-label="Espacios">
+          @for (espacio of espacios(datos.publicacion); track $index) {
+            <li>{{ espacio }}</li>
+          }
+        </ul>
+
+        <h2>Sobre este lugar</h2>
+        <p class="texto">{{ datos.publicacion.descripcion }}</p>
+
+        <h2>Lo que incluye</h2>
+        @if (datos.publicacion.servicios.length > 0) {
+          <ul class="incluye">
+            @for (servicio of datos.publicacion.servicios; track servicio.idServicio) {
+              <li>{{ servicio.nombre }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="texto">El anfitrión no registró servicios incluidos.</p>
+        }
+
+        @if (datos.publicacion.reglas) {
+          <h2>Reglas de la casa</h2>
+          <p class="texto">{{ datos.publicacion.reglas }}</p>
+        }
+
+        <h2>Cancelación</h2>
+        @if (datos.politica; as politica) {
+          <p class="texto">
+            <strong>{{ politica.nombre | titlecase }}.</strong>
+            {{ politica.descripcion }}
+          </p>
+          @if (politica.porcentajeDevolucion !== null) {
+            <p class="nota">
+              Devolución del {{ porcentaje(politica.porcentajeDevolucion) }}
+              @if (politica.anticipacionHoras !== null) {
+                si cancelas con al menos {{ politica.anticipacionHoras }} horas de anticipación.
+              }
+            </p>
+          }
+        } @else {
+          <p class="texto">El anfitrión aún no definió una política de cancelación.</p>
+        }
+
+        <h2>Cómo se confirma</h2>
+        <p class="texto">
+          @if (datos.publicacion.modoAceptacion === 'APROBACION') {
+            El anfitrión revisa cada solicitud. Cuando la apruebe tendrás un plazo para pagar.
+          } @else {
+            Reserva inmediata: apartas las fechas y la confirmas al pagar.
+          }
+        </p>
+      </div>
+
+      <aside class="lateral" aria-label="Precio">
+        <p class="precio">{{ pesos(datos.publicacion.precioPorNoche) }} <small>/ noche</small></p>
+        @if (datos.publicacion.tarifaLimpieza) {
+          <p class="nota">Tarifa de limpieza: {{ pesos(datos.publicacion.tarifaLimpieza) }}</p>
+        }
+        @if (datos.serviciosAdicionales.length > 0) {
+          <h2 class="pequeno">Servicios adicionales</h2>
+          <ul class="adicionales">
+            @for (adicional of datos.serviciosAdicionales; track adicional.idAdicional) {
+              <li>
+                <span>{{ adicional.nombre }}</span>
+                <span>{{ pesos(adicional.costo) }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </aside>
+    </div>
+  } @else if (noEncontrada()) {
+    <div class="vacio" role="alert">
+      <h1 id="titulo-alojamiento">Este alojamiento no está disponible</h1>
+      <p>Puede que el anfitrión lo haya pausado o que el enlace no sea correcto.</p>
+      <a routerLink="/publicaciones" class="boton">Buscar otros alojamientos</a>
+    </div>
+  } @else if (error(); as error) {
+    <div class="alerta" role="alert">
+      <h1 id="titulo-alojamiento" class="oculto">Detalle del alojamiento</h1>
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="cargando" aria-busy="true">
+      <h1 id="titulo-alojamiento" class="oculto">Cargando alojamiento</h1>
+      <span class="barra larga"></span>
+      <span class="barra"></span>
+      <span class="bloque"></span>
+    </div>
+  }
+</section>
