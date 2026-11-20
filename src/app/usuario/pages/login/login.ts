@@ -113,10 +113,12 @@ export class Login {
   }
 
   private destinoSeguro(): string {
+    const inicio = inicioSegunRol(this.sesion.rol());
+    if (this.sesion.tieneRol('ANFITRION')) {
+      return inicio;
+    }
     const destino = this.ruta.snapshot.queryParamMap.get('volverA');
-    return destino?.startsWith('/') && !destino.startsWith('//')
-      ? destino
-      : inicioSegunRol(this.sesion.rol());
+    return destino?.startsWith('/') && !destino.startsWith('//') ? destino : inicio;
   }
 
   private siguenIguales(usadas: { correo: string; contrasena: string }): boolean {

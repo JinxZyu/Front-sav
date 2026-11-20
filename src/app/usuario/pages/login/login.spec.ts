@@ -102,13 +102,29 @@ describe('Login (HU-002)', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/publicaciones');
   });
 
-  it('vuelve a la página que pedía el usuario antes de iniciar sesión', async () => {
+  it('un huésped vuelve a la página que pedía antes de iniciar sesión', async () => {
     await crear('/reservas');
+    llenar();
+    componente.iniciarSesion();
+    backend.expectOne(urlLogin).flush({
+      token: crearToken({
+        sub: 'ana@correo.com',
+        role: 'HUESPED',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+      tipo: 'Bearer',
+    });
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/reservas');
+  });
+
+  it('un anfitrión siempre entra a sus alojamientos aunque viniera de otra página', async () => {
+    await crear('/disponibilidad/p-1');
     llenar();
     componente.iniciarSesion();
     backend.expectOne(urlLogin).flush({ token, tipo: 'Bearer' });
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/reservas');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/alojamientos');
   });
 
   it('criterio 2: informa que las credenciales no son válidas', async () => {
