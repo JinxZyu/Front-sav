@@ -86,7 +86,7 @@
         </p>
       </div>
 
-      <aside class="lateral" aria-label="Precio">
+      <aside class="lateral" aria-label="Precio y reserva">
         <p class="precio">{{ pesos(datos.publicacion.precioPorNoche) }} <small>/ noche</small></p>
         @if (datos.publicacion.tarifaLimpieza) {
           <p class="nota">Tarifa de limpieza: {{ pesos(datos.publicacion.tarifaLimpieza) }}</p>
@@ -102,6 +102,12 @@
             }
           </ul>
         }
+        <app-cotizador
+          [publicacion]="datos.publicacion"
+          [llegada]="busqueda().llegada"
+          [salida]="busqueda().salida"
+          [huespedes]="busqueda().huespedes"
+        />
       </aside>
     </div>
   } @else if (noEncontrada()) {

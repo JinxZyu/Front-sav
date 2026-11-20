@@ -7,6 +7,7 @@ import { map } from 'rxjs';
 import { ImagenPublicacion } from '../../../alojamiento/components/imagen-publicacion/imagen-publicacion';
 import { formatearPorcentaje } from '../../../alojamiento/models/alojamiento.models';
 import { formatearEspacios, formatearPesos } from '../../../alojamiento/utils/formato';
+import { Cotizador } from '../../../reserva/components/cotizador/cotizador';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { CatalogoService } from '../../services/catalogo.service';
 
@@ -14,7 +15,7 @@ const DISPOSICIONES_GALERIA = [5, 3, 2, 1];
 
 @Component({
   selector: 'app-detalle-publico',
-  imports: [RouterLink, TitleCasePipe, ImagenPublicacion],
+  imports: [RouterLink, TitleCasePipe, ImagenPublicacion, Cotizador],
   templateUrl: './detalle-publico.html',
   styleUrl: './detalle-publico.css',
 })
@@ -25,6 +26,17 @@ export class DetallePublico {
   private readonly idPublicacion = toSignal(
     this.ruta.paramMap.pipe(map((parametros) => parametros.get('idPublicacion') ?? '')),
     { initialValue: '' },
+  );
+
+  protected readonly busqueda = toSignal(
+    this.ruta.queryParamMap.pipe(
+      map((parametros) => ({
+        llegada: parametros.get('llegada') ?? '',
+        salida: parametros.get('salida') ?? '',
+        huespedes: parametros.get('huespedes') ?? '',
+      })),
+    ),
+    { initialValue: { llegada: '', salida: '', huespedes: '' } },
   );
 
   protected readonly consulta = rxResource({
