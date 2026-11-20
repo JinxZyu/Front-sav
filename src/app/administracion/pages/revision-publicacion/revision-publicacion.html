@@ -1,0 +1,172 @@
+<section class="contenedor" aria-labelledby="titulo-revision">
+  <a routerLink=".." class="volver">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+    Volver a publicaciones
+  </a>
+
+  @if (datos(); as datos) {
+    <div class="encabezado">
+      <h1 id="titulo-revision">{{ datos.publicacion.titulo }}</h1>
+      <span class="etiqueta" [class]="estado(datos.publicacion.estado).tono">
+        {{ estado(datos.publicacion.estado).etiqueta }}
+      </span>
+    </div>
+    <p class="subtitulo">
+      {{ datos.publicacion.tipoAlojamiento }} en {{ datos.publicacion.ciudad }} ·
+      {{ datos.publicacion.ubicacion }} · Hasta {{ datos.publicacion.capacidad }}
+      {{ datos.publicacion.capacidad === 1 ? 'huésped' : 'huéspedes' }}
+    </p>
+
+    @if (imagenes().length > 0) {
+      <ul class="galeria" aria-label="Fotos del alojamiento">
+        @for (imagen of imagenes(); track imagen.idImagen; let indice = $index) {
+          <li>
+            <app-imagen-publicacion
+              [ruta]="imagen.rutaImagen"
+              [descripcion]="'Foto ' + (indice + 1) + ' de ' + datos.publicacion.titulo"
+            />
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="nota">El anfitrión no subió fotos.</p>
+    }
+
+    <div class="cuerpo">
+      <div class="informacion">
+        <ul class="espacios" aria-label="Espacios">
+          @for (espacio of espacios(datos.publicacion); track $index) {
+            <li>{{ espacio }}</li>
+          }
+        </ul>
+
+        <h2>Descripción</h2>
+        <p class="texto">{{ datos.publicacion.descripcion }}</p>
+
+        <h2>Servicios incluidos</h2>
+        @if (datos.publicacion.servicios.length > 0) {
+          <ul class="incluye">
+            @for (servicio of datos.publicacion.servicios; track servicio.idServicio) {
+              <li>{{ servicio.nombre }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="texto">No registró servicios incluidos.</p>
+        }
+
+        @if (datos.serviciosAdicionales.length > 0) {
+          <h2>Servicios adicionales</h2>
+          <ul class="adicionales">
+            @for (adicional of datos.serviciosAdicionales; track adicional.idAdicional) {
+              <li>
+                <span>{{ adicional.nombre }}</span>
+                <span>{{ pesos(adicional.costo) }}</span>
+              </li>
+            }
+          </ul>
+        }
+
+        <h2>Reglas</h2>
+        <p class="texto">{{ datos.publicacion.reglas || 'No registró reglas.' }}</p>
+
+        <h2>Precio y reservas</h2>
+        <dl class="condiciones">
+          <div>
+            <dt>Precio por noche</dt>
+            <dd>{{ pesos(datos.publicacion.precioPorNoche) }}</dd>
+          </div>
+          <div>
+            <dt>Tarifa de limpieza</dt>
+            <dd>
+              {{
+                datos.publicacion.tarifaLimpieza
+                  ? pesos(datos.publicacion.tarifaLimpieza)
+                  : 'Sin tarifa'
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt>Aceptación</dt>
+            <dd>{{ modo(datos.publicacion.modoAceptacion) }}</dd>
+          </div>
+          <div>
+            <dt>Cancelación</dt>
+            <dd>
+              @if (datos.politica; as politica) {
+                {{ politica.nombre | titlecase }}
+                @if (politica.porcentajeDevolucion !== null) {
+                  · devuelve el {{ porcentaje(politica.porcentajeDevolucion) }}
+                }
+              } @else {
+                Sin política
+              }
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="lateral">
+        @if (enRevision()) {
+          <section class="panel" aria-labelledby="titulo-decision">
+            <h2 id="titulo-decision">Decisión</h2>
+            @if (accion() === 'rechazar') {
+              <app-formulario-motivo
+                etiqueta="Motivo del rechazo"
+                accion="Rechazar publicación"
+                accionEnCurso="Rechazando…"
+                [maximo]="maximoMotivo"
+                [enviando]="enviando()"
+                [error]="errorAccion()"
+                (confirmar)="rechazar($event)"
+                (cancelar)="cerrar()"
+              />
+            } @else {
+              <p class="texto">
+                Si la apruebas quedará publicada en el marketplace. Si la rechazas volverá a
+                borrador para que el anfitrión la corrija.
+              </p>
+              @if (accion() === null && errorAccion()) {
+                <p class="alerta" role="alert">{{ errorAccion() }}</p>
+              }
+              <div class="botones">
+                <button type="button" class="principal" [disabled]="ocupado()" (click)="aprobar()">
+                  {{ enviando() && accion() === null ? 'Aprobando…' : 'Aprobar y publicar' }}
+                </button>
+                <button
+                  type="button"
+                  class="secundario peligro-texto"
+                  [disabled]="ocupado()"
+                  (click)="abrir('rechazar')"
+                >
+                  Rechazar
+                </button>
+              </div>
+            }
+          </section>
+        } @else {
+          <section class="panel" aria-label="Decisión">
+            <p class="texto">
+              Esta publicación no está en revisión, así que no hay nada que decidir.
+            </p>
+          </section>
+        }
+      </div>
+    </div>
+  } @else if (noEncontrada()) {
+    <div class="vacio" role="alert">
+      <h1 id="titulo-revision">Esta publicación no existe</h1>
+      <p>Puede que el enlace no sea correcto.</p>
+    </div>
+  } @else if (error(); as error) {
+    <div class="alerta" role="alert">
+      <h1 id="titulo-revision" class="oculto">Revisión de publicación</h1>
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else {
+    <div aria-busy="true">
+      <h1 id="titulo-revision" class="oculto">Cargando publicación</h1>
+      <div class="esqueleto"></div>
+    </div>
+  }
+</section>

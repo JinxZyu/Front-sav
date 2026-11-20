@@ -1,0 +1,80 @@
+<section class="contenedor" aria-labelledby="titulo-publicaciones">
+  <h1 id="titulo-publicaciones">Publicaciones</h1>
+  <p class="subtitulo">
+    Revisa lo que envían los anfitriones antes de que aparezca en el marketplace.
+  </p>
+
+  @if (error(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else if (publicaciones(); as publicaciones) {
+    <div class="herramientas">
+      <label class="buscador">
+        <span class="oculto">Buscar por título</span>
+        <input
+          type="search"
+          placeholder="Buscar por título"
+          [value]="busqueda()"
+          (input)="buscar($event)"
+        />
+      </label>
+      <div class="filtros" role="group" aria-label="Filtrar publicaciones">
+        <button
+          type="button"
+          [attr.aria-pressed]="filtro() === 'revision'"
+          (click)="filtro.set('revision')"
+        >
+          Por revisar ({{ enRevision().length }})
+        </button>
+        <button
+          type="button"
+          [attr.aria-pressed]="filtro() === 'todas'"
+          (click)="filtro.set('todas')"
+        >
+          Todas ({{ todas()?.length }})
+        </button>
+      </div>
+    </div>
+
+    @if (publicaciones.length > 0) {
+      <ul class="lista">
+        @for (publicacion of publicaciones; track publicacion.idPublicacion) {
+          <li>
+            <a class="publicacion" [routerLink]="publicacion.idPublicacion">
+              <span class="datos">
+                <span class="titulo">{{ publicacion.titulo }}</span>
+                <span class="fecha">{{ fecha(publicacion) }}</span>
+              </span>
+              <span class="etiqueta" [class]="estado(publicacion.estado).tono">
+                {{ estado(publicacion.estado).etiqueta }}
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    } @else if (busqueda().trim()) {
+      <div class="vacio">
+        <h2>No hay publicaciones con ese título</h2>
+        <p>Prueba con otra búsqueda.</p>
+      </div>
+    } @else if (filtro() === 'revision') {
+      <div class="vacio">
+        <h2>No hay publicaciones por revisar</h2>
+        <p>Cuando un anfitrión envíe una publicación a revisión aparecerá aquí.</p>
+      </div>
+    } @else {
+      <div class="vacio">
+        <h2>Aún no hay publicaciones</h2>
+        <p>Las publicaciones que creen los anfitriones aparecerán aquí.</p>
+      </div>
+    }
+  } @else {
+    <ul class="lista" aria-busy="true" aria-label="Cargando publicaciones">
+      @for (indice of [1, 2, 3]; track indice) {
+        <li class="esqueleto"></li>
+      }
+    </ul>
+  }
+</section>
