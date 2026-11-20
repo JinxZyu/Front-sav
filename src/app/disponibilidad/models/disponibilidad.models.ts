@@ -18,6 +18,11 @@ export interface CalendarioDisponibilidad {
   nochesOcupadas: string[];
 }
 
+export interface RangoDisponible {
+  fechaInicio: string;
+  fechaFin: string;
+}
+
 export interface ConsultaDisponibilidad {
   idAlojamiento: string;
   fechaInicio: string;
@@ -25,4 +30,5 @@ export interface ConsultaDisponibilidad {
   disponible: boolean;
   cubiertoPorPeriodosDisponibles: boolean;
   nochesOcupadas: string[];
+  periodosDisponibles?: RangoDisponible[];
 }

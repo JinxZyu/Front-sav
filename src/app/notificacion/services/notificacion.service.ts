@@ -23,6 +23,11 @@ export class NotificacionService {
   private consultasEnviadas = 0;
   private ultimaConsultaAplicada = 0;
 
+  readonly recientes = computed(() => {
+    const recibidas = this.recibidas();
+    return recibidas && recibidas.usuario === this.usuario() ? recibidas.notificaciones : null;
+  });
+
   readonly nuevas = computed(() => {
     const usuario = this.usuario();
     const recibidas = this.recibidas();

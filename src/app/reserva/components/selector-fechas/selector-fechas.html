@@ -1,0 +1,74 @@
+<div class="encabezado">
+  <button
+    type="button"
+    class="flecha"
+    aria-label="Mes anterior"
+    [disabled]="esPrimerMes()"
+    (click)="moverMes(-1)"
+  >
+    ‹
+  </button>
+  <p class="mes" aria-live="polite">{{ tituloMes() }}</p>
+  <button
+    type="button"
+    class="flecha"
+    aria-label="Mes siguiente"
+    [disabled]="esUltimoMes()"
+    (click)="moverMes(1)"
+  >
+    ›
+  </button>
+</div>
+
+@if (error(); as error) {
+  <p class="falla" role="alert">
+    {{ error }}
+    <button type="button" class="texto" (click)="consulta.reload()">Reintentar</button>
+  </p>
+} @else if (semanas().length === 0) {
+  <p class="cargando" role="status">Consultando disponibilidad…</p>
+} @else {
+  <p class="ayuda" aria-live="polite">{{ ayuda() }}</p>
+  <table>
+    <caption class="oculto">
+      Disponibilidad de
+      {{
+        tituloMes()
+      }}
+    </caption>
+    <thead>
+      <tr>
+        @for (nombre of diasSemana; track $index) {
+          <th scope="col">{{ nombre }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (semana of semanas(); track $index) {
+        <tr>
+          @for (celda of semana; track $index) {
+            <td>
+              @if (celda) {
+                <button
+                  type="button"
+                  class="dia"
+                  [class]="clase(celda)"
+                  [attr.aria-label]="celda.etiqueta"
+                  [attr.aria-pressed]="celda.dia === llegada() || celda.dia === salida()"
+                  [disabled]="!celda.elegible"
+                  (click)="tocar(celda)"
+                >
+                  {{ celda.numero }}
+                </button>
+              }
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+  <ul class="leyenda">
+    <li><span class="muestra libre"></span> Disponible</li>
+    <li><span class="muestra no-disponible"></span> No disponible</li>
+  </ul>
+}

@@ -80,7 +80,7 @@ describe('ListaPublicaciones (HU-014)', () => {
 
     expect(boton('Por revisar').getAttribute('aria-pressed')).toBe('true');
     expect(boton('Por revisar').textContent).toContain('(2)');
-    expect(boton('Todas').textContent).toContain('(5)');
+    expect(boton('Todas').textContent).toContain('(4)');
     expect(titulos()).toEqual(['Loft en Chapinero', 'Cabaña frente al embalse']);
     const primera = elemento().querySelector('a.publicacion') as HTMLAnchorElement;
     expect(primera.getAttribute('href')).toBe('/p-1');
@@ -88,7 +88,7 @@ describe('ListaPublicaciones (HU-014)', () => {
     expect(primera.textContent).toContain('Enviada a revisión el 12 de nov de 2026');
   });
 
-  it('muestra todas las publicaciones con su estado', async () => {
+  it('muestra todas las publicaciones con su estado salvo los borradores del anfitrión', async () => {
     crear();
     await listar();
 
@@ -99,13 +99,13 @@ describe('ListaPublicaciones (HU-014)', () => {
       'Casa en Guatapé',
       'Cabaña frente al embalse',
       'Loft en Chapinero',
-      'Apartamento sin enviar',
       'Finca engañosa',
     ]);
+    expect(elemento().textContent).not.toContain('Apartamento sin enviar');
     const enlaces = [...elemento().querySelectorAll('a.publicacion')];
     expect(enlaces[0].textContent).toContain('Publicada');
     expect(enlaces[0].textContent).toContain('Creada el 15 de nov de 2026');
-    expect(enlaces[3].textContent).toContain('Borrador');
+    expect(enlaces[3].textContent).toContain('Bloqueada');
   });
 
   it('HU-017: filtra las publicaciones bloqueadas', async () => {

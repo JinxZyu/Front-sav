@@ -8,7 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription, catchError, finalize, map, of, switchMap } from 'rxjs';
@@ -24,13 +24,14 @@ import { desdeHoy, hoy, moverDias, rangoValido } from '../../../disponibilidad/u
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { Cotizacion, SolicitudReserva } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
+import { FechasElegidas, SelectorFechas } from '../selector-fechas/selector-fechas';
 
 const ENTERO = /^\d+$/;
 const VALIDADORES_HUESPEDES = [Validators.required, Validators.min(1), Validators.pattern(ENTERO)];
 
 @Component({
   selector: 'app-cotizador',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SelectorFechas],
   templateUrl: './cotizador.html',
   styleUrl: './cotizador.css',
 })
@@ -64,6 +65,13 @@ export class Cotizador {
     },
     { validators: rangoValido('llegada', 'salida') },
   );
+
+  protected readonly llegadaElegida = toSignal(this.formulario.controls.llegada.valueChanges, {
+    initialValue: '',
+  });
+  protected readonly salidaElegida = toSignal(this.formulario.controls.salida.valueChanges, {
+    initialValue: '',
+  });
 
   protected readonly pesos = formatearPesos;
   protected readonly porcentaje = formatearPorcentaje;
@@ -117,6 +125,13 @@ export class Cotizador {
     this.calculando.set(false);
     this.cotizacion.set(null);
     this.error.set(null);
+  }
+
+  protected usarFechas({ llegada, salida }: FechasElegidas): void {
+    this.formulario.patchValue({ llegada, salida });
+    if (salida && this.formulario.valid) {
+      this.cotizar();
+    }
   }
 
   protected marcado(idAdicional: string): boolean {

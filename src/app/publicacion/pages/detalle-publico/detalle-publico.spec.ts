@@ -42,6 +42,11 @@ describe('DetallePublico (HU-025)', () => {
         mensaje: null,
       });
     }
+    for (const peticion of backend.match((solicitud) =>
+      solicitud.url.endsWith('/disponibilidad'),
+    )) {
+      peticion.flush({ nochesOcupadas: [], periodosDisponibles: [] });
+    }
     await new Promise((resolver) => setTimeout(resolver));
     harness.detectChanges();
   };

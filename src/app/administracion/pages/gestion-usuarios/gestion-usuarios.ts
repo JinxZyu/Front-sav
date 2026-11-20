@@ -77,11 +77,11 @@ export class GestionUsuarios {
   }
 
   protected rol(usuario: UsuarioAdministrado): string {
-    return usuario.rol ? NOMBRES_ROL[usuario.rol] : 'Sin rol';
+    return usuario.rol ? (NOMBRES_ROL[usuario.rol] ?? usuario.rol) : 'Sin rol';
   }
 
   protected estado(usuario: UsuarioAdministrado): string | null {
-    return usuario.estado ? NOMBRES_ESTADO_CUENTA[usuario.estado] : null;
+    return usuario.estado ? (NOMBRES_ESTADO_CUENTA[usuario.estado] ?? usuario.estado) : null;
   }
 
   protected esPropio(usuario: UsuarioAdministrado): boolean {

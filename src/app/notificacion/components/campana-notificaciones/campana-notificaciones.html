@@ -1,9 +1,13 @@
-<a
-  routerLink="/notificaciones"
-  routerLinkActive="activo"
+<button
+  #disparador
+  type="button"
   class="campana"
+  aria-haspopup="true"
+  aria-controls="panel-notificaciones"
+  [attr.aria-expanded]="abierta()"
   [attr.aria-label]="etiqueta()"
   [attr.title]="etiqueta()"
+  (click)="alternar()"
 >
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
@@ -12,4 +16,41 @@
   @if (nuevas() > 0) {
     <span class="contador" aria-hidden="true">{{ contador() }}</span>
   }
-</a>
+</button>
+
+@if (abierta()) {
+  <div class="panel" id="panel-notificaciones" role="region" aria-label="Notificaciones recientes">
+    <p class="titulo">Notificaciones</p>
+    @if (recientes(); as recientes) {
+      @if (recientes.length > 0) {
+        <ul class="lista">
+          @for (notificacion of recientes; track notificacion.idNotificacion) {
+            <li [class.nueva]="nueva(notificacion)">
+              <p class="mensaje">{{ mensaje(notificacion.mensaje) }}</p>
+              <p class="pie">
+                <time [attr.datetime]="notificacion.fechaCreacion">
+                  {{ fecha(notificacion.fechaCreacion) }}
+                </time>
+                @if (enlace(notificacion); as enlace) {
+                  <a [routerLink]="enlace.ruta" (click)="cerrar()">{{ enlace.texto }}</a>
+                }
+              </p>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="vacio">No tienes notificaciones.</p>
+      }
+    } @else if (fallo()) {
+      <p class="falla" role="alert">
+        No pudimos cargar tus notificaciones.
+        <button type="button" class="reintentar" (click)="reintentar()">Reintentar</button>
+      </p>
+    } @else {
+      <p class="vacio" aria-busy="true">Cargando notificaciones…</p>
+    }
+    <a class="todas" routerLink="/notificaciones" (click)="cerrar()">
+      {{ hayMas() ? 'Ver todas las notificaciones' : 'Abrir notificaciones' }}
+    </a>
+  </div>
+}

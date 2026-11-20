@@ -1,0 +1,161 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mes {
+  margin: 0;
+  color: #1e1b4b;
+  font-weight: 700;
+}
+
+.flecha {
+  width: 2rem;
+  height: 2rem;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 50%;
+  background: #fff;
+  color: #4f46e5;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.flecha:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.ayuda,
+.cargando,
+.falla {
+  margin: 0;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.falla {
+  color: #be123c;
+}
+
+.texto {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.15rem;
+  table-layout: fixed;
+}
+
+th {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+td {
+  padding: 0;
+  text-align: center;
+}
+
+.dia {
+  width: 100%;
+  height: 2.1rem;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dia:disabled {
+  cursor: not-allowed;
+}
+
+.libre {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.dia.libre:hover:not(:disabled) {
+  border-color: #6366f1;
+}
+
+.no-disponible {
+  background: #fee2e2;
+  color: #991b1b;
+  text-decoration: line-through;
+}
+
+.dia.no-disponible:not(:disabled) {
+  text-decoration: none;
+}
+
+.pasado {
+  color: #cbd5e1;
+}
+
+.dia.rango {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.dia.extremo {
+  background: #4f46e5;
+  color: #fff;
+  text-decoration: none;
+}
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  margin: 0;
+  padding: 0;
+  color: #475569;
+  font-size: 0.78rem;
+  list-style: none;
+}
+
+.leyenda li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.muestra {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 0.2rem;
+}
+
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

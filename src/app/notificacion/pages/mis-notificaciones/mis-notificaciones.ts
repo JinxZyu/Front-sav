@@ -6,12 +6,8 @@ import { SesionService } from '../../../config/auth/sesion.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { Notificacion } from '../../models/notificacion.models';
 import { NotificacionService } from '../../services/notificacion.service';
+import { EnlaceNotificacion, enlaceNotificacion } from '../../utils/enlace-notificacion';
 import { mensajeLegible } from '../../utils/mensaje-notificacion';
-
-interface Enlace {
-  ruta: string[];
-  texto: string;
-}
 
 @Component({
   selector: 'app-mis-notificaciones',
@@ -21,7 +17,7 @@ interface Enlace {
 })
 export class MisNotificaciones {
   private readonly servicio = inject(NotificacionService);
-  private readonly anfitrion = inject(SesionService).tieneRol('ANFITRION');
+  private readonly rol = inject(SesionService).rol();
   private readonly vistasAntes = this.servicio.ultimaVista();
 
   protected readonly consulta = rxResource({ stream: () => this.servicio.misNotificaciones() });
@@ -52,23 +48,7 @@ export class MisNotificaciones {
     return this.servicio.esNueva(notificacion, this.vistasAntes);
   }
 
-  protected enlace(notificacion: Notificacion): Enlace | null {
-    if (notificacion.idReserva) {
-      return {
-        ruta: this.anfitrion
-          ? ['/reservas/alojamientos', notificacion.idReserva]
-          : ['/reservas', notificacion.idReserva],
-        texto: 'Ver reserva',
-      };
-    }
-    if (notificacion.idPublicacion) {
-      return {
-        ruta: this.anfitrion
-          ? ['/alojamientos', notificacion.idPublicacion]
-          : ['/publicaciones', notificacion.idPublicacion],
-        texto: 'Ver publicación',
-      };
-    }
-    return null;
+  protected enlace(notificacion: Notificacion): EnlaceNotificacion | null {
+    return enlaceNotificacion(notificacion, this.rol);
   }
 }
