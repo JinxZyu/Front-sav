@@ -193,7 +193,7 @@ export class CrearPublicacion {
 
   invalido(campo: Campo): boolean {
     const control = this.formulario.controls[campo];
-    return control.invalid && (control.touched || control.dirty || this.intentoEnviar());
+    return this.sinValor(campo) && (control.touched || control.dirty || this.intentoEnviar());
   }
 
   servicioMarcado(idServicio: string): boolean {
@@ -282,12 +282,26 @@ export class CrearPublicacion {
 
   private calcularFaltantes(): string[] {
     const faltantes: string[] = (Object.keys(ETIQUETAS) as Campo[])
-      .filter((campo) => this.formulario.controls[campo].invalid)
+      .filter((campo) => this.sinValor(campo))
       .map((campo) => ETIQUETAS[campo]);
     if (!this.edicion() && this.imagenes().length === 0) {
       faltantes.push('Imágenes');
     }
     return faltantes;
+  }
+
+  private sinValor(campo: Campo): boolean {
+    return (
+      this.formulario.controls[campo].invalid || (campo === 'idPolitica' && !this.politicaVigente())
+    );
+  }
+
+  private politicaVigente(): boolean {
+    const idPolitica = this.formulario.controls.idPolitica.value;
+    return (
+      this.politicas.hasValue() &&
+      this.politicas.value().some((politica) => politica.idPolitica === idPolitica)
+    );
   }
 
   private actualizarFaltantes(): void {
