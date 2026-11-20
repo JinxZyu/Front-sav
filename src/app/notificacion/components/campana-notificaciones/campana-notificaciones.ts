@@ -1,18 +1,42 @@
-import { Component, DestroyRef, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { EMPTY, catchError, switchMap, timer } from 'rxjs';
+import { formatearFechaHora } from '../../../alojamiento/utils/formato';
+import { SesionService } from '../../../config/auth/sesion.service';
+import { Notificacion } from '../../models/notificacion.models';
 import { NotificacionService } from '../../services/notificacion.service';
+import { EnlaceNotificacion, enlaceNotificacion } from '../../utils/enlace-notificacion';
+import { mensajeLegible } from '../../utils/mensaje-notificacion';
 
 const INTERVALO_MS = 60_000;
+const MAXIMO_VISIBLES = 5;
 
 @Component({
   selector: 'app-campana-notificaciones',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink],
   templateUrl: './campana-notificaciones.html',
   styleUrl: './campana-notificaciones.css',
+  host: {
+    '(document:click)': 'cerrarSiEsAfuera($event)',
+    '(document:keydown.escape)': 'cerrarConEscape()',
+  },
 })
 export class CampanaNotificaciones {
   private readonly servicio = inject(NotificacionService);
+  private readonly sesion = inject(SesionService);
+  private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly disparador = viewChild.required<ElementRef<HTMLButtonElement>>('disparador');
+
+  protected readonly abierta = signal(false);
+  private readonly vistasAntes = signal(0);
 
   protected readonly nuevas = this.servicio.nuevas;
   protected readonly contador = computed(() => (this.nuevas() > 9 ? '9+' : String(this.nuevas())));
@@ -24,10 +48,62 @@ export class CampanaNotificaciones {
     return `Notificaciones, ${nuevas} ${nuevas === 1 ? 'nueva' : 'nuevas'}`;
   });
 
+  protected readonly recientes = computed(
+    () => this.servicio.recientes()?.slice(0, MAXIMO_VISIBLES) ?? null,
+  );
+  protected readonly hayMas = computed(
+    () => (this.servicio.recientes()?.length ?? 0) > MAXIMO_VISIBLES,
+  );
+
+  protected readonly mensaje = mensajeLegible;
+  protected readonly fecha = formatearFechaHora;
+
   constructor() {
     const consulta = timer(0, INTERVALO_MS)
       .pipe(switchMap(() => this.servicio.misNotificaciones().pipe(catchError(() => EMPTY))))
       .subscribe();
     inject(DestroyRef).onDestroy(() => consulta.unsubscribe());
+  }
+
+  protected alternar(): void {
+    if (this.abierta()) {
+      this.cerrar();
+      return;
+    }
+    this.vistasAntes.set(this.servicio.ultimaVista());
+    this.abierta.set(true);
+    const notificaciones = this.servicio.recientes();
+    if (notificaciones) {
+      this.servicio.marcarVistas(notificaciones);
+    }
+  }
+
+  protected cerrar(): void {
+    this.abierta.set(false);
+  }
+
+  protected nueva(notificacion: Notificacion): boolean {
+    return this.servicio.esNueva(notificacion, this.vistasAntes());
+  }
+
+  protected enlace(notificacion: Notificacion): EnlaceNotificacion | null {
+    return enlaceNotificacion(notificacion, this.sesion.rol());
+  }
+
+  protected cerrarConEscape(): void {
+    if (!this.abierta()) {
+      return;
+    }
+    const enfocadoAdentro = this.elemento.nativeElement.contains(document.activeElement);
+    this.cerrar();
+    if (enfocadoAdentro) {
+      this.disparador().nativeElement.focus();
+    }
+  }
+
+  protected cerrarSiEsAfuera(evento: Event): void {
+    if (!this.elemento.nativeElement.contains(evento.target as Node | null)) {
+      this.cerrar();
+    }
   }
 }

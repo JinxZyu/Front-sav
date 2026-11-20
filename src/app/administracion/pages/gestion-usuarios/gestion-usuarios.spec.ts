@@ -120,6 +120,24 @@ describe('GestionUsuarios (HU-009)', () => {
     expect(tarjeta('Óscar Ruiz').textContent).not.toContain('Restringida');
   });
 
+  it('muestra el rol y el estado aunque el backend envíe un valor desconocido o vacío', async () => {
+    crear();
+    await listar([
+      usuarioAdministrado({
+        nombre: '',
+        apellido: '',
+        correo: 'sin-nombre@test.co',
+        rol: 'SOPORTE' as UsuarioAdministrado['rol'],
+        estado: 'SUSPENDIDA' as UsuarioAdministrado['estado'],
+      }),
+      usuarioAdministrado({ idUsuario: 'u-9', rol: null, estado: null }),
+    ]);
+
+    expect(tarjeta('sin-nombre@test.co').textContent).toContain('SOPORTE');
+    expect(tarjeta('sin-nombre@test.co').textContent).toContain('SUSPENDIDA');
+    expect(tarjeta('Ana Gómez').textContent).toContain('Sin rol');
+  });
+
   it('busca por nombre o correo sin importar tildes ni mayúsculas', async () => {
     crear();
     await listar();

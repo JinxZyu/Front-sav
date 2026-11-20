@@ -7,6 +7,7 @@ import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { normalizar } from '../../utils/texto';
 import {
   BLOQUEADA,
+  BORRADOR,
   EN_REVISION,
   PublicacionAdministrada,
 } from '../../models/publicacion-administrada.models';
@@ -30,7 +31,9 @@ export class ListaPublicaciones {
   protected readonly consulta = rxResource({ stream: () => this.servicio.listar() });
 
   protected readonly todas = computed(() =>
-    this.consulta.hasValue() ? this.consulta.value() : null,
+    this.consulta.hasValue()
+      ? this.consulta.value().filter((publicacion) => publicacion.estado !== BORRADOR)
+      : null,
   );
 
   protected readonly enRevision = computed(() =>

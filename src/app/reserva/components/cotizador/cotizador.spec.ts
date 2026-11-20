@@ -38,6 +38,16 @@ describe('Cotizador (HU-027 y HU-028)', () => {
     ...cambios,
   });
 
+  const disponibilidadLibre = {
+    idAlojamiento: 'a-1',
+    fechaInicio: hoy(),
+    fechaFin: moverDias(hoy(), 366),
+    disponible: true,
+    cubiertoPorPeriodosDisponibles: true,
+    nochesOcupadas: [],
+    periodosDisponibles: [{ fechaInicio: hoy(), fechaFin: moverDias(hoy(), 366) }],
+  };
+
   const crear = (
     entradas: Record<string, string> = {},
     rol: Rol | null = null,
@@ -68,6 +78,10 @@ describe('Cotizador (HU-027 y HU-028)', () => {
       fixture.componentRef.setInput(nombre, valor);
     }
     fixture.detectChanges();
+    TestBed.tick();
+    backend
+      .expectOne((peticion) => peticion.url.endsWith('/alojamientos/a-1/disponibilidad'))
+      .flush(disponibilidadLibre);
   };
 
   const elemento = () => fixture.nativeElement as HTMLElement;
@@ -306,5 +320,39 @@ describe('Cotizador (HU-027 y HU-028)', () => {
       .flush({ idReserva: 'r-1', estadoReserva: 'PENDIENTE_PAGO' });
 
     expect(navegar).not.toHaveBeenCalled();
+  });
+
+  it('elige las fechas en el calendario y calcula el precio', async () => {
+    crear({}, 'HUESPED');
+    await fixture.whenStable();
+    const ahora = new Date();
+    const inicio = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 1);
+    const llegadaCalendario = moverDias(
+      `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, '0')}-01`,
+      2,
+    );
+    const salidaCalendario = moverDias(llegadaCalendario, 3);
+    const dia = (valor: string) =>
+      [...elemento().querySelectorAll<HTMLButtonElement>('app-selector-fechas button.dia')].find(
+        (boton) => boton.textContent?.trim() === String(Number(valor.slice(8))),
+      )!;
+
+    elemento()
+      .querySelector<HTMLButtonElement>('app-selector-fechas button[aria-label="Mes siguiente"]')!
+      .click();
+    fixture.detectChanges();
+    dia(llegadaCalendario).click();
+    fixture.detectChanges();
+    expect(campo('llegada').value).toBe(llegadaCalendario);
+    expect(campo('salida').value).toBe('');
+    backend.expectNone(url);
+
+    dia(salidaCalendario).click();
+    fixture.detectChanges();
+    expect(campo('salida').value).toBe(salidaCalendario);
+    const peticion = await responder(cotizacion());
+    expect(peticion.request.body).toEqual(
+      expect.objectContaining({ fechaEntrada: llegadaCalendario, fechaSalida: salidaCalendario }),
+    );
   });
 });

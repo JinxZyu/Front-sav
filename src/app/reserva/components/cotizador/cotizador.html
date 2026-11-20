@@ -39,6 +39,13 @@
     <p class="error-campo">Elige las fechas de llegada y salida.</p>
   }
 
+  <app-selector-fechas
+    [idAlojamiento]="publicacion().idAlojamiento"
+    [llegada]="llegadaElegida()"
+    [salida]="salidaElegida()"
+    (elegir)="usarFechas($event)"
+  />
+
   <label>
     Huéspedes
     <input

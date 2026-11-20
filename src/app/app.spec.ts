@@ -114,12 +114,9 @@ describe('App', () => {
     await fixture.whenStable();
 
     const enlaces = [...elemento(fixture).querySelectorAll<HTMLAnchorElement>('nav > a')];
-    expect(enlaces.map((enlace) => enlace.getAttribute('href'))).toEqual([
-      '/administracion',
-      '/publicaciones',
-    ]);
+    expect(enlaces.map((enlace) => enlace.getAttribute('href'))).toEqual(['/administracion']);
     expect(enlaces[0].textContent?.trim()).toBe('Administración');
-    expect(enlaces[1].classList).toContain('opcional');
+    expect(elemento(fixture).textContent).not.toContain('Alojamientos');
     expect(elemento(fixture).textContent).not.toContain('Mis reservas');
   });
 
@@ -154,8 +151,10 @@ describe('App', () => {
       ]);
     await fixture.whenStable();
 
-    const campana = elemento(fixture).querySelector('app-campana-notificaciones a') as HTMLElement;
-    expect(campana.getAttribute('href')).toBe('/notificaciones');
+    const campana = elemento(fixture).querySelector(
+      'app-campana-notificaciones button',
+    ) as HTMLElement;
+    expect(campana.getAttribute('aria-controls')).toBe('panel-notificaciones');
     expect(campana.getAttribute('aria-label')).toBe('Notificaciones, 1 nueva');
     expect(campana.querySelector('.contador')?.textContent?.trim()).toBe('1');
   });

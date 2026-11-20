@@ -48,6 +48,7 @@ export interface ReservasAfectadas {
 
 export const EN_REVISION = 'PENDIENTE_REVISION';
 export const BLOQUEADA = 'BLOQUEADA';
+export const BORRADOR = 'BORRADOR';
 
 export const MAXIMO_MOTIVO_PUBLICACION = 2000;
 
