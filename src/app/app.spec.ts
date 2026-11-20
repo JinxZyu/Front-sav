@@ -90,5 +90,8 @@ describe('App', () => {
     const enlace = elemento(fixture).querySelector('nav > a') as HTMLAnchorElement;
     expect(enlace.textContent?.trim()).toBe('Alojamientos');
     expect(enlace.getAttribute('href')).toBe('/publicaciones');
+    const reservas = elemento(fixture).querySelector('nav > a.opcional') as HTMLAnchorElement;
+    expect(reservas.textContent?.trim()).toBe('Mis reservas');
+    expect(reservas.getAttribute('href')).toBe('/reservas');
   });
 });

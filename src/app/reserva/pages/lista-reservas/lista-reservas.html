@@ -1,0 +1,39 @@
+<section class="contenedor" aria-labelledby="titulo-reservas">
+  <h1 id="titulo-reservas">Mis reservas</h1>
+
+  @if (error(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else if (reservas(); as reservas) {
+    @if (reservas.length === 0) {
+      <div class="vacio">
+        <h2>Aún no tienes reservas</h2>
+        <p>Cuando reserves un alojamiento lo verás aquí.</p>
+        <a routerLink="/publicaciones" class="boton">Buscar alojamientos</a>
+      </div>
+    } @else {
+      <ul class="lista">
+        @for (reserva of reservas; track reserva.idReserva) {
+          <li>
+            <app-tarjeta-reserva
+              [enlace]="['/reservas', reserva.idReserva]"
+              [titulo]="reserva.alojamiento"
+              [fechaEntrada]="reserva.fechaEntrada"
+              [fechaSalida]="reserva.fechaSalida"
+              [estado]="reserva.estado"
+              [monto]="reserva.montoTotal"
+            />
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <ul class="lista" aria-busy="true" aria-label="Cargando reservas">
+      @for (indice of [1, 2, 3]; track indice) {
+        <li class="esqueleto"></li>
+      }
+    </ul>
+  }
+</section>

@@ -32,3 +32,44 @@ export interface Cotizacion {
   costoAdicionalTotal: number;
   total: number;
 }
+
+export interface ReservaPropia {
+  idReserva: string;
+  idAlojamiento: string;
+  alojamiento: string;
+  fechaEntrada: string;
+  fechaSalida: string;
+  montoTotal: number;
+  estado: string;
+  fechaSolicitud: string;
+  retencionHasta: string | null;
+}
+
+export interface MisReservas {
+  reservas: ReservaPropia[];
+  totalResultados: number;
+  mensaje: string | null;
+}
+
+export interface AvisoReserva {
+  tono: 'exito' | 'info' | 'error';
+  texto: string;
+}
+
+export interface EstadoReserva {
+  etiqueta: string;
+  tono: 'espera' | 'pago' | 'confirmada' | 'cerrada';
+}
+
+const ESTADOS_RESERVA: Record<string, EstadoReserva> = {
+  PENDIENTE_APROBACION: { etiqueta: 'Esperando aprobación', tono: 'espera' },
+  PENDIENTE_PAGO: { etiqueta: 'Pendiente de pago', tono: 'pago' },
+  CONFIRMADA: { etiqueta: 'Confirmada', tono: 'confirmada' },
+  RECHAZADA: { etiqueta: 'Rechazada', tono: 'cerrada' },
+  EXPIRADA: { etiqueta: 'Vencida', tono: 'cerrada' },
+  CANCELADA: { etiqueta: 'Cancelada', tono: 'cerrada' },
+};
+
+export function estadoReserva(estado: string): EstadoReserva {
+  return ESTADOS_RESERVA[estado] ?? { etiqueta: estado, tono: 'cerrada' };
+}

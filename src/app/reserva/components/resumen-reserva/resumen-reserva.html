@@ -1,0 +1,24 @@
+<dl>
+  <div>
+    <dt>Llegada</dt>
+    <dd>{{ dia(fechaEntrada()) }}</dd>
+  </div>
+  <div>
+    <dt>Salida</dt>
+    <dd>{{ dia(fechaSalida()) }}</dd>
+  </div>
+  <div>
+    <dt>Noches</dt>
+    <dd>{{ noches() }}</dd>
+  </div>
+  <div>
+    <dt>Total</dt>
+    <dd class="total">{{ pesos(monto()) }}</dd>
+  </div>
+  @for (fila of filas(); track fila.etiqueta) {
+    <div>
+      <dt>{{ fila.etiqueta }}</dt>
+      <dd>{{ fila.valor }}</dd>
+    </div>
+  }
+</dl>

@@ -1,0 +1,68 @@
+<section class="contenedor" aria-labelledby="titulo-reserva">
+  @if (reserva(); as reserva) {
+    <app-encabezado-reserva
+      volverA="/reservas"
+      textoVolver="Mis reservas"
+      [titulo]="reserva.alojamiento"
+      [estado]="reserva.estado"
+    />
+
+    <app-resumen-reserva
+      [fechaEntrada]="reserva.fechaEntrada"
+      [fechaSalida]="reserva.fechaSalida"
+      [monto]="reserva.montoTotal"
+      [filas]="[{ etiqueta: 'Solicitada', valor: fechaHora(reserva.fechaSolicitud) }]"
+    />
+
+    @switch (reserva.estado) {
+      @case ('PENDIENTE_APROBACION') {
+        <p class="explicacion">
+          El anfitrión está revisando tu solicitud y aún no se ha hecho ningún cobro.
+        </p>
+      }
+      @case ('PENDIENTE_PAGO') {
+        <p class="explicacion">Tu reserva está pendiente de pago.</p>
+      }
+      @case ('CONFIRMADA') {
+        <p class="explicacion">Tu reserva está pagada y confirmada. ¡Buen viaje!</p>
+      }
+      @case ('RECHAZADA') {
+        <p class="explicacion">
+          El anfitrión no aprobó esta solicitud o venció el plazo para responder. No se hizo ningún
+          cobro.
+        </p>
+      }
+      @case ('EXPIRADA') {
+        <p class="explicacion">
+          El plazo para pagar venció y las fechas quedaron libres. Puedes volver a reservar si
+          siguen disponibles.
+        </p>
+      }
+      @case ('CANCELADA') {
+        <p class="explicacion">Esta reserva fue cancelada.</p>
+      }
+    }
+  } @else if (noEncontrada()) {
+    <app-encabezado-reserva
+      volverA="/reservas"
+      textoVolver="Mis reservas"
+      titulo="No encontramos esta reserva"
+    />
+    <p class="explicacion">Puede que no exista o que no pertenezca a tu cuenta.</p>
+  } @else if (error(); as error) {
+    <app-encabezado-reserva
+      volverA="/reservas"
+      textoVolver="Mis reservas"
+      titulo="Detalle de la reserva"
+      [aviso]="{ tono: 'error', texto: error }"
+    />
+    <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+  } @else {
+    <app-encabezado-reserva
+      volverA="/reservas"
+      textoVolver="Mis reservas"
+      titulo="Cargando reserva…"
+    />
+    <div class="cargando" aria-busy="true"></div>
+  }
+</section>

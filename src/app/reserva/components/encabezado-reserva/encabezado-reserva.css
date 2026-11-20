@@ -1,0 +1,57 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.volver {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.3rem;
+  color: #4f46e5;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+h1 {
+  margin: 0;
+  color: #1e1b4b;
+  font-size: 1.6rem;
+}
+
+.aviso {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border-radius: 0.9rem;
+}
+
+.exito {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.info {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.error {
+  background: #fff1f2;
+  color: #be123c;
+}

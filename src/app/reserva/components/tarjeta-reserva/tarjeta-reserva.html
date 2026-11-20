@@ -1,0 +1,14 @@
+<a class="tarjeta" [routerLink]="enlace()">
+  <span class="cabecera">
+    <span class="titulo">{{ titulo() }}</span>
+    <app-estado-reserva [estado]="estado()" />
+  </span>
+  @if (detalle(); as detalle) {
+    <span class="detalle">{{ detalle }}</span>
+  }
+  <span class="fechas">
+    {{ dia(fechaEntrada()) }} – {{ dia(fechaSalida()) }} · {{ noches() }}
+    {{ noches() === 1 ? 'noche' : 'noches' }}
+  </span>
+  <span class="monto">{{ pesos(monto()) }}</span>
+</a>

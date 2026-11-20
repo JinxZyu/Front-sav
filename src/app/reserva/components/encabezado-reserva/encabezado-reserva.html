@@ -1,0 +1,15 @@
+<a [routerLink]="volverA()" class="volver">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+  {{ textoVolver() }}
+</a>
+<header>
+  <h1 id="titulo-reserva">{{ titulo() }}</h1>
+  @if (estado(); as estado) {
+    <app-estado-reserva [estado]="estado" />
+  }
+</header>
+@if (aviso(); as aviso) {
+  <p class="aviso" [class]="aviso.tono" [attr.role]="aviso.tono === 'error' ? 'alert' : 'status'">
+    {{ aviso.texto }}
+  </p>
+}
