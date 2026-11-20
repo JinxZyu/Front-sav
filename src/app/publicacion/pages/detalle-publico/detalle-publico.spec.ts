@@ -11,6 +11,7 @@ describe('DetallePublico (HU-025)', () => {
   let harness: RouterTestingHarness;
   let backend: HttpTestingController;
   const url = `${environment.apiUrl}/publicaciones/p-1/detalle-publico`;
+  const resenas = `${environment.apiUrl}/publicaciones/p-1/resenas`;
 
   const abrir = async () => {
     TestBed.configureTestingModule({
@@ -29,6 +30,18 @@ describe('DetallePublico (HU-025)', () => {
 
   const responder = async (cuerpo: object, opciones?: { status: number; statusText: string }) => {
     backend.expectOne(url).flush(cuerpo, opciones);
+    await new Promise((resolver) => setTimeout(resolver));
+    harness.detectChanges();
+    await new Promise((resolver) => setTimeout(resolver));
+    for (const peticion of backend.match(resenas)) {
+      peticion.flush({
+        idPublicacion: 'p-1',
+        resenas: [],
+        totalResenas: 0,
+        calificacionPromedio: 0,
+        mensaje: null,
+      });
+    }
     await new Promise((resolver) => setTimeout(resolver));
     harness.detectChanges();
   };
@@ -58,6 +71,9 @@ describe('DetallePublico (HU-025)', () => {
     expect(texto).toContain('Devolución del 100 %');
     expect(texto).toContain('24 horas');
     expect(texto).toContain('Desayuno');
+    expect(elemento().querySelector('app-resenas-publicacion')?.textContent).toContain(
+      'Este alojamiento aún no tiene reseñas.',
+    );
     expect(elemento().querySelector('.lugar')?.textContent).toContain('Calle 60 # 5-10, Bogotá');
     const fotos = [...elemento().querySelectorAll<HTMLImageElement>('.galeria img')];
     expect(fotos.map((foto) => foto.getAttribute('src'))).toEqual([

@@ -1,0 +1,37 @@
+<section aria-labelledby="titulo-resenas">
+  <h2 id="titulo-resenas">Reseñas</h2>
+
+  @if (error(); as error) {
+    <p class="alerta" role="alert">
+      {{ error }}
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </p>
+  } @else if (datos(); as datos) {
+    @if (datos.totalResenas === 0) {
+      <p class="vacio">Este alojamiento aún no tiene reseñas.</p>
+    } @else {
+      <p class="resumen">
+        <strong>{{ promedio(datos.calificacionPromedio) }}</strong>
+        <app-estrellas [valor]="datos.calificacionPromedio" />
+        <span
+          >· {{ datos.totalResenas }} {{ datos.totalResenas === 1 ? 'reseña' : 'reseñas' }}</span
+        >
+      </p>
+      <ul class="lista">
+        @for (resena of datos.resenas; track resena.idResena) {
+          <li>
+            <div class="cabecera">
+              <app-estrellas [valor]="resena.calificacion" />
+              <time [attr.datetime]="resena.fechaPublicacion">
+                {{ fecha(resena.fechaPublicacion) }}
+              </time>
+            </div>
+            <p class="comentario">{{ resena.comentario }}</p>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <p class="vacio" aria-busy="true">Cargando reseñas…</p>
+  }
+</section>
