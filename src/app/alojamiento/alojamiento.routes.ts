@@ -19,4 +19,10 @@ export const ALOJAMIENTO_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/detalle-publicacion/detalle-publicacion').then((m) => m.DetallePublicacion),
   },
+  {
+    path: ':idPublicacion/editar',
+    title: 'Editar publicación',
+    loadComponent: () =>
+      import('./pages/crear-publicacion/crear-publicacion').then((m) => m.CrearPublicacion),
+  },
 ];

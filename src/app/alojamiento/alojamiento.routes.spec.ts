@@ -22,4 +22,9 @@ describe('rutas del módulo alojamiento', () => {
     const rutas = ALOJAMIENTO_ROUTES.map((ruta) => ruta.path);
     expect(rutas.indexOf('nuevo')).toBeLessThan(rutas.indexOf(':idPublicacion'));
   });
+
+  it('la edición de una publicación usa el mismo formulario', async () => {
+    const editar = await cargar(':idPublicacion/editar');
+    expect(editar).toBe(await cargar('nuevo'));
+  });
 });

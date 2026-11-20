@@ -18,11 +18,16 @@ import { formatearFecha, formatearPesos } from '../../utils/formato';
 export class DetallePublicacion {
   private readonly servicio = inject(PublicacionAlojamientoService);
 
+  private readonly ruta = inject(ActivatedRoute);
+
   private readonly idPublicacion = toSignal(
-    inject(ActivatedRoute).paramMap.pipe(
-      map((parametros) => parametros.get('idPublicacion') ?? ''),
-    ),
+    this.ruta.paramMap.pipe(map((parametros) => parametros.get('idPublicacion') ?? '')),
     { initialValue: '' },
+  );
+
+  protected readonly actualizada = toSignal(
+    this.ruta.queryParamMap.pipe(map((parametros) => parametros.get('aviso') === 'actualizada')),
+    { initialValue: false },
   );
 
   protected readonly consulta = rxResource({

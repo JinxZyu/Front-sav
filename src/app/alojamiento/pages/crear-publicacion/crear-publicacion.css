@@ -124,7 +124,8 @@ textarea:focus {
   font-weight: 500;
 }
 
-.ayuda {
+.ayuda,
+.detalle {
   margin: 0;
   color: #64748b;
   font-size: 0.8rem;
@@ -181,12 +182,6 @@ textarea:focus {
   font-weight: 700;
 }
 
-.detalle {
-  color: #64748b;
-  font-size: 0.8rem;
-  font-weight: 400;
-}
-
 .servicios {
   display: flex;
   flex-wrap: wrap;
@@ -209,7 +204,8 @@ textarea:focus {
   color: #fff;
 }
 
-.alerta {
+.alerta,
+.resumen-errores {
   margin: 0;
   padding: 0.75rem 0.9rem;
   border-radius: 0.75rem;
@@ -219,12 +215,7 @@ textarea:focus {
 }
 
 .resumen-errores {
-  padding: 0.9rem 1rem;
   border: 1px solid #fecdd3;
-  border-radius: 0.9rem;
-  background: #fff1f2;
-  color: #9f1239;
-  font-size: 0.88rem;
 }
 
 .resumen-errores p {
@@ -239,7 +230,24 @@ textarea:focus {
 
 .acciones {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 1.25rem;
+}
+
+.actuales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.actuales li {
+  width: 7rem;
+  height: 5rem;
+  overflow: hidden;
+  border-radius: 0.6rem;
 }
 
 button {
@@ -298,11 +306,6 @@ button {
 .icono-exito svg {
   width: 1.8rem;
   height: 1.8rem;
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 .estado {
