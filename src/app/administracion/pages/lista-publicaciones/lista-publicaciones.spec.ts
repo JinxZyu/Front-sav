@@ -30,6 +30,11 @@ describe('ListaPublicaciones (HU-014)', () => {
       estado: 'BORRADOR',
       fechaActualizacion: null,
     }),
+    publicacionAdministrada({
+      idPublicacion: 'p-5',
+      titulo: 'Finca engañosa',
+      estado: 'BLOQUEADA',
+    }),
   ];
 
   const crear = () => {
@@ -75,7 +80,7 @@ describe('ListaPublicaciones (HU-014)', () => {
 
     expect(boton('Por revisar').getAttribute('aria-pressed')).toBe('true');
     expect(boton('Por revisar').textContent).toContain('(2)');
-    expect(boton('Todas').textContent).toContain('(4)');
+    expect(boton('Todas').textContent).toContain('(5)');
     expect(titulos()).toEqual(['Loft en Chapinero', 'Cabaña frente al embalse']);
     const primera = elemento().querySelector('a.publicacion') as HTMLAnchorElement;
     expect(primera.getAttribute('href')).toBe('/p-1');
@@ -95,11 +100,33 @@ describe('ListaPublicaciones (HU-014)', () => {
       'Cabaña frente al embalse',
       'Loft en Chapinero',
       'Apartamento sin enviar',
+      'Finca engañosa',
     ]);
     const enlaces = [...elemento().querySelectorAll('a.publicacion')];
     expect(enlaces[0].textContent).toContain('Publicada');
     expect(enlaces[0].textContent).toContain('Creada el 15 de nov de 2026');
     expect(enlaces[3].textContent).toContain('Borrador');
+  });
+
+  it('HU-017: filtra las publicaciones bloqueadas', async () => {
+    crear();
+    await listar();
+    expect(boton('Bloqueadas').textContent).toContain('(1)');
+
+    boton('Bloqueadas').click();
+    await actualizar();
+
+    expect(boton('Bloqueadas').getAttribute('aria-pressed')).toBe('true');
+    expect(titulos()).toEqual(['Finca engañosa']);
+    expect(elemento().querySelector('a.publicacion')?.textContent).toContain('Bloqueada');
+  });
+
+  it('HU-017: avisa cuando no hay publicaciones bloqueadas', async () => {
+    crear();
+    await listar([publicaciones[0]]);
+    boton('Bloqueadas').click();
+    await actualizar();
+    expect(elemento().textContent).toContain('No hay publicaciones bloqueadas');
   });
 
   it('busca por título sin importar tildes', async () => {

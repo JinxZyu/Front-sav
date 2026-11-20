@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { PublicacionPublica } from '../../publicacion/models/catalogo.models';
 import {
   DecisionPublicacion,
+  ModeracionPublicacion,
   PublicacionAdministrada,
 } from '../models/publicacion-administrada.models';
 
@@ -27,6 +28,18 @@ export class GestionPublicacionesService {
 
   rechazar(idPublicacion: string, motivo: string): Observable<DecisionPublicacion> {
     return this.http.patch<DecisionPublicacion>(`${this.ruta(idPublicacion)}/rechazar`, {
+      motivo,
+    });
+  }
+
+  bloquear(idPublicacion: string, motivo: string): Observable<ModeracionPublicacion> {
+    return this.http.patch<ModeracionPublicacion>(`${this.ruta(idPublicacion)}/bloquear`, {
+      motivo,
+    });
+  }
+
+  desbloquear(idPublicacion: string, motivo: string): Observable<ModeracionPublicacion> {
+    return this.http.patch<ModeracionPublicacion>(`${this.ruta(idPublicacion)}/desbloquear`, {
       motivo,
     });
   }

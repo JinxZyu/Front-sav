@@ -5,10 +5,14 @@ import { estadoPublicacion } from '../../../alojamiento/models/alojamiento.model
 import { formatearFecha } from '../../../alojamiento/utils/formato';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { normalizar } from '../../utils/texto';
-import { EN_REVISION, PublicacionAdministrada } from '../../models/publicacion-administrada.models';
+import {
+  BLOQUEADA,
+  EN_REVISION,
+  PublicacionAdministrada,
+} from '../../models/publicacion-administrada.models';
 import { GestionPublicacionesService } from '../../services/gestion-publicaciones.service';
 
-type Filtro = 'revision' | 'todas';
+type Filtro = 'revision' | 'bloqueadas' | 'todas';
 
 @Component({
   selector: 'app-lista-publicaciones',
@@ -35,12 +39,21 @@ export class ListaPublicaciones {
       .sort((a, b) => fechaDeEnvio(a).localeCompare(fechaDeEnvio(b))),
   );
 
+  protected readonly bloqueadas = computed(() =>
+    (this.todas() ?? []).filter((publicacion) => publicacion.estado === BLOQUEADA),
+  );
+
   protected readonly publicaciones = computed(() => {
     const todas = this.todas();
     if (!todas) {
       return null;
     }
-    const base = this.filtro() === 'revision' ? this.enRevision() : todas;
+    const porFiltro: Record<Filtro, PublicacionAdministrada[]> = {
+      revision: this.enRevision(),
+      bloqueadas: this.bloqueadas(),
+      todas,
+    };
+    const base = porFiltro[this.filtro()];
     const texto = normalizar(this.busqueda().trim());
     return texto
       ? base.filter((publicacion) => normalizar(publicacion.titulo).includes(texto))

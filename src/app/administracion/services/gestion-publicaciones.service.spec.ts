@@ -62,4 +62,22 @@ describe('GestionPublicacionesService', () => {
     expect(peticion.request.body).toEqual({ motivo: 'Fotos de otro lugar' });
     peticion.flush({});
   });
+
+  it('bloquea una publicación con su motivo', () => {
+    servicio.bloquear('p-1', 'Información engañosa').subscribe();
+
+    const peticion = backend.expectOne(`${api}/p-1/bloquear`);
+    expect(peticion.request.method).toBe('PATCH');
+    expect(peticion.request.body).toEqual({ motivo: 'Información engañosa' });
+    peticion.flush({});
+  });
+
+  it('desbloquea una publicación con su motivo', () => {
+    servicio.desbloquear('p-1', 'El anfitrión corrigió las fotos').subscribe();
+
+    const peticion = backend.expectOne(`${api}/p-1/desbloquear`);
+    expect(peticion.request.method).toBe('PATCH');
+    expect(peticion.request.body).toEqual({ motivo: 'El anfitrión corrigió las fotos' });
+    peticion.flush({});
+  });
 });

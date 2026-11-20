@@ -18,7 +18,19 @@ export interface DecisionPublicacion {
   fechaRevision: string;
 }
 
+export interface ModeracionPublicacion {
+  idRevision: string;
+  idPublicacion: string;
+  accion: string;
+  estadoAnterior: string;
+  estadoActual: string;
+  motivo: string | null;
+  mensaje: string;
+  fechaOperacion: string;
+}
+
 export const EN_REVISION = 'PENDIENTE_REVISION';
+export const BLOQUEADA = 'BLOQUEADA';
 
 export const MAXIMO_MOTIVO_PUBLICACION = 2000;
 

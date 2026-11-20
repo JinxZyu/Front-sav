@@ -30,6 +30,13 @@
         </button>
         <button
           type="button"
+          [attr.aria-pressed]="filtro() === 'bloqueadas'"
+          (click)="filtro.set('bloqueadas')"
+        >
+          Bloqueadas ({{ bloqueadas().length }})
+        </button>
+        <button
+          type="button"
           [attr.aria-pressed]="filtro() === 'todas'"
           (click)="filtro.set('todas')"
         >
@@ -63,6 +70,11 @@
       <div class="vacio">
         <h2>No hay publicaciones por revisar</h2>
         <p>Cuando un anfitrión envíe una publicación a revisión aparecerá aquí.</p>
+      </div>
+    } @else if (filtro() === 'bloqueadas') {
+      <div class="vacio">
+        <h2>No hay publicaciones bloqueadas</h2>
+        <p>Las publicaciones que bloquees aparecerán aquí.</p>
       </div>
     } @else {
       <div class="vacio">
