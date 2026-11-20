@@ -1,0 +1,36 @@
+<h2 id="titulo-afectadas">Reservas afectadas</h2>
+<p class="ayuda">
+  Reservas futuras de esta publicación que se conservaron al bloquearla. Revísalas con el huésped.
+</p>
+
+@if (error(); as error) {
+  <div class="alerta" role="alert">
+    <p>{{ error }}</p>
+    <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+  </div>
+} @else if (reservas(); as reservas) {
+  @if (motivo(); as motivo) {
+    <p class="motivo"><strong>Motivo del bloqueo:</strong> {{ motivo }}</p>
+  }
+  @if (reservas.length > 0) {
+    <ul class="reservas" aria-labelledby="titulo-afectadas">
+      @for (reserva of reservas; track reserva.idReserva) {
+        <li>
+          <div>
+            <p class="huesped">{{ reserva.nombreHuesped }}</p>
+            <p class="fechas">
+              {{ dia(reserva.fechaEntrada) }} – {{ dia(reserva.fechaSalida) }} ·
+              {{ noches(reserva.fechaEntrada, reserva.fechaSalida) }}
+              {{ noches(reserva.fechaEntrada, reserva.fechaSalida) === 1 ? 'noche' : 'noches' }}
+            </p>
+          </div>
+          <app-estado-reserva [estado]="reserva.estadoReserva" />
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="vacio">No hay reservas futuras afectadas por el bloqueo.</p>
+  }
+} @else {
+  <p class="cargando" aria-busy="true">Consultando reservas…</p>
+}

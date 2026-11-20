@@ -1,0 +1,83 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.2rem 1.4rem;
+  border: 1.5px solid #fecdd3;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+h2 {
+  margin: 0;
+  color: #1e1b4b;
+  font-size: 1.05rem;
+}
+
+p {
+  margin: 0;
+}
+
+.ayuda,
+.cargando,
+.vacio {
+  color: #64748b;
+}
+
+.motivo {
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
+.reservas {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reservas li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.huesped {
+  color: #1e1b4b;
+  font-weight: 700;
+}
+
+.fechas {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.alerta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.8rem;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.enlace {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.enlace:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}

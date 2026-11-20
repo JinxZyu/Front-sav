@@ -33,76 +33,82 @@
     }
 
     <div class="cuerpo">
-      <div class="informacion">
-        <ul class="espacios" aria-label="Espacios">
-          @for (espacio of espacios(datos.publicacion); track $index) {
-            <li>{{ espacio }}</li>
-          }
-        </ul>
-
-        <h2>Descripción</h2>
-        <p class="texto">{{ datos.publicacion.descripcion }}</p>
-
-        <h2>Servicios incluidos</h2>
-        @if (datos.publicacion.servicios.length > 0) {
-          <ul class="incluye">
-            @for (servicio of datos.publicacion.servicios; track servicio.idServicio) {
-              <li>{{ servicio.nombre }}</li>
+      <div class="principal-columna">
+        <div class="informacion">
+          <ul class="espacios" aria-label="Espacios">
+            @for (espacio of espacios(datos.publicacion); track $index) {
+              <li>{{ espacio }}</li>
             }
           </ul>
-        } @else {
-          <p class="texto">No registró servicios incluidos.</p>
-        }
 
-        @if (datos.serviciosAdicionales.length > 0) {
-          <h2>Servicios adicionales</h2>
-          <ul class="adicionales">
-            @for (adicional of datos.serviciosAdicionales; track adicional.idAdicional) {
-              <li>
-                <span>{{ adicional.nombre }}</span>
-                <span>{{ pesos(adicional.costo) }}</span>
-              </li>
-            }
-          </ul>
-        }
+          <h2>Descripción</h2>
+          <p class="texto">{{ datos.publicacion.descripcion }}</p>
 
-        <h2>Reglas</h2>
-        <p class="texto">{{ datos.publicacion.reglas || 'No registró reglas.' }}</p>
-
-        <h2>Precio y reservas</h2>
-        <dl class="condiciones">
-          <div>
-            <dt>Precio por noche</dt>
-            <dd>{{ pesos(datos.publicacion.precioPorNoche) }}</dd>
-          </div>
-          <div>
-            <dt>Tarifa de limpieza</dt>
-            <dd>
-              {{
-                datos.publicacion.tarifaLimpieza
-                  ? pesos(datos.publicacion.tarifaLimpieza)
-                  : 'Sin tarifa'
-              }}
-            </dd>
-          </div>
-          <div>
-            <dt>Aceptación</dt>
-            <dd>{{ modo(datos.publicacion.modoAceptacion) }}</dd>
-          </div>
-          <div>
-            <dt>Cancelación</dt>
-            <dd>
-              @if (datos.politica; as politica) {
-                {{ politica.nombre | titlecase }}
-                @if (politica.porcentajeDevolucion !== null) {
-                  · devuelve el {{ porcentaje(politica.porcentajeDevolucion) }}
-                }
-              } @else {
-                Sin política
+          <h2>Servicios incluidos</h2>
+          @if (datos.publicacion.servicios.length > 0) {
+            <ul class="incluye">
+              @for (servicio of datos.publicacion.servicios; track servicio.idServicio) {
+                <li>{{ servicio.nombre }}</li>
               }
-            </dd>
-          </div>
-        </dl>
+            </ul>
+          } @else {
+            <p class="texto">No registró servicios incluidos.</p>
+          }
+
+          @if (datos.serviciosAdicionales.length > 0) {
+            <h2>Servicios adicionales</h2>
+            <ul class="adicionales">
+              @for (adicional of datos.serviciosAdicionales; track adicional.idAdicional) {
+                <li>
+                  <span>{{ adicional.nombre }}</span>
+                  <span>{{ pesos(adicional.costo) }}</span>
+                </li>
+              }
+            </ul>
+          }
+
+          <h2>Reglas</h2>
+          <p class="texto">{{ datos.publicacion.reglas || 'No registró reglas.' }}</p>
+
+          <h2>Precio y reservas</h2>
+          <dl class="condiciones">
+            <div>
+              <dt>Precio por noche</dt>
+              <dd>{{ pesos(datos.publicacion.precioPorNoche) }}</dd>
+            </div>
+            <div>
+              <dt>Tarifa de limpieza</dt>
+              <dd>
+                {{
+                  datos.publicacion.tarifaLimpieza
+                    ? pesos(datos.publicacion.tarifaLimpieza)
+                    : 'Sin tarifa'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Aceptación</dt>
+              <dd>{{ modo(datos.publicacion.modoAceptacion) }}</dd>
+            </div>
+            <div>
+              <dt>Cancelación</dt>
+              <dd>
+                @if (datos.politica; as politica) {
+                  {{ politica.nombre | titlecase }}
+                  @if (politica.porcentajeDevolucion !== null) {
+                    · devuelve el {{ porcentaje(politica.porcentajeDevolucion) }}
+                  }
+                } @else {
+                  Sin política
+                }
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        @if (bloqueada()) {
+          <app-reservas-afectadas [idPublicacion]="datos.publicacion.idPublicacion" />
+        }
       </div>
 
       <div class="lateral">

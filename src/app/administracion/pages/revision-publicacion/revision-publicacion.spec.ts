@@ -257,7 +257,9 @@ describe('RevisionPublicacion (HU-014)', () => {
       'La publicación ha sido bloqueada.',
     );
     await responder(publicacionParaRevisar('BLOQUEADA'));
+    backend.expectOne(`${api}/p-1/reservas-afectadas`).flush({ mensaje: '', reservas: [] });
     expect(elemento().querySelector('.encabezado')?.textContent).toContain('Bloqueada');
+    expect(elemento().querySelector('app-reservas-afectadas')).not.toBeNull();
     expect(moderacion().textContent).toContain('nadie puede reservarla');
     expect(boton(moderacion(), 'Desbloquear')).toBeDefined();
   });
@@ -265,6 +267,7 @@ describe('RevisionPublicacion (HU-014)', () => {
   it('HU-017 criterio 5: desbloquea la publicación con su motivo y queda pausada', async () => {
     await abrir();
     await responder(publicacionParaRevisar('BLOQUEADA'));
+    backend.expectOne(`${api}/p-1/reservas-afectadas`).flush({ mensaje: '', reservas: [] });
     const mostrar = vi.spyOn(TestBed.inject(AvisosService), 'mostrar');
 
     expect(moderacion().textContent).toContain('quedará pausada');
@@ -284,6 +287,7 @@ describe('RevisionPublicacion (HU-014)', () => {
     );
     await responder(publicacionParaRevisar('PAUSADA'));
     expect(elemento().querySelector('.encabezado')?.textContent).toContain('Pausada');
+    expect(elemento().querySelector('app-reservas-afectadas')).toBeNull();
     expect(boton(moderacion(), 'Bloquear publicación')).toBeDefined();
   });
 
