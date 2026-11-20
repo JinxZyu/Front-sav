@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
 
@@ -19,7 +19,10 @@ export class ImagenPublicacion {
   });
 
   protected readonly url = signal<string | null>(null);
-  protected readonly fallo = computed(() => this.archivo.status() === 'error');
+  protected readonly falloAlMostrar = linkedSignal({ source: this.ruta, computation: () => false });
+  protected readonly fallo = computed(
+    () => this.archivo.status() === 'error' || this.falloAlMostrar(),
+  );
 
   constructor() {
     effect((alLimpiar) => {
