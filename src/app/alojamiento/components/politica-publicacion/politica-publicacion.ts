@@ -14,6 +14,7 @@ import { finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { formatearPorcentaje } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 @Component({
   selector: 'app-politica-publicacion',
@@ -23,6 +24,7 @@ import { PublicacionAlojamientoService } from '../../services/publicacion-alojam
 })
 export class PoliticaPublicacion {
   private readonly servicio = inject(PublicacionAlojamientoService);
+  private readonly avisos = inject(AvisosService);
   private readonly destruccion = inject(DestroyRef);
 
   readonly idPublicacion = input.required<string>();
@@ -49,7 +51,6 @@ export class PoliticaPublicacion {
     );
   });
   readonly guardando = signal(false);
-  readonly aviso = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   readonly errorCarga = computed(() =>
@@ -68,7 +69,6 @@ export class PoliticaPublicacion {
 
   cambiar(): void {
     this.seleccion.set(this.actual.hasValue() ? this.actual.value().idPolitica : '');
-    this.aviso.set(null);
     this.error.set(null);
     this.editando.set(true);
   }
@@ -95,7 +95,7 @@ export class PoliticaPublicacion {
         next: (politica) => {
           this.actual.set(politica);
           this.editando.set(false);
-          this.aviso.set('Guardamos la política de cancelación.');
+          this.avisos.mostrar('Cambios guardados', 'Guardamos la política de cancelación.');
           this.guardado.emit();
         },
         error: (error: unknown) =>

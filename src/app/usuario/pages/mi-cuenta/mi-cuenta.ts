@@ -1,4 +1,5 @@
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { Cuenta, TIPOS_DOCUMENTO } from '../../models/usuario.models';
 import { CambiarContrasena } from '../../components/cambiar-contrasena/cambiar-contrasena';
@@ -20,9 +21,9 @@ const NOMBRES_ROL: Record<string, string> = {
   styleUrl: './mi-cuenta.css',
 })
 export class MiCuenta {
+  private readonly avisos = inject(AvisosService);
   readonly cuenta = inject(CuentaService).actual;
   readonly editando = signal(false);
-  readonly aviso = signal<string | null>(null);
 
   readonly datos = linkedSignal<Cuenta | null, Cuenta | null>({
     source: () => (this.cuenta.hasValue() ? this.cuenta.value() : null),
@@ -56,13 +57,12 @@ export class MiCuenta {
     if (this.cuenta.isLoading()) {
       return;
     }
-    this.aviso.set(null);
     this.editando.set(true);
   }
 
   alGuardar(mensaje: string): void {
     this.editando.set(false);
-    this.aviso.set(mensaje);
+    this.avisos.mostrar('Perfil actualizado', mensaje || null);
     this.cuenta.reload();
   }
 

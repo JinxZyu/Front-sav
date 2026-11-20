@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -6,6 +7,7 @@ import { of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { DetallePublicacion } from './detalle-publicacion';
 import { simularUrlsDeObjeto } from '../../../shared/utils/url-objeto.testing';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 describe('DetallePublicacion (HU-011)', () => {
   let restaurarUrls: () => void = () => undefined;
@@ -253,14 +255,29 @@ describe('DetallePublicacion (HU-011)', () => {
     backend.expectNone(url);
   });
 
-  it('confirma que se guardaron los cambios al volver de editar', async () => {
+  it('confirma con un aviso flotante que se guardaron los cambios y limpia la dirección', async () => {
+    const reemplazar = vi.spyOn(Location.prototype, 'replaceState');
     crear('actualizada');
     backend.expectOne(url).flush(detalle({ imagenes: [] }));
     await responderSecciones();
 
-    expect(elemento().querySelector('.aviso[role="status"]')?.textContent).toContain(
-      'Guardamos los cambios',
-    );
+    expect(elemento().querySelector('.aviso')).toBeNull();
+    expect(TestBed.inject(AvisosService).avisos()).toEqual([
+      expect.objectContaining({
+        titulo: 'Cambios guardados',
+        detalle: 'Guardamos los cambios de tu publicación.',
+      }),
+    ]);
+    expect(reemplazar).toHaveBeenCalledWith(expect.not.stringContaining('aviso'));
+    reemplazar.mockRestore();
+  });
+
+  it('avisa que los cambios quedaron en revisión', async () => {
+    crear('en-revision');
+    backend.expectOne(url).flush(detalle({ imagenes: [] }));
+    await responderSecciones();
+
+    expect(TestBed.inject(AvisosService).avisos()[0].titulo).toBe('Cambios enviados a revisión');
   });
 
   it('pone la portada de primera en la galería', async () => {

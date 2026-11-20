@@ -6,7 +6,7 @@ export interface Aviso {
   detalle: string | null;
 }
 
-export const DURACION_AVISO = 6000;
+export const DURACION_AVISO = 10000;
 
 @Injectable({ providedIn: 'root' })
 export class AvisosService {

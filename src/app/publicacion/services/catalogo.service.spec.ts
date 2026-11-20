@@ -66,4 +66,15 @@ describe('CatalogoService', () => {
     backend.expectOne(`${api}/publicaciones/p%201/detalle-publico`).flush({});
     backend.expectOne(`${api}/servicios`).flush([]);
   });
+
+  it('consulta el catálogo completo de publicaciones activas', () => {
+    let lista: unknown;
+    servicio.catalogo().subscribe((datos) => (lista = datos));
+
+    const peticion = backend.expectOne(`${environment.apiUrl}/publicaciones/catalogo`);
+    expect(peticion.request.method).toBe('GET');
+    peticion.flush([]);
+
+    expect(lista).toEqual([]);
+  });
 });

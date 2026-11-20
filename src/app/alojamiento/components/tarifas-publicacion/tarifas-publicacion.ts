@@ -24,6 +24,7 @@ import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { ConfiguracionComercial, ServicioAdicional } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
 import { formatearPesos } from '../../utils/formato';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 const PATRON_ENTERO = /^\d+$/;
 
@@ -55,6 +56,7 @@ const nombresUnicos = (control: AbstractControl): ValidationErrors | null => {
 })
 export class TarifasPublicacion {
   private readonly servicio = inject(PublicacionAlojamientoService);
+  private readonly avisos = inject(AvisosService);
   private readonly destruccion = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
 
@@ -87,7 +89,6 @@ export class TarifasPublicacion {
   readonly editando = linkedSignal({ source: this.editable, computation: () => false });
   readonly guardando = signal(false);
   readonly intento = signal(false);
-  readonly aviso = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   readonly maximo = MAX_SERVICIOS_ADICIONALES;
@@ -110,7 +111,6 @@ export class TarifasPublicacion {
     this.formulario.controls.tarifaLimpieza.setValue(String(actual?.tarifaLimpieza ?? 0));
     this.formulario.markAsUntouched();
     this.intento.set(false);
-    this.aviso.set(null);
     this.error.set(null);
     this.editando.set(true);
   }
@@ -162,7 +162,10 @@ export class TarifasPublicacion {
         next: (configuracion) => {
           this.actual.set(configuracion);
           this.editando.set(false);
-          this.aviso.set('Guardamos la tarifa de limpieza y los servicios adicionales.');
+          this.avisos.mostrar(
+            'Cambios guardados',
+            'Guardamos la tarifa de limpieza y los servicios adicionales.',
+          );
           this.guardado.emit(configuracion);
         },
         error: (error: unknown) =>

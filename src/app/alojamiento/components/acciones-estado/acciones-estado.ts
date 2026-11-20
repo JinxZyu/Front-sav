@@ -6,6 +6,7 @@ import { Observable, finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { CambioEstadoPublicacion, DetallePublicacion } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 @Component({
   selector: 'app-acciones-estado',
@@ -16,19 +17,19 @@ import { PublicacionAlojamientoService } from '../../services/publicacion-alojam
 export class AccionesEstado {
   private readonly servicio = inject(PublicacionAlojamientoService);
   private readonly destruccion = inject(DestroyRef);
+  private readonly avisos = inject(AvisosService);
 
   readonly publicacion = input.required<DetallePublicacion>();
   readonly cambio = output<string>();
 
   readonly procesando = signal(false);
-  readonly aviso = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly faltaInformacion = signal(false);
 
   enviarRevision(): void {
     this.ejecutar(
       this.servicio.enviarRevision(this.publicacion().idPublicacion),
-      'Enviamos tu publicación a revisión. Te avisaremos cuando un administrador la revise.',
+      ['Publicación enviada a revisión', 'Te avisaremos cuando un administrador la revise.'],
       'No pudimos enviar la publicación a revisión.',
     );
   }
@@ -36,7 +37,7 @@ export class AccionesEstado {
   pausar(): void {
     this.ejecutar(
       this.servicio.pausar(this.publicacion().idPublicacion),
-      'Pausamos tu publicación. Ya no aparece en el marketplace.',
+      ['Publicación pausada', 'Ya no aparece en el marketplace.'],
       'No pudimos pausar la publicación.',
     );
   }
@@ -44,20 +45,19 @@ export class AccionesEstado {
   reactivar(): void {
     this.ejecutar(
       this.servicio.reactivar(this.publicacion().idPublicacion),
-      'Reactivamos tu publicación. Ya aparece de nuevo en el marketplace.',
+      ['Publicación reactivada', 'Ya aparece de nuevo en el marketplace.'],
       'No pudimos reactivar la publicación.',
     );
   }
 
   private ejecutar(
     peticion: Observable<CambioEstadoPublicacion>,
-    exito: string,
+    [titulo, detalle]: [string, string],
     falla: string,
   ): void {
     if (this.procesando()) {
       return;
     }
-    this.aviso.set(null);
     this.error.set(null);
     this.faltaInformacion.set(false);
     this.procesando.set(true);
@@ -68,7 +68,7 @@ export class AccionesEstado {
       )
       .subscribe({
         next: (respuesta) => {
-          this.aviso.set(exito);
+          this.avisos.mostrar(titulo, detalle);
           this.cambio.emit(respuesta.estadoActual);
         },
         error: (error: unknown) => {

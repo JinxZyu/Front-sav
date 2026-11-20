@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { comoDia } from '../../utils/fechas';
 import { DisponibilidadAlojamiento } from './disponibilidad-alojamiento';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
   let fixture: ComponentFixture<DisponibilidadAlojamiento>;
@@ -120,7 +121,7 @@ describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
     await responderCalendario();
 
     expect(elemento().querySelectorAll('.periodos li.tarjeta')).toHaveLength(1);
-    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Agregamos');
+    expect(TestBed.inject(AvisosService).avisos().at(-1)?.detalle).toContain('Agregamos');
     expect(componente.nuevo.getRawValue()).toEqual({ fechaInicio: '', fechaFin: '' });
   });
 
@@ -294,7 +295,7 @@ describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
     await responderCalendario();
 
     expect(elemento().querySelector('.periodos li')?.classList).toContain('apagado');
-    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Deshabilitamos');
+    expect(TestBed.inject(AvisosService).avisos().at(-1)?.detalle).toContain('Deshabilitamos');
   });
 
   it('criterio 4: informa si la publicación no es del anfitrión', async () => {

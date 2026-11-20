@@ -6,6 +6,7 @@ import { CampoContrasena } from '../../../shared/components/campo-contrasena/cam
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { contrasenasIguales } from '../../../shared/utils/validadores';
 import { CuentaService } from '../../services/cuenta.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 @Component({
   selector: 'app-cambiar-contrasena',
@@ -15,12 +16,12 @@ import { CuentaService } from '../../services/cuenta.service';
 })
 export class CambiarContrasena {
   private readonly cuentaService = inject(CuentaService);
+  private readonly avisos = inject(AvisosService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly abierto = signal(false);
   readonly enviando = signal(false);
   readonly error = signal<string | null>(null);
-  readonly aviso = signal<string | null>(null);
 
   readonly formulario = inject(FormBuilder).nonNullable.group(
     {
@@ -41,7 +42,6 @@ export class CambiarContrasena {
   }
 
   abrir(): void {
-    this.aviso.set(null);
     this.error.set(null);
     this.formulario.reset();
     this.abierto.set(true);
@@ -75,7 +75,10 @@ export class CambiarContrasena {
         next: (mensaje) => {
           this.formulario.reset();
           this.abierto.set(false);
-          this.aviso.set(mensaje || 'La contraseña se actualizó correctamente.');
+          this.avisos.mostrar(
+            'Contraseña actualizada',
+            mensaje || 'La contraseña se actualizó correctamente.',
+          );
         },
         error: (error: unknown) =>
           this.error.set(mensajeDeError(error, 'No pudimos cambiar la contraseña.')),

@@ -1,22 +1,45 @@
-import { Component, computed, effect, inject, untracked } from '@angular/core';
+import { Component, computed, effect, inject, linkedSignal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormBuilder, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, convertToParamMap } from '@angular/router';
 import { map } from 'rxjs';
 import { TarjetaPublicacion } from '../../../alojamiento/components/tarjeta-publicacion/tarjeta-publicacion';
-import { TIPOS_ALOJAMIENTO } from '../../../alojamiento/models/alojamiento.models';
-import { hoy, rangoValido } from '../../../disponibilidad/utils/fechas';
+import { ResumenPublicacion } from '../../../alojamiento/models/alojamiento.models';
+import { rangoValido } from '../../../disponibilidad/utils/fechas';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import { BuscadorCatalogo } from '../../components/buscador-catalogo/buscador-catalogo';
+import { CarruselPublicaciones } from '../../components/carrusel-publicaciones/carrusel-publicaciones';
 import { FiltrosBusqueda } from '../../models/catalogo.models';
 import { CatalogoService } from '../../services/catalogo.service';
 
 const PATRON_ENTERO = /^\d*$/;
+const MAXIMO_CIUDADES = 8;
+const MAXIMO_POR_CARRUSEL = 12;
+
+export interface GrupoCiudad {
+  ciudad: string;
+  publicaciones: ResumenPublicacion[];
+}
+
+const sinTildes = (texto: string) =>
+  texto.normalize('NFD').replace(/\p{M}/gu, '').trim().toLowerCase();
+
+function agruparPorCiudad(publicaciones: readonly ResumenPublicacion[]): GrupoCiudad[] {
+  const grupos = new Map<string, GrupoCiudad>();
+  for (const publicacion of publicaciones) {
+    const clave = sinTildes(publicacion.ciudad ?? '');
+    if (!clave) {
+      continue;
+    }
+    const grupo = grupos.get(clave) ?? { ciudad: publicacion.ciudad.trim(), publicaciones: [] };
+    grupo.publicaciones.push(publicacion);
+    grupos.set(clave, grupo);
+  }
+  return [...grupos.values()].sort(
+    (a, b) =>
+      b.publicaciones.length - a.publicaciones.length || a.ciudad.localeCompare(b.ciudad, 'es'),
+  );
+}
 
 const FILTROS_VACIOS = {
   ciudad: '',
@@ -56,7 +79,7 @@ function leerFiltros(parametros: ParamMap): FiltrosBusqueda {
 
 @Component({
   selector: 'app-catalogo',
-  imports: [ReactiveFormsModule, TarjetaPublicacion],
+  imports: [TarjetaPublicacion, CarruselPublicaciones, BuscadorCatalogo],
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css',
 })
@@ -64,17 +87,53 @@ export class Catalogo {
   private readonly servicio = inject(CatalogoService);
   private readonly router = inject(Router);
 
-  readonly tipos = TIPOS_ALOJAMIENTO;
-  readonly minimo = hoy();
-
   readonly filtros = toSignal(inject(ActivatedRoute).queryParamMap.pipe(map(leerFiltros)), {
     initialValue: leerFiltros(convertToParamMap({})),
   });
 
+  readonly hayFiltros = computed(() => {
+    const { pagina: _pagina, servicios, ...valores } = this.filtros();
+    return servicios.length > 0 || Object.values(valores).some((valor) => valor !== '');
+  });
+
+  readonly filtrosAvanzados = computed(() => {
+    const { tipo, precioMinimo, precioMaximo, servicios } = this.filtros();
+    return [tipo, precioMinimo, precioMaximo].filter(Boolean).length + servicios.length;
+  });
+
+  readonly avanzada = linkedSignal(() => this.filtrosAvanzados() > 0);
+
   readonly resultados = rxResource({
-    params: () => this.filtros(),
+    params: () => (this.hayFiltros() ? this.filtros() : undefined),
     stream: ({ params }) => this.servicio.buscar(params),
   });
+
+  readonly catalogo = rxResource({ stream: () => this.servicio.catalogo() });
+
+  readonly grupos = computed(() =>
+    agruparPorCiudad(this.catalogo.hasValue() ? this.catalogo.value() : []),
+  );
+
+  readonly sugerencias = computed(() => this.grupos().map((grupo) => grupo.ciudad));
+
+  readonly carruselesCiudad = computed(() =>
+    this.grupos()
+      .slice(0, MAXIMO_CIUDADES)
+      .map((grupo) => ({
+        ...grupo,
+        publicaciones: grupo.publicaciones.slice(0, MAXIMO_POR_CARRUSEL),
+      })),
+  );
+
+  readonly recientes = computed(() =>
+    (this.catalogo.hasValue() ? this.catalogo.value() : []).slice(0, MAXIMO_POR_CARRUSEL),
+  );
+
+  readonly errorCatalogo = computed(() =>
+    this.catalogo.status() === 'error'
+      ? mensajeDeError(this.catalogo.error(), 'No pudimos cargar los alojamientos.')
+      : null,
+  );
 
   readonly servicios = rxResource({ stream: () => this.servicio.servicios() });
 
@@ -88,6 +147,15 @@ export class Catalogo {
     },
     { validators: [rangoValido('llegada', 'salida'), preciosEnOrden] },
   );
+
+  private readonly valores = toSignal(this.formulario.valueChanges, {
+    initialValue: this.formulario.getRawValue(),
+  });
+
+  readonly hayEscrito = computed(() => {
+    const { servicios, ...valores } = this.valores();
+    return (servicios?.length ?? 0) > 0 || Object.values(valores).some((valor) => !!valor);
+  });
 
   readonly pagina = computed(() => (this.resultados.hasValue() ? this.resultados.value() : null));
   readonly publicaciones = computed(() => this.pagina()?.publicaciones ?? []);
@@ -116,19 +184,6 @@ export class Catalogo {
       const { pagina: _pagina, ...valores } = this.filtros();
       untracked(() => this.formulario.reset(valores));
     });
-  }
-
-  marcado(idServicio: string): boolean {
-    return this.formulario.controls.servicios.value.includes(idServicio);
-  }
-
-  alternarServicio(idServicio: string): void {
-    const control = this.formulario.controls.servicios;
-    control.setValue(
-      this.marcado(idServicio)
-        ? control.value.filter((actual) => actual !== idServicio)
-        : [...control.value, idServicio],
-    );
   }
 
   buscar(): void {

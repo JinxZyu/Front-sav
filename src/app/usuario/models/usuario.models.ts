@@ -39,7 +39,7 @@ export interface Cuenta {
   apellido: string;
   correo: string;
   tipoDocumento: string;
-  documentoIdentidad: string;
+  documentoIdentidad: string | null;
   rol: string;
 }
 

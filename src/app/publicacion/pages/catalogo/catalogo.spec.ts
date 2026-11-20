@@ -10,19 +10,27 @@ describe('Catalogo (HU-024)', () => {
   let harness: RouterTestingHarness;
   let backend: HttpTestingController;
   const busqueda = `${environment.apiUrl}/publicaciones/busqueda`;
+  const catalogo = `${environment.apiUrl}/publicaciones/catalogo`;
   const servicios = `${environment.apiUrl}/servicios`;
 
-  const resumen = (id: string, titulo: string) => ({
+  const resumen = (id: string, titulo: string, ciudad = 'Bogotá') => ({
     idPublicacion: id,
     idAlojamiento: `a-${id}`,
     titulo,
-    ciudad: 'Bogotá',
+    ciudad,
     tipoAlojamiento: 'Apartamento',
     capacidad: 2,
     precioPorNoche: 180000,
     estado: 'ACTIVA',
     fechaCreacion: '2026-11-18T10:00:00-05:00',
   });
+
+  const todas = [
+    resumen('p-1', 'Loft en Chapinero'),
+    resumen('p-2', 'Casa en El Poblado', 'Medellín'),
+    resumen('p-3', 'Estudio en Usaquén', 'bogota'),
+    resumen('p-4', 'Casa colonial', 'Cartagena'),
+  ];
 
   const pagina = (cambios: object = {}) => ({
     publicaciones: [resumen('p-1', 'Loft en Chapinero')],
@@ -39,7 +47,10 @@ describe('Catalogo (HU-024)', () => {
     { idServicio: 's-2', nombre: 'Piscina', descripcion: null },
   ];
 
-  const abrir = async (url = '/publicaciones', fallanServicios = false) => {
+  const abrir = async (
+    url = '/publicaciones',
+    opciones: { fallanServicios?: boolean; catalogo?: object; estado?: number } = {},
+  ) => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -49,10 +60,20 @@ describe('Catalogo (HU-024)', () => {
     });
     backend = TestBed.inject(HttpTestingController);
     harness = await RouterTestingHarness.create(url);
-    if (fallanServicios) {
+    if (opciones.fallanServicios) {
       backend.expectOne(servicios).flush(null, { status: 500, statusText: 'Error' });
     } else {
       backend.expectOne(servicios).flush(listaServicios);
+    }
+    if (opciones.estado) {
+      backend
+        .expectOne(catalogo)
+        .flush(
+          { mensaje: 'Servicio no disponible.' },
+          { status: opciones.estado, statusText: 'X' },
+        );
+    } else {
+      backend.expectOne(catalogo).flush(opciones.catalogo ?? todas);
     }
   };
 
@@ -76,22 +97,57 @@ describe('Catalogo (HU-024)', () => {
     [...elemento().querySelectorAll<HTMLButtonElement>('button')].find(
       (actual) => actual.textContent?.trim() === texto,
     ) as HTMLButtonElement;
+  const abrirAvanzada = async () => {
+    campo<HTMLButtonElement>('button.alternar').click();
+    await refrescar();
+  };
 
   afterEach(() => backend.verify());
 
-  it('criterio 1: sin filtros lista las publicaciones activas con enlace al detalle', async () => {
+  it('criterio 1: sin filtros muestra carruseles de los recientes y por ciudad', async () => {
     await abrir();
-    const peticion = esperarBusqueda();
-    expect(peticion.request.params.get('pagina')).toBe('0');
-    expect(peticion.request.params.get('tamano')).toBe('12');
-    expect(peticion.request.params.has('ciudad')).toBe(false);
-    peticion.flush(pagina());
     await refrescar();
 
-    expect(elemento().textContent).toContain('1 alojamiento disponible');
-    const tarjeta = campo<HTMLAnchorElement>('a.tarjeta');
-    expect(tarjeta.textContent).toContain('Loft en Chapinero');
-    expect(tarjeta.getAttribute('href')).toBe('/publicaciones/p-1');
+    backend.expectNone((peticion) => peticion.url === busqueda);
+    const titulos = [...elemento().querySelectorAll('app-carrusel-publicaciones h2')].map((h2) =>
+      h2.textContent?.trim(),
+    );
+    expect(titulos).toEqual([
+      'Publicados recientemente',
+      'Alojamientos en Bogotá',
+      'Alojamientos en Cartagena',
+      'Alojamientos en Medellín',
+    ]);
+    const bogota = elemento().querySelectorAll('app-carrusel-publicaciones')[1];
+    expect(bogota.querySelectorAll('a.tarjeta')).toHaveLength(2);
+    expect(bogota.querySelector('h2 a')?.getAttribute('href')).toBe(
+      '/publicaciones?ciudad=Bogot%C3%A1',
+    );
+    expect(campo<HTMLAnchorElement>('a.tarjeta').getAttribute('href')).toBe('/publicaciones/p-1');
+    expect(
+      [...elemento().querySelectorAll('#ciudades-sugeridas option')].map((opcion) =>
+        opcion.getAttribute('value'),
+      ),
+    ).toEqual(['Bogotá', 'Cartagena', 'Medellín']);
+    expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
+  });
+
+  it('avisa cuando todavía no hay alojamientos publicados', async () => {
+    await abrir('/publicaciones', { catalogo: [] });
+    await refrescar();
+    expect(elemento().textContent).toContain('Todavía no hay alojamientos publicados');
+  });
+
+  it('si falla el catálogo permite reintentar', async () => {
+    await abrir('/publicaciones', { estado: 503 });
+    await refrescar();
+
+    expect(campo('[role="alert"]').textContent).toContain('Servicio no disponible.');
+    boton('Reintentar').click();
+    await refrescar();
+    backend.expectOne(catalogo).flush(todas);
+    await refrescar();
+    expect(elemento().querySelectorAll('app-carrusel-publicaciones').length).toBe(4);
   });
 
   it('criterio 2: lee los filtros de la URL, los envía y los conserva en el detalle', async () => {
@@ -105,22 +161,28 @@ describe('Catalogo (HU-024)', () => {
     expect(params.get('fechaFin')).toBe('2026-12-06');
     expect(params.get('capacidad')).toBe('2');
     expect(params.getAll('servicios')).toEqual(['s-1', 's-2']);
+    expect(params.get('pagina')).toBe('0');
+    expect(params.get('tamano')).toBe('12');
     peticion.flush(pagina());
     await refrescar();
 
+    expect(elemento().textContent).toContain('1 alojamiento disponible');
+    expect(elemento().querySelector('app-carrusel-publicaciones')).toBeNull();
     expect(campo<HTMLInputElement>('input[formcontrolname="ciudad"]').value).toBe('Bogotá');
+    expect(campo('button.alternar').getAttribute('aria-expanded')).toBe('true');
+    expect(campo('.contador').textContent?.trim()).toBe('2');
     expect(elemento().querySelectorAll('.servicio.marcado').length).toBe(2);
     expect(campo<HTMLAnchorElement>('a.tarjeta').getAttribute('href')).toBe(
       '/publicaciones/p-1?llegada=2026-12-04&salida=2026-12-06&huespedes=2',
     );
   });
 
-  it('criterio 3: buscar lleva los filtros a la URL y vuelve a consultar', async () => {
+  it('criterio 3: buscar lleva los filtros a la URL y consulta', async () => {
     await abrir();
-    esperarBusqueda().flush(pagina());
     await refrescar();
 
     escribir('input[formcontrolname="ciudad"]', '  Medellín ');
+    await abrirAvanzada();
     escribir('select[formcontrolname="tipo"]', 'Casa');
     escribir('input[formcontrolname="precioMaximo"]', '300000');
     campo<HTMLInputElement>('.servicio input').click();
@@ -139,14 +201,14 @@ describe('Catalogo (HU-024)', () => {
 
   it('criterio 4: no busca con fechas o precios incoherentes', async () => {
     await abrir();
-    esperarBusqueda().flush(pagina());
     await refrescar();
 
     escribir('input[formcontrolname="llegada"]', '2026-12-10');
     escribir('input[formcontrolname="salida"]', '2026-12-08');
+    await abrirAvanzada();
     escribir('input[formcontrolname="precioMinimo"]', '500000');
     escribir('input[formcontrolname="precioMaximo"]', '100000');
-    boton('Buscar').click();
+    boton('Aplicar filtros').click();
     await refrescar();
 
     expect(elemento().textContent).toContain('La salida debe ser posterior a la llegada.');
@@ -164,8 +226,9 @@ describe('Catalogo (HU-024)', () => {
     await refrescar();
 
     expect(TestBed.inject(Router).url).toBe('/publicaciones');
-    expect(esperarBusqueda().request.params.has('ciudad')).toBe(false);
+    backend.expectNone((peticion) => peticion.url === busqueda);
     expect(campo<HTMLInputElement>('input[formcontrolname="ciudad"]').value).toBe('');
+    expect(elemento().querySelectorAll('app-carrusel-publicaciones').length).toBe(4);
   });
 
   it('criterio 6: pagina los resultados conservando los filtros', async () => {
@@ -183,8 +246,8 @@ describe('Catalogo (HU-024)', () => {
     expect(params.get('ciudad')).toBe('Bogotá');
   });
 
-  it('muestra el error y permite reintentar', async () => {
-    await abrir();
+  it('muestra el error de la búsqueda y permite reintentar', async () => {
+    await abrir('/publicaciones?ciudad=Cali');
     esperarBusqueda().flush(
       { mensaje: 'Servicio no disponible.' },
       { status: 503, statusText: 'Service Unavailable' },
@@ -199,12 +262,12 @@ describe('Catalogo (HU-024)', () => {
 
   it('envía un precio máximo de cero y omite los campos vacíos', async () => {
     await abrir();
-    esperarBusqueda().flush(pagina());
     await refrescar();
 
+    await abrirAvanzada();
     escribir('input[formcontrolname="precioMinimo"]', '0');
     escribir('input[formcontrolname="precioMaximo"]', '0');
-    boton('Buscar').click();
+    boton('Aplicar filtros').click();
     await refrescar();
 
     expect(TestBed.inject(Router).url).toBe('/publicaciones?min=0&max=0');
@@ -216,11 +279,13 @@ describe('Catalogo (HU-024)', () => {
 
   it('limpiar borra lo escrito aunque aún no se haya buscado', async () => {
     await abrir();
-    esperarBusqueda().flush(pagina());
     await refrescar();
+    expect(boton('Limpiar filtros')).toBeUndefined();
 
     escribir('input[formcontrolname="ciudad"]', 'Cali');
+    await abrirAvanzada();
     campo<HTMLInputElement>('.servicio input').click();
+    await refrescar();
     boton('Limpiar filtros').click();
     await refrescar();
 
@@ -230,9 +295,10 @@ describe('Catalogo (HU-024)', () => {
   });
 
   it('permite reintentar la carga de los servicios sin afectar la búsqueda', async () => {
-    await abrir('/publicaciones', true);
+    await abrir('/publicaciones?ciudad=Bogot%C3%A1', { fallanServicios: true });
     esperarBusqueda().flush(pagina());
     await refrescar();
+    await abrirAvanzada();
 
     expect(elemento().querySelector('.aviso-servicios')?.textContent).toContain(
       'No pudimos cargar los servicios',

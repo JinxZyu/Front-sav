@@ -17,6 +17,7 @@ import {
   ModoAceptacionDePublicacion,
 } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 @Component({
   selector: 'app-modo-aceptacion-publicacion',
@@ -25,6 +26,7 @@ import { PublicacionAlojamientoService } from '../../services/publicacion-alojam
 })
 export class ModoAceptacionPublicacion {
   private readonly servicio = inject(PublicacionAlojamientoService);
+  private readonly avisos = inject(AvisosService);
   private readonly destruccion = inject(DestroyRef);
 
   readonly idPublicacion = input.required<string>();
@@ -52,12 +54,10 @@ export class ModoAceptacionPublicacion {
   readonly editando = linkedSignal({ source: this.editable, computation: () => false });
   readonly seleccion = signal<ModoAceptacion | ''>('');
   readonly guardando = signal(false);
-  readonly aviso = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   cambiar(): void {
     this.seleccion.set(this.modoActual()?.valor ?? '');
-    this.aviso.set(null);
     this.error.set(null);
     this.editando.set(true);
   }
@@ -84,7 +84,7 @@ export class ModoAceptacionPublicacion {
         next: (respuesta) => {
           this.actual.set(respuesta);
           this.editando.set(false);
-          this.aviso.set('Guardamos el modo de aceptación de reservas.');
+          this.avisos.mostrar('Cambios guardados', 'Guardamos el modo de aceptación de reservas.');
           this.guardado.emit(respuesta);
         },
         error: (error: unknown) =>

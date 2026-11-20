@@ -28,6 +28,7 @@ import {
   rangoValido,
   unAnioDespues,
 } from '../../utils/fechas';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 @Component({
   selector: 'app-disponibilidad-alojamiento',
@@ -43,6 +44,7 @@ import {
 })
 export class DisponibilidadAlojamiento {
   private readonly publicaciones = inject(PublicacionAlojamientoService);
+  private readonly avisos = inject(AvisosService);
   private readonly disponibilidad = inject(DisponibilidadService);
   private readonly destruccion = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
@@ -129,7 +131,6 @@ export class DisponibilidadAlojamiento {
   readonly procesando = signal(false);
   readonly intentoNuevo = signal(false);
   readonly intentoEdicion = signal(false);
-  readonly aviso = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly lugarMensaje = signal<string>('nuevo');
   readonly actualizacion = signal(0);
@@ -288,7 +289,7 @@ export class DisponibilidadAlojamiento {
         next: (periodo) => {
           alTerminar(periodo);
           this.actualizacion.update((valor) => valor + 1);
-          this.aviso.set(exito);
+          this.avisos.mostrar('Disponibilidad actualizada', exito);
         },
         error: (error: unknown) => this.error.set(mensajeDeError(error, falla)),
       });
@@ -303,7 +304,6 @@ export class DisponibilidadAlojamiento {
   }
 
   private limpiarMensajes(): void {
-    this.aviso.set(null);
     this.error.set(null);
   }
 }
