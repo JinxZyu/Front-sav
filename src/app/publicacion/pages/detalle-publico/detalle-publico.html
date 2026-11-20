@@ -86,22 +86,18 @@
         </p>
       </div>
 
-      <aside class="lateral" aria-label="Precio">
+      <aside class="lateral" aria-label="Precio y reserva">
         <p class="precio">{{ pesos(datos.publicacion.precioPorNoche) }} <small>/ noche</small></p>
         @if (datos.publicacion.tarifaLimpieza) {
           <p class="nota">Tarifa de limpieza: {{ pesos(datos.publicacion.tarifaLimpieza) }}</p>
         }
-        @if (datos.serviciosAdicionales.length > 0) {
-          <h2 class="pequeno">Servicios adicionales</h2>
-          <ul class="adicionales">
-            @for (adicional of datos.serviciosAdicionales; track adicional.idAdicional) {
-              <li>
-                <span>{{ adicional.nombre }}</span>
-                <span>{{ pesos(adicional.costo) }}</span>
-              </li>
-            }
-          </ul>
-        }
+        <app-cotizador
+          [publicacion]="datos.publicacion"
+          [adicionales]="datos.serviciosAdicionales"
+          [llegada]="busqueda().llegada"
+          [salida]="busqueda().salida"
+          [huespedes]="busqueda().huespedes"
+        />
       </aside>
     </div>
   } @else if (noEncontrada()) {

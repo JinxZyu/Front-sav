@@ -1,0 +1,147 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.fechas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+input:not([type='checkbox']) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0.55rem 0.5rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.7rem;
+  font: inherit;
+  font-weight: 400;
+}
+
+input[aria-invalid='true'] {
+  border-color: #fb7185;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.error-campo {
+  margin: -0.3rem 0 0;
+  color: #e11d48;
+  font-size: 0.8rem;
+}
+
+fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  margin-bottom: 0.4rem;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.adicional {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.nombre {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.nombre small {
+  color: #64748b;
+  font-weight: 400;
+}
+
+.principal {
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.principal:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.alerta {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.8rem;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 0.9rem;
+}
+
+.desglose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.desglose div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.desglose dd {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.descuento {
+  color: #047857;
+}
+
+.total {
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
+  color: #1e1b4b;
+  font-size: 1rem;
+  font-weight: 800;
+}

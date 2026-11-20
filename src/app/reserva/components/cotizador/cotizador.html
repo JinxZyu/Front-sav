@@ -1,0 +1,129 @@
+<form [formGroup]="formulario" (ngSubmit)="cotizar()" novalidate>
+  <div class="fechas">
+    <label>
+      Llegada
+      <input
+        type="date"
+        formControlName="llegada"
+        [min]="minimo"
+        [attr.aria-invalid]="
+          formulario.controls.llegada.touched && formulario.controls.llegada.invalid
+        "
+      />
+    </label>
+    <label>
+      Salida
+      <input
+        type="date"
+        formControlName="salida"
+        [min]="
+          formulario.controls.llegada.value
+            ? moverDias(formulario.controls.llegada.value, 1)
+            : minimo
+        "
+        [attr.aria-invalid]="
+          formulario.hasError('rango') ||
+          (formulario.controls.salida.touched && formulario.controls.salida.invalid)
+        "
+      />
+    </label>
+  </div>
+  @if (formulario.controls.llegada.hasError('pasado')) {
+    <p class="error-campo">La llegada no puede ser una fecha pasada.</p>
+  } @else if (formulario.hasError('rango')) {
+    <p class="error-campo">La salida debe ser posterior a la llegada.</p>
+  } @else if (
+    (formulario.controls.llegada.touched && formulario.controls.llegada.invalid) ||
+    (formulario.controls.salida.touched && formulario.controls.salida.invalid)
+  ) {
+    <p class="error-campo">Elige las fechas de llegada y salida.</p>
+  }
+
+  <label>
+    Huéspedes
+    <input
+      type="number"
+      formControlName="huespedes"
+      min="1"
+      [max]="publicacion().capacidad"
+      step="1"
+      inputmode="numeric"
+      [attr.aria-invalid]="formulario.controls.huespedes.invalid"
+    />
+  </label>
+  @if (formulario.controls.huespedes.invalid) {
+    <p class="error-campo">
+      Indica un número entero de 1 a {{ publicacion().capacidad }} huéspedes.
+    </p>
+  }
+
+  @if (adicionales().length > 0) {
+    <fieldset>
+      <legend>Agrega servicios adicionales</legend>
+      @for (adicional of adicionales(); track adicional.idAdicional) {
+        <label class="adicional">
+          <input
+            type="checkbox"
+            [checked]="marcado(adicional.idAdicional)"
+            (change)="alternar(adicional.idAdicional)"
+          />
+          <span class="nombre">
+            {{ adicional.nombre }}
+            @if (adicional.descripcion) {
+              <small>{{ adicional.descripcion }}</small>
+            }
+          </span>
+          <span>{{ pesos(adicional.costo) }}</span>
+        </label>
+      }
+    </fieldset>
+  }
+
+  @if (!cotizacion()) {
+    <button type="submit" class="principal" [disabled]="calculando()">
+      {{ calculando() ? 'Calculando…' : 'Ver precio total' }}
+    </button>
+  }
+</form>
+
+@if (error(); as error) {
+  <p class="alerta" role="alert">{{ error }}</p>
+}
+
+@if (cotizacion(); as cotizacion) {
+  <dl class="desglose" aria-label="Desglose del precio">
+    <div>
+      <dt>
+        {{ pesos(cotizacion.precioPorNoche) }} × {{ cotizacion.noches }}
+        {{ cotizacion.noches === 1 ? 'noche' : 'noches' }}
+      </dt>
+      <dd>{{ pesos(cotizacion.subtotalAlojamiento) }}</dd>
+    </div>
+    @if (cotizacion.tarifaLimpieza > 0) {
+      <div>
+        <dt>Tarifa de limpieza</dt>
+        <dd>{{ pesos(cotizacion.tarifaLimpieza) }}</dd>
+      </div>
+    }
+    @for (adicional of cotizacion.serviciosAdicionales; track adicional.idAdicional) {
+      <div>
+        <dt>{{ adicional.nombre }}</dt>
+        <dd>{{ pesos(adicional.subtotal) }}</dd>
+      </div>
+    }
+    <div>
+      <dt>Tarifa de servicio ({{ porcentaje(cotizacion.porcentajeServicio) }})</dt>
+      <dd>{{ pesos(cotizacion.costoServicio) }}</dd>
+    </div>
+    @if (cotizacion.montoDescuento > 0) {
+      <div class="descuento">
+        <dt>Descuento ({{ porcentaje(cotizacion.porcentajeDescuento) }})</dt>
+        <dd>−{{ pesos(cotizacion.montoDescuento) }}</dd>
+      </div>
+    }
+    <div class="total">
+      <dt>Total</dt>
+      <dd>{{ pesos(cotizacion.total) }}</dd>
+    </div>
+  </dl>
+}
