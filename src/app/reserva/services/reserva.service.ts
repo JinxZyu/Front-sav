@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  CancelacionReserva,
   Cotizacion,
   MisReservas,
   PagoReserva,
@@ -57,6 +58,10 @@ export class ReservaService {
     return this.http.get<ReservaPropia>(
       `${this.api}/mis-reservas/${encodeURIComponent(idReserva)}`,
     );
+  }
+
+  cancelar(idReserva: string, motivo: string): Observable<CancelacionReserva> {
+    return this.http.post<CancelacionReserva>(`${this.ruta(idReserva)}/cancelacion`, { motivo });
   }
 
   private ruta(idReserva: string): string {

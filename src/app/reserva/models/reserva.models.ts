@@ -79,6 +79,17 @@ export interface MisReservas {
   mensaje: string | null;
 }
 
+export interface CancelacionReserva {
+  idReserva: string;
+  estadoFinal: string;
+  fechaCancelacion: string;
+  motivo: string;
+  porcentajeDevolucion: number;
+  valorDevolucion: number;
+  estadoDevolucion: string;
+  mensaje: string;
+}
+
 export interface AvisoReserva {
   tono: 'exito' | 'info' | 'error';
   texto: string;
@@ -98,8 +109,14 @@ const ESTADOS_RESERVA: Record<string, EstadoReserva> = {
   CANCELADA: { etiqueta: 'Cancelada', tono: 'cerrada' },
 };
 
+const ESTADOS_CANCELABLES = ['PENDIENTE_APROBACION', 'PENDIENTE_PAGO', 'CONFIRMADA'];
+
 export function estadoReserva(estado: string): EstadoReserva {
   return ESTADOS_RESERVA[estado] ?? { etiqueta: estado, tono: 'cerrada' };
+}
+
+export function cancelable(estado: string): boolean {
+  return ESTADOS_CANCELABLES.includes(estado);
 }
 
 export function retencionVigente(retencionHasta: string | null, ahora = Date.now()): boolean {

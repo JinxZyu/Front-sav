@@ -1,18 +1,26 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, finalize, map } from 'rxjs';
+import { formatearPorcentaje } from '../../../alojamiento/models/alojamiento.models';
 import { formatearFechaHora, formatearPesos } from '../../../alojamiento/utils/formato';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { EncabezadoReserva } from '../../components/encabezado-reserva/encabezado-reserva';
 import { ResumenReserva } from '../../components/resumen-reserva/resumen-reserva';
-import { AvisoReserva, PagoReserva, retencionVigente } from '../../models/reserva.models';
+import {
+  AvisoReserva,
+  CancelacionReserva,
+  PagoReserva,
+  cancelable,
+  retencionVigente,
+} from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
 import { estadoDeConsulta } from '../../utils/consulta-reserva';
 
 @Component({
   selector: 'app-detalle-reserva',
-  imports: [EncabezadoReserva, ResumenReserva],
+  imports: [ReactiveFormsModule, EncabezadoReserva, ResumenReserva],
   templateUrl: './detalle-reserva.html',
   styleUrls: ['../../styles/pagina-reserva.css', './detalle-reserva.css'],
 })
@@ -57,6 +65,11 @@ export class DetalleReserva {
     return Math.max(1, Math.ceil(restante / 60_000));
   });
 
+  protected readonly puedeCancelar = computed(() => {
+    const reserva = this.reserva();
+    return !!reserva && cancelable(reserva.estado);
+  });
+
   private readonly resultado = signal<AvisoReserva | null>(null);
 
   protected readonly aviso = computed<AvisoReserva | null>(() => {
@@ -71,9 +84,21 @@ export class DetalleReserva {
   });
   protected readonly procesando = signal(false);
   protected readonly pagoEnProceso = signal(false);
+  protected readonly cancelando = signal(false);
+  protected readonly devolucion = signal<CancelacionReserva | null>(null);
+
+  protected readonly formularioCancelacion = new FormGroup({
+    motivo: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(1000)],
+    }),
+  });
+
+  protected readonly motivo = this.formularioCancelacion.controls.motivo;
 
   protected readonly pesos = formatearPesos;
   protected readonly fechaHora = formatearFechaHora;
+  protected readonly porcentaje = formatearPorcentaje;
 
   constructor() {
     const reloj = setInterval(() => this.ahora.set(Date.now()), 15_000);
@@ -90,6 +115,33 @@ export class DetalleReserva {
         tono: 'info',
         texto: 'Apartamos de nuevo tus fechas. Ya puedes pagar.',
       }),
+    );
+  }
+
+  protected abrirCancelacion(): void {
+    this.cancelando.set(true);
+    this.nueva.set(false);
+    this.resultado.set(null);
+  }
+
+  protected cerrarCancelacion(): void {
+    this.cancelando.set(false);
+    this.motivo.reset();
+  }
+
+  protected cancelar(): void {
+    if (this.motivo.invalid || !this.motivo.value.trim()) {
+      this.motivo.setErrors({ required: true });
+      this.motivo.markAsTouched();
+      return;
+    }
+    this.ejecutar(
+      this.servicio.cancelar(this.idReserva(), this.motivo.value.trim()),
+      (resultado) => {
+        this.cerrarCancelacion();
+        this.devolucion.set(resultado);
+        this.resultado.set({ tono: 'info', texto: resultado.mensaje });
+      },
     );
   }
 

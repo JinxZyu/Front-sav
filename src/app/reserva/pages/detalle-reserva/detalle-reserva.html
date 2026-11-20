@@ -15,6 +15,17 @@
       [filas]="[{ etiqueta: 'Solicitada', valor: fechaHora(reserva.fechaSolicitud) }]"
     />
 
+    @if (devolucion(); as devolucion) {
+      <p class="explicacion">
+        @if (devolucion.valorDevolucion > 0) {
+          Te devolveremos {{ pesos(devolucion.valorDevolucion) }}, el
+          {{ porcentaje(devolucion.porcentajeDevolucion) }} de lo pagado.
+        } @else {
+          Esta cancelación no tiene devolución.
+        }
+      </p>
+    }
+
     @switch (reserva.estado) {
       @case ('PENDIENTE_APROBACION') {
         <p class="explicacion">
@@ -35,9 +46,6 @@
           El plazo para pagar venció y las fechas quedaron libres. Puedes volver a reservar si
           siguen disponibles.
         </p>
-      }
-      @case ('CANCELADA') {
-        <p class="explicacion">Esta reserva fue cancelada.</p>
       }
     }
 
@@ -67,6 +75,41 @@
           {{ procesando() ? 'Apartando…' : 'Apartar fechas' }}
         </button>
       </div>
+    }
+
+    @if (puedeCancelar()) {
+      @if (cancelando()) {
+        <form class="accion" [formGroup]="formularioCancelacion" (ngSubmit)="cancelar()" novalidate>
+          <label for="motivo">¿Por qué cancelas?</label>
+          <textarea
+            id="motivo"
+            rows="3"
+            maxlength="1000"
+            formControlName="motivo"
+            [attr.aria-invalid]="motivo.touched && motivo.invalid"
+            [attr.aria-describedby]="motivo.touched && motivo.invalid ? 'error-motivo' : null"
+          ></textarea>
+          @if (motivo.touched && motivo.invalid) {
+            <span class="error-campo" id="error-motivo">
+              Cuéntanos el motivo de la cancelación.
+            </span>
+          }
+          <p class="nota">
+            La devolución depende de la política de cancelación del alojamiento y de cuánto falte
+            para tu llegada.
+          </p>
+          <div class="botones">
+            <button type="submit" class="peligro" [disabled]="procesando()">
+              {{ procesando() ? 'Cancelando…' : 'Confirmar cancelación' }}
+            </button>
+            <button type="button" class="secundario" (click)="cerrarCancelacion()">Volver</button>
+          </div>
+        </form>
+      } @else {
+        <button type="button" class="enlace cancelar" (click)="abrirCancelacion()">
+          Cancelar reserva
+        </button>
+      }
     }
   } @else if (noEncontrada()) {
     <app-encabezado-reserva

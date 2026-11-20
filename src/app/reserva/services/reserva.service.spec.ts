@@ -56,4 +56,12 @@ describe('ReservaService', () => {
     expect(clave(tercera)).not.toBe(usada);
     tercera.flush({ estadoPago: 'PAGADO' });
   });
+
+  it('cancela con el motivo indicado', () => {
+    servicio.cancelar('r-1', 'Cambio de planes').subscribe();
+    const peticion = backend.expectOne(`${api}/r-1/cancelacion`);
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toEqual({ motivo: 'Cambio de planes' });
+    peticion.flush({});
+  });
 });

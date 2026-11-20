@@ -147,4 +147,46 @@ describe('DetalleReserva del huésped', () => {
     expect(boton('Apartar fechas')).toBeUndefined();
     expect(boton('Pagar $')).toBeDefined();
   });
+
+  it('HU-037 criterio 1: exige el motivo y muestra la devolución', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ estado: 'CONFIRMADA' }));
+
+    boton('Cancelar reserva')!.click();
+    harness.detectChanges();
+    boton('Confirmar cancelación')!.click();
+    harness.detectChanges();
+    expect(elemento().textContent).toContain('Cuéntanos el motivo de la cancelación.');
+    backend.expectNone(`${api}/r-1/cancelacion`);
+
+    const motivo = elemento().querySelector<HTMLTextAreaElement>('textarea')!;
+    motivo.value = '  Cambio de planes ';
+    motivo.dispatchEvent(new Event('input'));
+    boton('Confirmar cancelación')!.click();
+    const peticion = backend.expectOne(`${api}/r-1/cancelacion`);
+    expect(peticion.request.body).toEqual({ motivo: 'Cambio de planes' });
+    peticion.flush({
+      estadoFinal: 'CANCELADA',
+      porcentajeDevolucion: 100,
+      valorDevolucion: 649000,
+      estadoDevolucion: 'PENDIENTE',
+      mensaje: 'La reserva fue cancelada.',
+    });
+    await refrescar();
+    await responder(consulta, reservaPropia({ estado: 'CANCELADA' }));
+
+    expect(aviso()).toBe('La reserva fue cancelada.');
+    expect(elemento().querySelector('.explicacion')?.textContent).toMatch(
+      /Te devolveremos .*649.000, el 100 % de lo pagado/,
+    );
+    expect(boton('Cancelar reserva')).toBeUndefined();
+  });
+
+  it('HU-037 criterio 2: no permite cancelar una reserva cerrada', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ estado: 'RECHAZADA' }));
+
+    expect(elemento().textContent).toContain('No se hizo ningún cobro');
+    expect(boton('Cancelar reserva')).toBeUndefined();
+  });
 });

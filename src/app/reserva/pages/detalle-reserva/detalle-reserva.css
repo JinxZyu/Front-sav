@@ -1,3 +1,49 @@
+.nota {
+  margin: 0;
+  color: #475569;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+label {
+  color: #334155;
+  font-weight: 600;
+}
+
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font: inherit;
+  resize: vertical;
+}
+
+textarea[aria-invalid='true'] {
+  border-color: #fb7185;
+}
+
+.error-campo {
+  color: #e11d48;
+  font-size: 0.82rem;
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+textarea:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.cancelar {
+  color: #be123c;
+}
+
 .cargando {
   height: 14rem;
   border-radius: 1rem;
