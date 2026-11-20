@@ -2,14 +2,13 @@ import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
-import { ImagenPublicacion } from '../../components/imagen-publicacion/imagen-publicacion';
-import { estadoPublicacion } from '../../models/alojamiento.models';
+import { TarjetaPublicacion } from '../../components/tarjeta-publicacion/tarjeta-publicacion';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
-import { formatearFecha, formatearPesos } from '../../utils/formato';
+import { formatearFecha } from '../../utils/formato';
 
 @Component({
   selector: 'app-mis-publicaciones',
-  imports: [RouterLink, ImagenPublicacion],
+  imports: [RouterLink, TarjetaPublicacion],
   templateUrl: './mis-publicaciones.html',
   styleUrl: './mis-publicaciones.css',
 })
@@ -34,8 +33,6 @@ export class MisPublicaciones {
     () => this.consulta.isLoading() && !this.consulta.hasValue(),
   );
 
-  protected readonly estado = estadoPublicacion;
-  protected readonly pesos = formatearPesos;
   protected readonly fecha = formatearFecha;
 
   reintentar(): void {

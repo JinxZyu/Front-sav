@@ -13,7 +13,7 @@
   @if (cargando()) {
     <ul class="lista" aria-busy="true" aria-label="Cargando publicaciones">
       @for (indice of [1, 2, 3]; track indice) {
-        <li class="tarjeta esqueleto" aria-hidden="true">
+        <li class="esqueleto" aria-hidden="true">
           <span class="linea larga"></span>
           <span class="linea"></span>
           <span class="linea corta"></span>
@@ -42,34 +42,12 @@
     <ul class="lista">
       @for (publicacion of publicaciones(); track publicacion.idPublicacion) {
         <li>
-          <a class="tarjeta" [routerLink]="publicacion.idPublicacion">
-            @if (publicacion.imagenPortada) {
-              <app-imagen-publicacion
-                class="foto"
-                [ruta]="publicacion.imagenPortada"
-                [descripcion]="'Portada de ' + publicacion.titulo"
-              />
-            } @else {
-              <span class="foto sin-foto">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></svg>
-                Sin foto
-              </span>
-            }
-            <span class="fila-titulo">
-              <span class="titulo">{{ publicacion.titulo }}</span>
-              <span class="estado" [class]="estado(publicacion.estado).tono">
-                {{ estado(publicacion.estado).etiqueta }}
-              </span>
-            </span>
-            <span class="meta">{{ publicacion.tipoAlojamiento }} · {{ publicacion.ciudad }}</span>
-            <span class="meta">
-              {{ publicacion.capacidad }} {{ publicacion.capacidad === 1 ? 'huésped' : 'huéspedes' }}
-            </span>
-            <span class="pie">
-              <span class="precio">{{ pesos(publicacion.precioPorNoche) }} <small>/ noche</small></span>
-              <span class="fecha">Creada el {{ fecha(publicacion.fechaCreacion) }}</span>
-            </span>
-          </a>
+          <app-tarjeta-publicacion
+            [publicacion]="publicacion"
+            [enlace]="publicacion.idPublicacion"
+            [mostrarEstado]="true"
+            [detalle]="'Creada el ' + fecha(publicacion.fechaCreacion)"
+          />
         </li>
       }
     </ul>

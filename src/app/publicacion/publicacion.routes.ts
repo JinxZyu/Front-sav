@@ -6,4 +6,10 @@ export const PUBLICACION_ROUTES: Routes = [
     title: 'Alojamientos',
     loadComponent: () => import('./pages/catalogo/catalogo').then((m) => m.Catalogo),
   },
+  {
+    path: ':idPublicacion',
+    title: 'Alojamiento',
+    loadComponent: () =>
+      import('./pages/detalle-publico/detalle-publico').then((m) => m.DetallePublico),
+  },
 ];

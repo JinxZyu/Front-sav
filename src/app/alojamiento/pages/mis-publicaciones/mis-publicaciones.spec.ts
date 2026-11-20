@@ -67,7 +67,7 @@ describe('MisPublicaciones (HU-011)', () => {
 
     expect(tarjetas()).toHaveLength(2);
     expect(tarjetas()[0].textContent).toContain('Cabaña frente al lago');
-    expect(tarjetas()[0].textContent).toContain('Cabaña · Guatavita');
+    expect(tarjetas()[0].textContent).toContain('Cabaña en Guatavita');
     expect(tarjetas()[0].textContent).toContain('4 huéspedes');
     expect(tarjetas()[0].textContent).toContain('250.000');
     expect(tarjetas()[0].querySelector('.estado')?.textContent?.trim()).toBe('Borrador');
