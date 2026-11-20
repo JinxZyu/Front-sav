@@ -13,8 +13,10 @@ export class ImagenPublicacion {
   readonly ruta = input.required<string>();
   readonly descripcion = input.required<string>();
 
+  protected readonly externa = computed(() => /^https?:\/\//i.test(this.ruta()));
+
   private readonly archivo = rxResource({
-    params: () => this.ruta(),
+    params: () => (this.externa() ? undefined : this.ruta()),
     stream: ({ params }) => this.servicio.imagen(params),
   });
 

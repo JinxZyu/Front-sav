@@ -7,6 +7,8 @@
     </svg>
     Imagen no disponible
   </span>
+} @else if (externa()) {
+  <img [src]="ruta()" [alt]="descripcion()" loading="lazy" (error)="falloAlMostrar.set(true)" />
 } @else if (url(); as url) {
   <img [src]="url" [alt]="descripcion()" (error)="falloAlMostrar.set(true)" />
 } @else {
