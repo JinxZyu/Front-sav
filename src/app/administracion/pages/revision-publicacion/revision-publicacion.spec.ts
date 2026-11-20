@@ -432,6 +432,42 @@ describe('RevisionPublicacion (HU-014)', () => {
     expect(boton(decision(), 'Aprobar y publicar').disabled).toBe(false);
   });
 
+  it('muestra los cambios que pide el anfitrión con su mensaje', async () => {
+    await abrir();
+    await responder({
+      ...publicacionParaRevisar(),
+      solicitudCambios: {
+        mensaje: 'Remodelamos la cocina y subí fotos nuevas.',
+        campos: ['Fotos', 'Descripción'],
+        estadoAnterior: 'PAUSADA',
+        fechaSolicitud: '2026-11-19T15:00:00Z',
+      },
+    });
+
+    const solicitud = elemento().querySelector('section.solicitud') as HTMLElement;
+    expect(solicitud.querySelector('h2')?.textContent).toContain('Cambios que pide el anfitrión');
+    expect([...solicitud.querySelectorAll('.campos li')].map((li) => li.textContent?.trim())).toEqual([
+      'Fotos',
+      'Descripción',
+    ]);
+    expect(solicitud.querySelector('blockquote')?.textContent).toContain('Remodelamos la cocina');
+    expect(solicitud.textContent).toContain('19 de nov');
+    expect(solicitud.textContent).toContain('Estaba pausada');
+    const decision = elemento().querySelector('section[aria-labelledby="titulo-decision"]') as HTMLElement;
+    expect(decision.textContent).toContain('seguirá pausada como la dejó el anfitrión');
+    expect(decision.textContent).not.toContain('quedará publicada');
+    expect(decision.querySelector('button.principal')?.textContent?.trim()).toBe('Aprobar cambios');
+  });
+
+  it('sin solicitud de cambios no muestra esa sección', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar());
+    expect(elemento().querySelector('section.solicitud')).toBeNull();
+    const decision = elemento().querySelector('section[aria-labelledby="titulo-decision"]') as HTMLElement;
+    expect(decision.textContent).toContain('quedará publicada en el marketplace');
+    expect(decision.querySelector('button.principal')?.textContent?.trim()).toBe('Aprobar y publicar');
+  });
+
   it('avisa si la publicación no existe', async () => {
     await abrir();
     await responder(

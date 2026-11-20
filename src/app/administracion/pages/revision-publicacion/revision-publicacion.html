@@ -34,6 +34,23 @@
 
     <div class="cuerpo">
       <div class="principal-columna">
+        @if (datos.solicitudCambios; as solicitud) {
+          <section class="solicitud" aria-labelledby="titulo-solicitud">
+            <h2 id="titulo-solicitud">Cambios que pide el anfitrión</h2>
+            <p class="nota-solicitud">
+              Editó la publicación el {{ fechaHora(solicitud.fechaSolicitud) }}. Estaba
+              {{ estado(solicitud.estadoAnterior).etiqueta | lowercase }}; si apruebas, vuelve a ese
+              estado.
+            </p>
+            <ul class="campos" aria-label="Campos que cambió">
+              @for (campo of solicitud.campos; track campo) {
+                <li>{{ campo }}</li>
+              }
+            </ul>
+            <blockquote class="mensaje-anfitrion">{{ solicitud.mensaje }}</blockquote>
+          </section>
+        }
+
         <div class="informacion">
           <ul class="espacios" aria-label="Espacios">
             @for (espacio of espacios(datos.publicacion); track $index) {
@@ -130,8 +147,13 @@
               />
             } @else {
               <p class="texto">
-                Si la apruebas quedará publicada en el marketplace. Si la rechazas volverá a
-                borrador para que el anfitrión la corrija.
+                @if (sigueEnPausa()) {
+                  Si apruebas los cambios, la publicación seguirá pausada como la dejó el anfitrión.
+                  Si la rechazas volverá a borrador para que el anfitrión la corrija.
+                } @else {
+                  Si la apruebas quedará publicada en el marketplace. Si la rechazas volverá a
+                  borrador para que el anfitrión la corrija.
+                }
               </p>
               @if (accion() === null && errorAccion()) {
                 <p class="alerta" role="alert">{{ errorAccion() }}</p>
@@ -143,7 +165,13 @@
                   [disabled]="!puedeAprobar()"
                   (click)="aprobar()"
                 >
-                  {{ enviando() && accion() === null ? 'Aprobando…' : 'Aprobar y publicar' }}
+                  @if (enviando() && accion() === null) {
+                    Aprobando…
+                  } @else if (sigueEnPausa()) {
+                    Aprobar cambios
+                  } @else {
+                    Aprobar y publicar
+                  }
                 </button>
                 <button
                   type="button"

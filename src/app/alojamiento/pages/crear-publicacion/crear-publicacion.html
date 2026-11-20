@@ -29,7 +29,8 @@
       <h1 id="titulo-crear">{{ edicion() ? 'Editar publicación' : 'Publicar alojamiento' }}</h1>
       <p class="subtitulo">
         @if (edicion()) {
-          Actualiza la información de tu publicación. Su estado no cambia al guardar.
+          Actualiza la información de tu publicación. Los cambios de precio y condiciones se aplican
+          de inmediato; los de fotos, textos, ubicación o espacios pasan por revisión.
         } @else {
           Completa la información de tu alojamiento. Se guardará como borrador hasta que lo envíes a
           revisión.
@@ -498,6 +499,36 @@
           >
         }
       </fieldset>
+
+      @if (camposEnRevision().length > 0) {
+        <section class="revision-cambios" aria-labelledby="titulo-revision-cambios">
+          <h2 id="titulo-revision-cambios">Estos cambios pasan a revisión</h2>
+          <p>
+            Cambiaste: <strong>{{ camposEnRevision().join(', ') }}</strong>. Un administrador
+            revisará la publicación antes de volver a mostrarla. Mientras tanto no recibirá reservas
+            nuevas, pero las reservas que ya tienes se mantienen igual.
+          </p>
+          <label for="mensaje-cambios">Mensaje para el administrador</label>
+          <textarea
+            id="mensaje-cambios"
+            rows="3"
+            [formControl]="mensajeCambios"
+            [readonly]="enviando()"
+            [class.invalido]="mensajeInvalido()"
+            [attr.aria-invalid]="mensajeInvalido()"
+            aria-describedby="ayuda-mensaje-cambios"
+            [attr.maxlength]="maximoMensaje"
+            placeholder="Ej.: Cambié las fotos porque remodelamos la cocina."
+          ></textarea>
+          <span class="ayuda" id="ayuda-mensaje-cambios" [class.error-campo]="mensajeInvalido()">
+            @if (mensajeInvalido()) {
+              Explica qué cambiaste y por qué.
+            } @else {
+              Cuéntale qué cambiaste y por qué (máximo {{ maximoMensaje }} caracteres).
+            }
+          </span>
+        </section>
+      }
 
       @if (faltantes().length) {
         <div class="resumen-errores" #resumenErrores tabindex="-1" role="alert">

@@ -16,12 +16,13 @@ import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-int
 import {
   AbstractControl,
   FormBuilder,
+  FormControl,
   ReactiveFormsModule,
   ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize, map } from 'rxjs';
+import { finalize, map, merge } from 'rxjs';
 import { PAIS_POR_DEFECTO } from '../../../shared/models/ubicacion.models';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { UbicacionService } from '../../../shared/services/ubicacion.service';
@@ -37,6 +38,8 @@ import {
   DetallePublicacion,
   MODOS_ACEPTACION,
   ModoAceptacion,
+  ESTADOS_CON_REVISION_DE_CAMBIOS,
+  MAXIMO_MENSAJE_CAMBIOS,
   motivoSinEdicion,
   PoliticaCancelacion,
   TIPOS_ALOJAMIENTO,
@@ -190,6 +193,46 @@ export class CrearPublicacion {
     idsServicios: [[] as string[], [cantidadServicios]],
   });
 
+  readonly mensajeCambios = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.maxLength(MAXIMO_MENSAJE_CAMBIOS)],
+  });
+  readonly maximoMensaje = MAXIMO_MENSAJE_CAMBIOS;
+
+  private readonly valores = toSignal(this.formulario.valueChanges, {
+    initialValue: this.formulario.getRawValue(),
+  });
+
+  readonly camposEnRevision = computed(() => {
+    if (!this.edicion() || !this.original.hasValue() || !this.listo()) {
+      return [];
+    }
+    const original = this.original.value();
+    if (!ESTADOS_CON_REVISION_DE_CAMBIOS.includes(original.estado)) {
+      return [];
+    }
+    this.valores();
+    const valores = this.formulario.getRawValue();
+    const fotos = this.imagenes().length > 0;
+    const comparaciones: [string, string | number, string | number][] = [
+      ['Título', original.titulo, valores.titulo],
+      ['Descripción', original.descripcion, valores.descripcion],
+      ['Reglas', original.reglas ?? '', valores.reglas],
+      ['Fotos', '', fotos ? 'nuevas' : ''],
+      ['Ubicación', original.ubicacion, valores.ubicacion],
+      ['Ciudad', original.ciudad, valores.ciudad],
+      ['Tipo de alojamiento', original.tipoAlojamiento, valores.tipoAlojamiento],
+      ['Capacidad', original.capacidad, valores.capacidad],
+      ['Habitaciones', original.habitaciones, valores.habitaciones],
+      ['Camas', original.camas, valores.camas],
+      ['Baños', original.banos, valores.banos],
+    ];
+    const campos = comparaciones
+      .filter(([, antes, ahora]) => String(antes).trim() !== String(ahora).trim())
+      .map(([campo]) => campo);
+    return campos;
+  });
+
   private readonly idPais = toSignal(this.formulario.controls.pais.valueChanges, {
     initialValue: '',
   });
@@ -238,7 +281,7 @@ export class CrearPublicacion {
         untracked(() => this.ubicarCiudadGuardada(guardada, nombres));
       }
     });
-    this.formulario.valueChanges
+    merge(this.formulario.valueChanges, this.mensajeCambios.valueChanges)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.actualizarFaltantes());
     effect(() => {
@@ -319,6 +362,8 @@ export class CrearPublicacion {
       idPolitica: valores.idPolitica,
       idsServicios: valores.idsServicios,
       imagenes: this.imagenes(),
+      mensajeCambios:
+        this.camposEnRevision().length > 0 ? this.mensajeCambios.value.trim() : undefined,
     };
     this.enviando.set(true);
     (idPublicacion ? this.servicio.editar(idPublicacion, datos) : this.servicio.crear(datos))
@@ -330,7 +375,9 @@ export class CrearPublicacion {
         next: (respuesta) => {
           if (idPublicacion) {
             void this.router.navigate(['/alojamientos', idPublicacion], {
-              queryParams: { aviso: 'actualizada' },
+              queryParams: {
+                aviso: respuesta.estado === 'PENDIENTE_REVISION' ? 'en-revision' : 'actualizada',
+              },
               replaceUrl: true,
             });
             return;
@@ -360,7 +407,19 @@ export class CrearPublicacion {
     if (!this.edicion() && this.imagenes().length === 0) {
       faltantes.push('Imágenes');
     }
+    if (this.camposEnRevision().length > 0 && !this.mensajeValido()) {
+      faltantes.push('Mensaje para el administrador');
+    }
     return faltantes;
+  }
+
+  mensajeInvalido(): boolean {
+    return this.intentoEnviar() && this.camposEnRevision().length > 0 && !this.mensajeValido();
+  }
+
+  private mensajeValido(): boolean {
+    const mensaje = this.mensajeCambios.value.trim();
+    return mensaje.length > 0 && mensaje.length <= MAXIMO_MENSAJE_CAMBIOS;
   }
 
   private sinValor(campo: Campo): boolean {
@@ -405,6 +464,7 @@ export class CrearPublicacion {
       idsServicios: detalle.servicios.map((servicio) => servicio.idServicio),
     });
     this.imagenes.set([]);
+    this.mensajeCambios.reset('');
     this.intentoEnviar.set(false);
     this.faltantes.set([]);
     this.error.set(null);

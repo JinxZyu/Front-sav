@@ -43,9 +43,9 @@ export class DetallePublicacion {
     { initialValue: '' },
   );
 
-  protected readonly actualizada = toSignal(
-    this.ruta.queryParamMap.pipe(map((parametros) => parametros.get('aviso') === 'actualizada')),
-    { initialValue: false },
+  protected readonly aviso = toSignal(
+    this.ruta.queryParamMap.pipe(map((parametros) => parametros.get('aviso'))),
+    { initialValue: null },
   );
 
   protected readonly consulta = rxResource({

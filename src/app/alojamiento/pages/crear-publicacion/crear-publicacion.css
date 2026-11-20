@@ -291,3 +291,32 @@ button {
     width: 100%;
   }
 }
+
+.revision-cambios {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.1rem;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 1rem;
+  background: #eef2ff;
+  color: #312e81;
+}
+
+.revision-cambios h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.revision-cambios p {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.revision-cambios label {
+  font-weight: 600;
+}
+
+.ayuda.error-campo {
+  color: #e11d48;
+}

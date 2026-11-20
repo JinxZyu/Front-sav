@@ -1,3 +1,5 @@
+import { PublicacionPublica } from '../../publicacion/models/catalogo.models';
+
 export interface PublicacionAdministrada {
   idPublicacion: string;
   idAlojamiento: string;
@@ -46,8 +48,20 @@ export interface ReservasAfectadas {
   reservas: ReservaAfectada[];
 }
 
+export interface SolicitudCambios {
+  mensaje: string;
+  campos: string[];
+  estadoAnterior: string;
+  fechaSolicitud: string;
+}
+
+export interface PublicacionParaRevision extends PublicacionPublica {
+  solicitudCambios: SolicitudCambios | null;
+}
+
 export const EN_REVISION = 'PENDIENTE_REVISION';
 export const BLOQUEADA = 'BLOQUEADA';
+export const PAUSADA = 'PAUSADA';
 export const BORRADOR = 'BORRADOR';
 
 export const MAXIMO_MOTIVO_PUBLICACION = 2000;

@@ -145,5 +145,8 @@ function comoFormulario(datos: NuevaPublicacion): FormData {
   for (const imagen of datos.imagenes) {
     formulario.append('imagenes', imagen, imagen.name);
   }
+  if (datos.mensajeCambios) {
+    formulario.append('mensajeCambios', datos.mensajeCambios);
+  }
   return formulario;
 }

@@ -1,4 +1,4 @@
-import { TitleCasePipe } from '@angular/common';
+import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -16,7 +16,11 @@ import {
   estadoPublicacion,
   formatearPorcentaje,
 } from '../../../alojamiento/models/alojamiento.models';
-import { formatearEspacios, formatearPesos } from '../../../alojamiento/utils/formato';
+import {
+  formatearEspacios,
+  formatearFechaHora,
+  formatearPesos,
+} from '../../../alojamiento/utils/formato';
 import { estadoDeConsulta } from '../../../reserva/utils/consulta-reserva';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
@@ -26,6 +30,7 @@ import { ReservasAfectadas } from '../../components/reservas-afectadas/reservas-
 import {
   BLOQUEADA,
   EN_REVISION,
+  PAUSADA,
   MAXIMO_MOTIVO_PUBLICACION,
   MODOS_ACEPTACION_ADMINISTRACION,
 } from '../../models/publicacion-administrada.models';
@@ -38,6 +43,7 @@ type Accion = 'rechazar' | 'bloquear' | 'desbloquear';
   imports: [
     RouterLink,
     TitleCasePipe,
+    LowerCasePipe,
     ImagenPublicacion,
     FormularioMotivo,
     ReservasAfectadas,
@@ -79,6 +85,9 @@ export class RevisionPublicacion {
 
   protected readonly enRevision = computed(() => this.datos()?.publicacion.estado === EN_REVISION);
   protected readonly bloqueada = computed(() => this.datos()?.publicacion.estado === BLOQUEADA);
+  protected readonly sigueEnPausa = computed(
+    () => this.datos()?.solicitudCambios?.estadoAnterior === PAUSADA,
+  );
 
   protected readonly accion = linkedSignal<string, Accion | null>({
     source: this.idPublicacion,
@@ -98,6 +107,7 @@ export class RevisionPublicacion {
   protected readonly maximoMotivo = MAXIMO_MOTIVO_PUBLICACION;
   protected readonly estado = estadoPublicacion;
   protected readonly pesos = formatearPesos;
+  protected readonly fechaHora = formatearFechaHora;
   protected readonly porcentaje = formatearPorcentaje;
   protected readonly espacios = formatearEspacios;
 

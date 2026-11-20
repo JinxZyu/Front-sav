@@ -165,12 +165,14 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
   it('criterio 1: guarda los cambios sin exigir imágenes nuevas y vuelve al detalle', async () => {
     await crear();
     componente.formulario.controls.titulo.setValue('  Cabaña renovada ');
+    componente.mensajeCambios.setValue('Renombré la cabaña después de la remodelación.');
     componente.publicar();
 
     const peticion = backend.expectOne(`${api}/publicaciones/p-9`);
     expect(peticion.request.method).toBe('PUT');
     const cuerpo = peticion.request.body as FormData;
     expect(cuerpo.get('titulo')).toBe('Cabaña renovada');
+    expect(cuerpo.get('mensajeCambios')).toBe('Renombré la cabaña después de la remodelación.');
     expect(cuerpo.get('habitaciones')).toBe('2');
     expect(cuerpo.get('camas')).toBe('3');
     expect(cuerpo.getAll('idsServicios')).toEqual(['s-2']);
@@ -194,10 +196,72 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     await fixture.whenStable();
 
     expect(elemento().querySelector('#ayuda-imagenes')?.textContent).toContain('reemplazarán');
+    componente.mensajeCambios.setValue('Subí fotos nuevas.');
     componente.publicar();
     const peticion = backend.expectOne(`${api}/publicaciones/p-9`);
     expect((peticion.request.body as FormData).getAll('imagenes')).toHaveLength(1);
     peticion.flush({});
+  });
+
+  it('al cambiar datos revisados de una publicación activa pide un mensaje y la envía a revisión', async () => {
+    await crear();
+    componente.formulario.controls.capacidad.setValue('6');
+    componente.formulario.controls.ciudad.setValue('Medellín');
+    componente.imagenes.set([new File(['x'], 'nueva.jpg', { type: 'image/jpeg' })]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const seccion = elemento().querySelector('.revision-cambios') as HTMLElement;
+    expect(seccion.textContent).toContain('Estos cambios pasan a revisión');
+    expect(seccion.querySelector('strong')?.textContent).toBe('Fotos, Ciudad, Capacidad');
+    expect(seccion.textContent).toContain('las reservas que ya tienes se mantienen');
+
+    componente.publicar();
+    fixture.detectChanges();
+    backend.expectNone(`${api}/publicaciones/p-9`);
+    expect(componente.faltantes()).toContain('Mensaje para el administrador');
+    expect(seccion.querySelector('textarea')?.getAttribute('aria-invalid')).toBe('true');
+    expect(seccion.textContent).toContain('Explica qué cambiaste y por qué.');
+
+    componente.mensajeCambios.setValue('  Ampliamos la casa y nos mudamos de ciudad.  ');
+    expect(componente.faltantes()).not.toContain('Mensaje para el administrador');
+    componente.publicar();
+    const peticion = backend.expectOne(`${api}/publicaciones/p-9`);
+    expect((peticion.request.body as FormData).get('mensajeCambios')).toBe(
+      'Ampliamos la casa y nos mudamos de ciudad.',
+    );
+    peticion.flush({ idPublicacion: 'p-9', estado: 'PENDIENTE_REVISION', imagenes: [] });
+
+    expect(router.navigate).toHaveBeenCalledWith(['/alojamientos', 'p-9'], {
+      queryParams: { aviso: 'en-revision' },
+      replaceUrl: true,
+    });
+  });
+
+  it('cambiar solo el precio no pide mensaje ni pasa a revisión', async () => {
+    await crear();
+    componente.formulario.controls.precioPorNoche.setValue('99000');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.revision-cambios')).toBeNull();
+    componente.publicar();
+    const peticion = backend.expectOne(`${api}/publicaciones/p-9`);
+    expect((peticion.request.body as FormData).has('mensajeCambios')).toBe(false);
+    peticion.flush({ idPublicacion: 'p-9', estado: 'ACTIVA', imagenes: [] });
+  });
+
+  it('un borrador se edita sin mensaje aunque cambien los datos revisados', async () => {
+    await crear(detalle({ estado: 'BORRADOR' }));
+    componente.formulario.controls.titulo.setValue('Otro título');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.revision-cambios')).toBeNull();
+    componente.publicar();
+    const peticion = backend.expectOne(`${api}/publicaciones/p-9`);
+    expect((peticion.request.body as FormData).has('mensajeCambios')).toBe(false);
+    peticion.flush({ idPublicacion: 'p-9', estado: 'BORRADOR', imagenes: [] });
   });
 
   it('muestra las imágenes actuales de la publicación', async () => {

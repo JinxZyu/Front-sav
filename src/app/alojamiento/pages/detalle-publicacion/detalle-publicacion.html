@@ -5,7 +5,12 @@
   </a>
 
   @if (publicacion(); as publicacion) {
-    @if (actualizada()) {
+    @if (aviso() === 'en-revision') {
+      <p class="aviso" role="status">
+        Guardamos los cambios y los enviamos a revisión. Te avisaremos cuando un administrador los
+        revise; tus reservas actuales siguen igual.
+      </p>
+    } @else if (aviso() === 'actualizada') {
       <p class="aviso" role="status">Guardamos los cambios de tu publicación.</p>
     }
     <header class="cabecera">
