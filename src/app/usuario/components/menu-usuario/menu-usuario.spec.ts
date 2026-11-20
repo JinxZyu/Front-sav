@@ -179,11 +179,17 @@ describe('MenuUsuario (HU-004)', () => {
     ]);
   });
 
-  it('al Huésped no le ofrece publicar', async () => {
+  it('al Huésped le ofrece sus reservas y no publicar', async () => {
     await crear('HUESPED');
     await responderCuenta();
     disparador()?.click();
     await fixture.whenStable();
+
+    const enlaces = [...elemento().querySelectorAll<HTMLAnchorElement>('a.opcion')];
+    expect(enlaces.map((enlace) => enlace.getAttribute('href'))).toEqual([
+      '/usuario/mi-cuenta',
+      '/reservas',
+    ]);
     expect(elemento().textContent).not.toContain('Publicar alojamiento');
   });
 

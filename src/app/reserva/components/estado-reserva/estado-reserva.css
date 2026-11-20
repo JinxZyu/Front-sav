@@ -1,0 +1,25 @@
+:host {
+  flex-shrink: 0;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+:host(.espera) {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+:host(.pago) {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+:host(.confirmada) {
+  background: #d1fae5;
+  color: #065f46;
+}

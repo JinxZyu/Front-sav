@@ -32,3 +32,93 @@ export interface Cotizacion {
   costoAdicionalTotal: number;
   total: number;
 }
+
+export interface SolicitudReserva {
+  idReserva: string;
+  idCotizacion: string;
+  modoAceptacion: string;
+  estado: string;
+  fechaSolicitud: string;
+  retencionHasta: string | null;
+}
+
+export interface RetencionReserva {
+  idReserva: string;
+  estadoReserva: string;
+  monto: number;
+  retencionHasta: string | null;
+  mensaje: string;
+}
+
+export interface PagoReserva {
+  idReserva: string;
+  idPago: string;
+  estadoReserva: string;
+  estadoPago: string;
+  monto: number;
+  retencionHasta: string | null;
+  referenciaPago: string | null;
+  mensaje: string;
+}
+
+export interface ReservaPropia {
+  idReserva: string;
+  idAlojamiento: string;
+  alojamiento: string;
+  fechaEntrada: string;
+  fechaSalida: string;
+  montoTotal: number;
+  estado: string;
+  fechaSolicitud: string;
+  retencionHasta: string | null;
+}
+
+export interface MisReservas {
+  reservas: ReservaPropia[];
+  totalResultados: number;
+  mensaje: string | null;
+}
+
+export interface CancelacionReserva {
+  idReserva: string;
+  estadoFinal: string;
+  fechaCancelacion: string;
+  motivo: string;
+  porcentajeDevolucion: number;
+  valorDevolucion: number;
+  estadoDevolucion: string;
+  mensaje: string;
+}
+
+export interface AvisoReserva {
+  tono: 'exito' | 'info' | 'error';
+  texto: string;
+}
+
+export interface EstadoReserva {
+  etiqueta: string;
+  tono: 'espera' | 'pago' | 'confirmada' | 'cerrada';
+}
+
+const ESTADOS_RESERVA: Record<string, EstadoReserva> = {
+  PENDIENTE_APROBACION: { etiqueta: 'Esperando aprobación', tono: 'espera' },
+  PENDIENTE_PAGO: { etiqueta: 'Pendiente de pago', tono: 'pago' },
+  CONFIRMADA: { etiqueta: 'Confirmada', tono: 'confirmada' },
+  RECHAZADA: { etiqueta: 'Rechazada', tono: 'cerrada' },
+  EXPIRADA: { etiqueta: 'Vencida', tono: 'cerrada' },
+  CANCELADA: { etiqueta: 'Cancelada', tono: 'cerrada' },
+};
+
+const ESTADOS_CANCELABLES = ['PENDIENTE_APROBACION', 'PENDIENTE_PAGO', 'CONFIRMADA'];
+
+export function estadoReserva(estado: string): EstadoReserva {
+  return ESTADOS_RESERVA[estado] ?? { etiqueta: estado, tono: 'cerrada' };
+}
+
+export function cancelable(estado: string): boolean {
+  return ESTADOS_CANCELABLES.includes(estado);
+}
+
+export function retencionVigente(retencionHasta: string | null, ahora = Date.now()): boolean {
+  return !!retencionHasta && new Date(retencionHasta).getTime() > ahora;
+}

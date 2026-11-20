@@ -8,6 +8,9 @@
     } @else {
       <a routerLink="/publicaciones" routerLinkActive="activo">Alojamientos</a>
     }
+    @if (sesion.tieneRol('HUESPED')) {
+      <a routerLink="/reservas" routerLinkActive="activo" class="opcional">Mis reservas</a>
+    }
     @if (sesion.autenticado()) {
       <app-menu-usuario />
     } @else {

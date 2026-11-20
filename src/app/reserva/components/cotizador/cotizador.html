@@ -126,4 +126,32 @@
       <dd>{{ pesos(cotizacion.total) }}</dd>
     </div>
   </dl>
+
+  @if (!sesion.autenticado()) {
+    <button type="button" class="principal" (click)="iniciarSesion()">
+      Inicia sesión para reservar
+    </button>
+  } @else if (sesion.tieneRol('HUESPED')) {
+    <button
+      type="button"
+      class="principal"
+      [disabled]="reservando()"
+      (click)="reservar(cotizacion)"
+    >
+      @if (reservando()) {
+        Enviando…
+      } @else {
+        {{ requiereAprobacion() ? 'Solicitar reserva' : 'Reservar' }}
+      }
+    </button>
+  } @else {
+    <p class="nota">Para reservar necesitas una cuenta de huésped.</p>
+  }
+  <p class="nota">
+    @if (requiereAprobacion()) {
+      Aún no se hace ningún cobro. El anfitrión tiene 24 horas para responder tu solicitud.
+    } @else {
+      Apartamos las fechas por 20 minutos mientras completas el pago.
+    }
+  </p>
 }

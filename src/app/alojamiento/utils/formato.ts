@@ -10,6 +10,21 @@ const FECHA = new Intl.DateTimeFormat('es-CO', {
   year: 'numeric',
 });
 
+const FECHA_HORA = new Intl.DateTimeFormat('es-CO', {
+  day: 'numeric',
+  month: 'short',
+  hour: 'numeric',
+  minute: '2-digit',
+});
+
+export function formatearFechaHora(valor: string | null): string {
+  if (!valor) {
+    return '';
+  }
+  const fecha = new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? '' : FECHA_HORA.format(fecha);
+}
+
 export function formatearPesos(valor: number): string {
   return PESOS.format(valor);
 }

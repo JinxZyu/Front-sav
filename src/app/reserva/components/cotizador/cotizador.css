@@ -145,3 +145,10 @@ legend {
   font-size: 1rem;
   font-weight: 800;
 }
+
+.nota {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.82rem;
+  text-align: center;
+}

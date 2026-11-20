@@ -1,0 +1,25 @@
+dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 1.2rem;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+dt {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+dd {
+  margin: 0.2rem 0 0;
+  color: #1e1b4b;
+  font-weight: 600;
+}
+
+.total {
+  font-weight: 800;
+}

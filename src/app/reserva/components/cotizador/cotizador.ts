@@ -1,16 +1,28 @@
-import { Component, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subscription, finalize } from 'rxjs';
+import { Router } from '@angular/router';
+import { Subscription, catchError, finalize, map, of, switchMap } from 'rxjs';
 import {
   DetallePublicacion,
   ServicioAdicional,
   formatearPorcentaje,
 } from '../../../alojamiento/models/alojamiento.models';
 import { formatearPesos } from '../../../alojamiento/utils/formato';
+import { SesionService } from '../../../config/auth/sesion.service';
+import { INICIO_SIN_SESION } from '../../../config/rutas';
 import { desdeHoy, hoy, moverDias, rangoValido } from '../../../disponibilidad/utils/fechas';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
-import { Cotizacion } from '../../models/reserva.models';
+import { Cotizacion, SolicitudReserva } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
 
 const ENTERO = /^\d+$/;
@@ -24,6 +36,8 @@ const VALIDADORES_HUESPEDES = [Validators.required, Validators.min(1), Validator
 })
 export class Cotizador {
   private readonly servicio = inject(ReservaService);
+  private readonly router = inject(Router);
+  protected readonly sesion = inject(SesionService);
 
   readonly publicacion = input.required<DetallePublicacion>();
   readonly adicionales = input<ServicioAdicional[]>([]);
@@ -35,6 +49,11 @@ export class Cotizador {
   protected readonly cotizacion = signal<Cotizacion | null>(null);
   protected readonly calculando = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly reservando = signal(false);
+
+  protected readonly requiereAprobacion = computed(
+    () => this.publicacion().modoAceptacion === 'APROBACION',
+  );
 
   protected readonly formulario = inject(FormBuilder).nonNullable.group(
     {
@@ -51,12 +70,16 @@ export class Cotizador {
   protected readonly moverDias = moverDias;
 
   private solicitud: Subscription | null = null;
+  private activo = true;
 
   constructor() {
     this.formulario.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.descartarCotizacion());
-    inject(DestroyRef).onDestroy(() => this.solicitud?.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.activo = false;
+      this.solicitud?.unsubscribe();
+    });
     effect(() => {
       const capacidad = this.publicacion().capacidad;
       const busqueda = {
@@ -132,5 +155,50 @@ export class Cotizador {
         error: (error: unknown) =>
           this.error.set(mensajeDeError(error, 'No pudimos calcular el precio.')),
       });
+  }
+
+  protected iniciarSesion(): void {
+    const { llegada, salida, huespedes } = this.formulario.getRawValue();
+    const destino = this.router.createUrlTree(
+      ['/publicaciones', this.publicacion().idPublicacion],
+      {
+        queryParams: { llegada, salida, huespedes },
+      },
+    );
+    void this.router.navigate([INICIO_SIN_SESION], {
+      queryParams: { volverA: this.router.serializeUrl(destino) },
+    });
+  }
+
+  protected reservar(cotizacion: Cotizacion): void {
+    this.reservando.set(true);
+    this.error.set(null);
+    this.servicio
+      .solicitar(cotizacion.idCotizacion)
+      .pipe(
+        switchMap((solicitud) => this.apartarSiCorresponde(solicitud)),
+        finalize(() => this.reservando.set(false)),
+      )
+      .subscribe({
+        next: (solicitud) => {
+          if (this.activo) {
+            void this.router.navigate(['/reservas', solicitud.idReserva], {
+              queryParams: { aviso: 'nueva' },
+            });
+          }
+        },
+        error: (error: unknown) =>
+          this.error.set(mensajeDeError(error, 'No pudimos crear tu reserva.')),
+      });
+  }
+
+  private apartarSiCorresponde(solicitud: SolicitudReserva) {
+    if (solicitud.estado !== 'PENDIENTE_PAGO') {
+      return of(solicitud);
+    }
+    return this.servicio.retener(solicitud.idReserva).pipe(
+      map(() => solicitud),
+      catchError(() => of(solicitud)),
+    );
   }
 }
