@@ -27,6 +27,24 @@ export function hoy(): string {
   return comoDia(new Date());
 }
 
+export function moverDias(dia: string, cantidad: number): string {
+  const fecha = comoFecha(dia);
+  if (!fecha) {
+    return dia;
+  }
+  fecha.setDate(fecha.getDate() + cantidad);
+  return comoDia(fecha);
+}
+
+export function unAnioDespues(dia: string): string {
+  const fecha = comoFecha(dia);
+  if (!fecha) {
+    return dia;
+  }
+  fecha.setFullYear(fecha.getFullYear() + 1);
+  return comoDia(fecha);
+}
+
 export function formatearDia(dia: string): string {
   const fecha = comoFecha(dia);
   return fecha ? FORMATO_DIA.format(fecha) : dia;

@@ -7,7 +7,7 @@
 fieldset {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 0.75rem;
   margin: 0;
   padding: 0;
@@ -21,6 +21,11 @@ label {
   color: #334155;
   font-size: 0.85rem;
   font-weight: 600;
+  line-height: 1.25;
+}
+
+fieldset > button {
+  margin-top: calc(0.85rem * 1.25 + 0.3rem);
 }
 
 input {
@@ -59,6 +64,7 @@ input:focus-visible {
 }
 
 .error-campo {
+  max-width: 14rem;
   color: #e11d48;
   font-size: 0.8rem;
 }

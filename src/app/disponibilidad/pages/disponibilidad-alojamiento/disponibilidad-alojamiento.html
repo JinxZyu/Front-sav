@@ -87,6 +87,14 @@
           {{ procesando() ? 'Guardando…' : 'Agregar periodo' }}
         </button>
       </fieldset>
+      <label class="sin-cierre">
+        <input type="checkbox" [formControl]="sinCierre" />
+        Sin fecha de cierre: queda disponible un año desde la llegada y puedes cambiarlo cuando
+        quieras.
+      </label>
+      @if (resumenNuevo(); as resumen) {
+        <p class="nota resumen" role="status">{{ resumen }}</p>
+      }
     </form>
 
     <ng-template #mensajes>
