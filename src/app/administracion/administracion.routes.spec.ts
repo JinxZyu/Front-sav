@@ -33,7 +33,29 @@ describe('rutas de administración', () => {
       '/administracion/usuarios',
       '/administracion/publicaciones',
       '/administracion/tarifas',
+      '/administracion/reportes',
     ]);
+  });
+
+  it('un reporte abierto desde una notificación queda dentro de la sección de reportes', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([{ path: 'administracion', children: ADMINISTRACION_ROUTES }]),
+      ],
+    });
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/administracion/reportes/e-1');
+    TestBed.inject(HttpTestingController)
+      .expectOne((peticion) => peticion.url.endsWith('/administracion/reportes/exportaciones/e-1'))
+      .flush({});
+
+    const elemento = harness.routeNativeElement as HTMLElement;
+    expect(elemento.querySelector('nav a[aria-current="page"]')?.textContent?.trim()).toBe(
+      'Reportes',
+    );
+    expect(elemento.querySelector('app-reportes')).not.toBeNull();
   });
 
   it('cada sección carga su página', async () => {

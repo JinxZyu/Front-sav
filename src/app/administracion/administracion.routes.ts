@@ -45,6 +45,16 @@ export const ADMINISTRACION_ROUTES: Routes = [
             (m) => m.ConfiguracionTarifas,
           ),
       },
+      {
+        path: 'reportes',
+        title: 'Reportes',
+        loadComponent: () => import('./pages/reportes/reportes').then((m) => m.Reportes),
+      },
+      {
+        path: 'reportes/:idExportacion',
+        title: 'Reportes',
+        loadComponent: () => import('./pages/reportes/reportes').then((m) => m.Reportes),
+      },
     ],
   },
 ];

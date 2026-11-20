@@ -4,7 +4,8 @@ import { estadoReserva } from '../../reserva/models/reserva.models';
 
 const ESTADOS_PUBLICACION = ['BORRADOR', 'PENDIENTE_REVISION', 'ACTIVA', 'PAUSADA', 'BLOQUEADA'];
 const MODOS = ['INMEDIATA', 'APROBACION'];
-const IDENTIFICADOR = / [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
+const IDENTIFICADOR =
+  /(?: Identificador:)? [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
 const FECHA_ISO = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})/g;
 const CODIGO = /\b[A-Z][A-Z_]{3,}\b/g;
 
