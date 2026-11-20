@@ -22,13 +22,14 @@ import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { FormularioMotivo } from '../../components/formulario-motivo/formulario-motivo';
 import {
+  BLOQUEADA,
   EN_REVISION,
   MAXIMO_MOTIVO_PUBLICACION,
   MODOS_ACEPTACION_ADMINISTRACION,
 } from '../../models/publicacion-administrada.models';
 import { GestionPublicacionesService } from '../../services/gestion-publicaciones.service';
 
-type Accion = 'rechazar';
+type Accion = 'rechazar' | 'bloquear' | 'desbloquear';
 
 @Component({
   selector: 'app-revision-publicacion',
@@ -68,6 +69,7 @@ export class RevisionPublicacion {
   );
 
   protected readonly enRevision = computed(() => this.datos()?.publicacion.estado === EN_REVISION);
+  protected readonly bloqueada = computed(() => this.datos()?.publicacion.estado === BLOQUEADA);
 
   protected readonly accion = linkedSignal<string, Accion | null>({
     source: this.idPublicacion,
@@ -132,6 +134,22 @@ export class RevisionPublicacion {
       (id) => this.servicio.rechazar(id, motivo),
       'Publicación rechazada',
       'No pudimos rechazar la publicación.',
+    );
+  }
+
+  protected bloquear(motivo: string): void {
+    this.ejecutar(
+      (id) => this.servicio.bloquear(id, motivo),
+      'Publicación bloqueada',
+      'No pudimos bloquear la publicación.',
+    );
+  }
+
+  protected desbloquear(motivo: string): void {
+    this.ejecutar(
+      (id) => this.servicio.desbloquear(id, motivo),
+      'Publicación desbloqueada',
+      'No pudimos desbloquear la publicación.',
     );
   }
 

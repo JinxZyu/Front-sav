@@ -143,13 +143,64 @@
               </div>
             }
           </section>
-        } @else {
-          <section class="panel" aria-label="Decisión">
-            <p class="texto">
-              Esta publicación no está en revisión, así que no hay nada que decidir.
-            </p>
-          </section>
         }
+
+        <section class="panel" aria-labelledby="titulo-moderacion">
+          <h2 id="titulo-moderacion">Moderación</h2>
+          @if (accion() === 'bloquear') {
+            <app-formulario-motivo
+              etiqueta="Motivo del bloqueo"
+              accion="Bloquear publicación"
+              accionEnCurso="Bloqueando…"
+              [maximo]="maximoMotivo"
+              [enviando]="enviando()"
+              [error]="errorAccion()"
+              (confirmar)="bloquear($event)"
+              (cancelar)="cerrar()"
+            />
+          } @else if (accion() === 'desbloquear') {
+            <app-formulario-motivo
+              etiqueta="Motivo del desbloqueo"
+              accion="Desbloquear publicación"
+              accionEnCurso="Desbloqueando…"
+              [maximo]="maximoMotivo"
+              [enviando]="enviando()"
+              [error]="errorAccion()"
+              (confirmar)="desbloquear($event)"
+              (cancelar)="cerrar()"
+            />
+          } @else if (bloqueada()) {
+            <p class="texto">
+              Está bloqueada y nadie puede reservarla. Si la desbloqueas quedará pausada y el
+              anfitrión decidirá cuándo reactivarla.
+            </p>
+            <div class="botones">
+              <button
+                type="button"
+                class="secundario"
+                [disabled]="ocupado()"
+                (click)="abrir('desbloquear')"
+              >
+                Desbloquear
+              </button>
+            </div>
+          } @else {
+            <p class="texto">
+              Si incumple las condiciones de la plataforma puedes bloquearla. Las reservas que ya
+              tenga se conservan para revisarlas.
+            </p>
+            <div class="botones">
+              <button
+                type="button"
+                class="secundario peligro-texto"
+                [disabled]="ocupado()"
+                (click)="abrir('bloquear')"
+              >
+                Bloquear publicación
+              </button>
+            </div>
+          }
+        </section>
       </div>
     </div>
   } @else if (noEncontrada()) {

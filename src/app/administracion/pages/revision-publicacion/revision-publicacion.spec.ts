@@ -38,6 +38,15 @@ describe('RevisionPublicacion (HU-014)', () => {
   const elemento = () => harness.routeNativeElement as HTMLElement;
   const decision = () =>
     elemento().querySelector('section[aria-labelledby="titulo-decision"]') as HTMLElement;
+  const moderacion = () =>
+    elemento().querySelector('section[aria-labelledby="titulo-moderacion"]') as HTMLElement;
+  const escribirMotivo = (contenedor: HTMLElement, texto: string) => {
+    const campo = contenedor.querySelector('textarea') as HTMLTextAreaElement;
+    campo.value = texto;
+    campo.dispatchEvent(new Event('input'));
+    contenedor.querySelector('form')?.dispatchEvent(new Event('submit'));
+    refrescar();
+  };
   const boton = (contenedor: HTMLElement, texto: string) =>
     [...contenedor.querySelectorAll<HTMLButtonElement>('button')].find((item) =>
       item.textContent?.trim().startsWith(texto),
@@ -180,7 +189,6 @@ describe('RevisionPublicacion (HU-014)', () => {
 
     expect(decision()).toBeNull();
     expect(elemento().textContent).not.toContain('Aprobar y publicar');
-    expect(elemento().textContent).toContain('no está en revisión');
   });
 
   it('criterio 5: informa por qué no se pudo aprobar', async () => {
@@ -225,6 +233,95 @@ describe('RevisionPublicacion (HU-014)', () => {
     expect(decision().querySelector('form [role="alert"]')?.textContent).toContain(
       'Solamente puedes rechazar publicaciones en revisión.',
     );
+  });
+
+  it('HU-017 criterio 1: bloquea la publicación con su motivo', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar('ACTIVA'));
+    const mostrar = vi.spyOn(TestBed.inject(AvisosService), 'mostrar');
+
+    expect(moderacion().textContent).toContain('Las reservas que ya tenga se conservan');
+    boton(moderacion(), 'Bloquear publicación').click();
+    refrescar();
+    expect(moderacion().querySelector('label')?.textContent).toContain('Motivo del bloqueo');
+    escribirMotivo(moderacion(), 'Información engañosa sobre la ubicación');
+
+    const peticion = backend.expectOne(`${api}/p-1/bloquear`);
+    expect(peticion.request.method).toBe('PATCH');
+    expect(peticion.request.body).toEqual({ motivo: 'Información engañosa sobre la ubicación' });
+    peticion.flush({ estadoActual: 'BLOQUEADA', mensaje: 'La publicación ha sido bloqueada.' });
+    refrescar();
+
+    expect(mostrar).toHaveBeenCalledWith(
+      'Publicación bloqueada',
+      'La publicación ha sido bloqueada.',
+    );
+    await responder(publicacionParaRevisar('BLOQUEADA'));
+    expect(elemento().querySelector('.encabezado')?.textContent).toContain('Bloqueada');
+    expect(moderacion().textContent).toContain('nadie puede reservarla');
+    expect(boton(moderacion(), 'Desbloquear')).toBeDefined();
+  });
+
+  it('HU-017 criterio 5: desbloquea la publicación con su motivo y queda pausada', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar('BLOQUEADA'));
+    const mostrar = vi.spyOn(TestBed.inject(AvisosService), 'mostrar');
+
+    expect(moderacion().textContent).toContain('quedará pausada');
+    boton(moderacion(), 'Desbloquear').click();
+    refrescar();
+    expect(moderacion().querySelector('label')?.textContent).toContain('Motivo del desbloqueo');
+    escribirMotivo(moderacion(), 'El anfitrión corrigió la información');
+
+    const peticion = backend.expectOne(`${api}/p-1/desbloquear`);
+    expect(peticion.request.body).toEqual({ motivo: 'El anfitrión corrigió la información' });
+    peticion.flush({ estadoActual: 'PAUSADA', mensaje: 'La publicación ha sido desbloqueada.' });
+    refrescar();
+
+    expect(mostrar).toHaveBeenCalledWith(
+      'Publicación desbloqueada',
+      'La publicación ha sido desbloqueada.',
+    );
+    await responder(publicacionParaRevisar('PAUSADA'));
+    expect(elemento().querySelector('.encabezado')?.textContent).toContain('Pausada');
+    expect(boton(moderacion(), 'Bloquear publicación')).toBeDefined();
+  });
+
+  it('HU-017: el error del bloqueo se muestra solo en su formulario', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar());
+
+    boton(moderacion(), 'Bloquear publicación').click();
+    refrescar();
+    escribirMotivo(moderacion(), 'Fraude');
+    backend
+      .expectOne(`${api}/p-1/bloquear`)
+      .flush(
+        { mensaje: 'La publicación ya se encuentra BLOQUEADA.' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    refrescar();
+
+    expect(moderacion().querySelector('form [role="alert"]')?.textContent).toContain(
+      'La publicación ya se encuentra BLOQUEADA.',
+    );
+    expect(decision().querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('HU-017: abrir el bloqueo cierra el formulario de rechazo', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar());
+
+    boton(decision(), 'Rechazar').click();
+    refrescar();
+    boton(moderacion(), 'Bloquear publicación').click();
+    refrescar();
+
+    expect(decision().querySelector('form')).toBeNull();
+    expect(moderacion().querySelector('form')).not.toBeNull();
+    boton(moderacion(), 'Cancelar').click();
+    refrescar();
+    expect(moderacion().querySelector('form')).toBeNull();
   });
 
   it('al cambiar de publicación descarta el envío pendiente de la anterior', async () => {
