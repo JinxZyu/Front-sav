@@ -34,7 +34,12 @@ describe('Catalogo (HU-024)', () => {
     ...cambios,
   });
 
-  const abrir = async (url = '/publicaciones') => {
+  const listaServicios = [
+    { idServicio: 's-1', nombre: 'Wifi', descripcion: null },
+    { idServicio: 's-2', nombre: 'Piscina', descripcion: null },
+  ];
+
+  const abrir = async (url = '/publicaciones', fallanServicios = false) => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -44,10 +49,11 @@ describe('Catalogo (HU-024)', () => {
     });
     backend = TestBed.inject(HttpTestingController);
     harness = await RouterTestingHarness.create(url);
-    backend.expectOne(servicios).flush([
-      { idServicio: 's-1', nombre: 'Wifi', descripcion: null },
-      { idServicio: 's-2', nombre: 'Piscina', descripcion: null },
-    ]);
+    if (fallanServicios) {
+      backend.expectOne(servicios).flush(null, { status: 500, statusText: 'Error' });
+    } else {
+      backend.expectOne(servicios).flush(listaServicios);
+    }
   };
 
   const esperarBusqueda = () => backend.expectOne((peticion) => peticion.url === busqueda);
@@ -189,5 +195,55 @@ describe('Catalogo (HU-024)', () => {
     boton('Reintentar').click();
     await refrescar();
     esperarBusqueda().flush(pagina());
+  });
+
+  it('envía un precio máximo de cero y omite los campos vacíos', async () => {
+    await abrir();
+    esperarBusqueda().flush(pagina());
+    await refrescar();
+
+    escribir('input[formcontrolname="precioMinimo"]', '0');
+    escribir('input[formcontrolname="precioMaximo"]', '0');
+    boton('Buscar').click();
+    await refrescar();
+
+    expect(TestBed.inject(Router).url).toBe('/publicaciones?min=0&max=0');
+    const params = esperarBusqueda().request.params;
+    expect(params.get('precioMinimo')).toBe('0');
+    expect(params.get('precioMaximo')).toBe('0');
+    expect(params.has('ciudad')).toBe(false);
+  });
+
+  it('limpiar borra lo escrito aunque aún no se haya buscado', async () => {
+    await abrir();
+    esperarBusqueda().flush(pagina());
+    await refrescar();
+
+    escribir('input[formcontrolname="ciudad"]', 'Cali');
+    campo<HTMLInputElement>('.servicio input').click();
+    boton('Limpiar filtros').click();
+    await refrescar();
+
+    expect(campo<HTMLInputElement>('input[formcontrolname="ciudad"]').value).toBe('');
+    expect(elemento().querySelectorAll('.servicio.marcado').length).toBe(0);
+    expect(TestBed.inject(Router).url).toBe('/publicaciones');
+  });
+
+  it('permite reintentar la carga de los servicios sin afectar la búsqueda', async () => {
+    await abrir('/publicaciones', true);
+    esperarBusqueda().flush(pagina());
+    await refrescar();
+
+    expect(elemento().querySelector('.aviso-servicios')?.textContent).toContain(
+      'No pudimos cargar los servicios',
+    );
+    expect(elemento().querySelectorAll('a.tarjeta').length).toBe(1);
+    elemento().querySelector<HTMLButtonElement>('.aviso-servicios button')!.click();
+    await refrescar();
+    backend.expectOne(servicios).flush(listaServicios);
+    await refrescar();
+
+    expect(elemento().querySelector('.aviso-servicios')).toBeNull();
+    expect(elemento().querySelectorAll('.servicio').length).toBe(2);
   });
 });

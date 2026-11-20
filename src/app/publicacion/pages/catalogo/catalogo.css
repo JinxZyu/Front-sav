@@ -64,6 +64,12 @@ input[aria-invalid='true'] {
   border-color: #fb7185;
 }
 
+.aviso-servicios {
+  margin: 0;
+  color: #be123c;
+  font-size: 0.85rem;
+}
+
 .error-campo {
   color: #e11d48;
   font-size: 0.8rem;

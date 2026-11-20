@@ -65,7 +65,12 @@
         <span class="error-campo" id="error-precios">Debe ser mayor o igual al mínimo.</span>
       }
     </label>
-    @if (servicios.hasValue() && servicios.value().length) {
+    @if (servicios.status() === 'error') {
+      <p class="ancha aviso-servicios" role="alert">
+        No pudimos cargar los servicios para filtrar.
+        <button type="button" class="enlace" (click)="servicios.reload()">Reintentar</button>
+      </p>
+    } @else if (servicios.hasValue() && servicios.value().length) {
       <fieldset class="ancha servicios">
         <legend>Servicios incluidos</legend>
         @for (servicioDisponible of servicios.value(); track servicioDisponible.idServicio) {

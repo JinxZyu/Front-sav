@@ -18,6 +18,20 @@ import { CatalogoService } from '../../services/catalogo.service';
 
 const PATRON_ENTERO = /^\d*$/;
 
+const FILTROS_VACIOS = {
+  ciudad: '',
+  llegada: '',
+  salida: '',
+  huespedes: '',
+  tipo: '',
+  precioMinimo: '',
+  precioMaximo: '',
+  servicios: [] as string[],
+};
+
+const comoParametro = (valor: string | number | null): string | null =>
+  valor === null || String(valor).trim() === '' ? null : String(valor).trim();
+
 const preciosEnOrden = (grupo: AbstractControl): ValidationErrors | null => {
   const minimo = String(grupo.get('precioMinimo')?.value ?? '');
   const maximo = String(grupo.get('precioMaximo')?.value ?? '');
@@ -66,14 +80,11 @@ export class Catalogo {
 
   readonly formulario = inject(FormBuilder).nonNullable.group(
     {
-      ciudad: [''],
-      llegada: [''],
-      salida: [''],
+      ...FILTROS_VACIOS,
       huespedes: ['', [Validators.pattern(PATRON_ENTERO), Validators.min(1)]],
-      tipo: [''],
       precioMinimo: ['', [Validators.pattern(PATRON_ENTERO)]],
       precioMaximo: ['', [Validators.pattern(PATRON_ENTERO)]],
-      servicios: [[] as string[]],
+      servicios: [FILTROS_VACIOS.servicios],
     },
     { validators: [rangoValido('llegada', 'salida'), preciosEnOrden] },
   );
@@ -128,19 +139,20 @@ export class Catalogo {
     const valores = this.formulario.getRawValue();
     void this.router.navigate([], {
       queryParams: {
-        ciudad: valores.ciudad.trim() || null,
-        llegada: valores.llegada || null,
-        salida: valores.salida || null,
-        huespedes: valores.huespedes || null,
-        tipo: valores.tipo || null,
-        min: valores.precioMinimo || null,
-        max: valores.precioMaximo || null,
-        servicios: valores.servicios.join(',') || null,
+        ciudad: comoParametro(valores.ciudad),
+        llegada: comoParametro(valores.llegada),
+        salida: comoParametro(valores.salida),
+        huespedes: comoParametro(valores.huespedes),
+        tipo: comoParametro(valores.tipo),
+        min: comoParametro(valores.precioMinimo),
+        max: comoParametro(valores.precioMaximo),
+        servicios: comoParametro(valores.servicios.join(',')),
       },
     });
   }
 
   limpiar(): void {
+    this.formulario.reset(FILTROS_VACIOS);
     void this.router.navigate([], { queryParams: {} });
   }
 
