@@ -71,6 +71,7 @@ export interface ResumenPublicacion {
   precioPorNoche: number;
   estado: string;
   fechaCreacion: string;
+  imagenPortada?: string | null;
 }
 
 export interface MisPublicaciones {

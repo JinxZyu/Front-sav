@@ -2,13 +2,14 @@ import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import { ImagenPublicacion } from '../../components/imagen-publicacion/imagen-publicacion';
 import { estadoPublicacion } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
 import { formatearFecha, formatearPesos } from '../../utils/formato';
 
 @Component({
   selector: 'app-mis-publicaciones',
-  imports: [RouterLink],
+  imports: [RouterLink, ImagenPublicacion],
   templateUrl: './mis-publicaciones.html',
   styleUrl: './mis-publicaciones.css',
 })
