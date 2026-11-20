@@ -1,8 +1,17 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  signal,
+  untracked,
+} from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, finalize, map } from 'rxjs';
+import { Observable, Subscription, finalize, map } from 'rxjs';
 import { formatearPorcentaje } from '../../../alojamiento/models/alojamiento.models';
 import { formatearFechaHora, formatearPesos } from '../../../alojamiento/utils/formato';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
@@ -33,7 +42,13 @@ export class DetalleReserva {
     { initialValue: '' },
   );
 
-  private readonly nueva = signal(this.ruta.snapshot.queryParamMap.get('aviso') === 'nueva');
+  private readonly avisoNueva = this.ruta.snapshot.queryParamMap.get('aviso') === 'nueva';
+  private operacion: Subscription | null = null;
+
+  private readonly nueva = linkedSignal<string, boolean>({
+    source: this.idReserva,
+    computation: (_id, previo) => !previo && this.avisoNueva,
+  });
 
   protected readonly consulta = rxResource({
     params: () => this.idReserva() || undefined,
@@ -70,7 +85,10 @@ export class DetalleReserva {
     return !!reserva && cancelable(reserva.estado);
   });
 
-  private readonly resultado = signal<AvisoReserva | null>(null);
+  private readonly resultado = linkedSignal<string, AvisoReserva | null>({
+    source: this.idReserva,
+    computation: () => null,
+  });
 
   protected readonly aviso = computed<AvisoReserva | null>(() => {
     const resultado = this.resultado();
@@ -82,10 +100,20 @@ export class DetalleReserva {
       ? { tono: 'exito', texto: 'Enviamos tu solicitud al anfitrión.' }
       : { tono: 'exito', texto: 'Creamos tu reserva.' };
   });
-  protected readonly procesando = signal(false);
-  protected readonly pagoEnProceso = signal(false);
-  protected readonly cancelando = signal(false);
-  protected readonly devolucion = signal<CancelacionReserva | null>(null);
+  private readonly operando = linkedSignal({ source: this.idReserva, computation: () => false });
+  protected readonly procesando = computed(() => this.operando() || this.consulta.isLoading());
+  protected readonly pagoEnProceso = linkedSignal({
+    source: this.idReserva,
+    computation: () => false,
+  });
+  protected readonly cancelando = linkedSignal({
+    source: this.idReserva,
+    computation: () => false,
+  });
+  protected readonly devolucion = linkedSignal<string, CancelacionReserva | null>({
+    source: this.idReserva,
+    computation: () => null,
+  });
 
   protected readonly formularioCancelacion = new FormGroup({
     motivo: new FormControl('', {
@@ -102,10 +130,23 @@ export class DetalleReserva {
 
   constructor() {
     const reloj = setInterval(() => this.ahora.set(Date.now()), 15_000);
-    inject(DestroyRef).onDestroy(() => clearInterval(reloj));
+    inject(DestroyRef).onDestroy(() => {
+      clearInterval(reloj);
+      this.operacion?.unsubscribe();
+    });
+    effect(() => {
+      this.idReserva();
+      untracked(() => {
+        this.operacion?.unsubscribe();
+        this.formularioCancelacion.reset();
+      });
+    });
   }
 
   protected pagar(): void {
+    if (this.procesando() || !this.apartada()) {
+      return;
+    }
     this.ejecutar(this.servicio.pagar(this.idReserva()), (pago) => this.alPagar(pago));
   }
 
@@ -164,14 +205,18 @@ export class DetalleReserva {
   }
 
   private ejecutar<T>(operacion: Observable<T>, alTerminar: (respuesta: T) => void): void {
-    this.procesando.set(true);
+    const idReserva = this.idReserva();
+    this.operacion?.unsubscribe();
+    this.operando.set(true);
     this.nueva.set(false);
     this.resultado.set(null);
-    operacion
+    this.operacion = operacion
       .pipe(
         finalize(() => {
-          this.procesando.set(false);
-          this.consulta.reload();
+          if (this.idReserva() === idReserva) {
+            this.operando.set(false);
+            this.consulta.reload();
+          }
         }),
       )
       .subscribe({

@@ -291,4 +291,20 @@ describe('Cotizador (HU-027 y HU-028)', () => {
       false,
     );
   });
+
+  it('completa la reserva pero no lleva a la reserva si el huésped ya salió del cotizador', async () => {
+    await cotizado('HUESPED');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    reservar().click();
+    fixture.destroy();
+
+    backend
+      .expectOne(`${environment.apiUrl}/reservas`)
+      .flush({ idReserva: 'r-1', estado: 'PENDIENTE_PAGO', modoAceptacion: 'INMEDIATA' });
+    backend
+      .expectOne(`${environment.apiUrl}/reservas/r-1/retencion`)
+      .flush({ idReserva: 'r-1', estadoReserva: 'PENDIENTE_PAGO' });
+
+    expect(navegar).not.toHaveBeenCalled();
+  });
 });

@@ -189,4 +189,60 @@ describe('DetalleReserva del huésped', () => {
     expect(elemento().textContent).toContain('No se hizo ningún cobro');
     expect(boton('Cancelar reserva')).toBeUndefined();
   });
+
+  it('reinicia el estado al cambiar de reserva', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ estado: 'CONFIRMADA' }));
+    boton('Cancelar reserva')!.click();
+    harness.detectChanges();
+    const motivo = elemento().querySelector<HTMLTextAreaElement>('textarea')!;
+    motivo.value = 'Motivo de la primera';
+    motivo.dispatchEvent(new Event('input'));
+
+    await harness.navigateByUrl('/reservas/r-2');
+    await responder(
+      `${api}/mis-reservas/r-2`,
+      reservaPropia({ idReserva: 'r-2', estado: 'CONFIRMADA' }),
+    );
+
+    expect(elemento().querySelector('textarea')).toBeNull();
+    expect(aviso()).toBeUndefined();
+    boton('Cancelar reserva')!.click();
+    harness.detectChanges();
+    expect(elemento().querySelector<HTMLTextAreaElement>('textarea')!.value).toBe('');
+  });
+
+  it('descarta la respuesta de una operación iniciada en otra reserva', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+    boton('Pagar $')!.click();
+    const pago = backend.expectOne(`${api}/r-1/pago-simulado`);
+
+    await harness.navigateByUrl('/reservas/r-2');
+    await responder(
+      `${api}/mis-reservas/r-2`,
+      reservaPropia({ idReserva: 'r-2', estado: 'CONFIRMADA' }),
+    );
+
+    expect(pago.cancelled).toBe(true);
+    expect(aviso()).toBeUndefined();
+  });
+
+  it('mantiene bloqueado el pago mientras se recarga la reserva', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+
+    boton('Pagar $')!.click();
+    backend
+      .expectOne(`${api}/r-1/pago-simulado`)
+      .flush({ estadoReserva: 'CONFIRMADA', estadoPago: 'PAGADO' });
+    await refrescar();
+
+    const enProceso = boton('Procesando')!;
+    expect(enProceso.disabled).toBe(true);
+    enProceso.click();
+    backend.expectNone(`${api}/r-1/pago-simulado`);
+    await responder(consulta, reservaPropia({ estado: 'CONFIRMADA' }));
+    expect(boton('Pagar')).toBeUndefined();
+  });
 });

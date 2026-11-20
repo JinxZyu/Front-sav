@@ -70,12 +70,16 @@ export class Cotizador {
   protected readonly moverDias = moverDias;
 
   private solicitud: Subscription | null = null;
+  private activo = true;
 
   constructor() {
     this.formulario.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.descartarCotizacion());
-    inject(DestroyRef).onDestroy(() => this.solicitud?.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.activo = false;
+      this.solicitud?.unsubscribe();
+    });
     effect(() => {
       const capacidad = this.publicacion().capacidad;
       const busqueda = {
@@ -176,10 +180,13 @@ export class Cotizador {
         finalize(() => this.reservando.set(false)),
       )
       .subscribe({
-        next: (solicitud) =>
-          void this.router.navigate(['/reservas', solicitud.idReserva], {
-            queryParams: { aviso: 'nueva' },
-          }),
+        next: (solicitud) => {
+          if (this.activo) {
+            void this.router.navigate(['/reservas', solicitud.idReserva], {
+              queryParams: { aviso: 'nueva' },
+            });
+          }
+        },
         error: (error: unknown) =>
           this.error.set(mensajeDeError(error, 'No pudimos crear tu reserva.')),
       });
