@@ -102,11 +102,17 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     if (cargarPoliticas) {
       backend.expectOne(urlPoliticas).flush(politicasActivas);
     }
-    backend.expectOne(urlPaises).flush([{ idPais: 'pa-co', codigoIso2: 'CO', nombre: 'Colombia' }]);
+    backend.expectOne(urlPaises).flush([
+      { idPais: 'pa-co', codigoIso2: 'CO', nombre: 'Colombia' },
+      { idPais: 'pa-pe', codigoIso2: 'PE', nombre: 'Perú' },
+    ]);
     await new Promise((resolver) => setTimeout(resolver));
     fixture.detectChanges();
     TestBed.tick();
-    backend.expectOne(`${urlPaises}/pa-co/ciudades`).flush([{ idCiudad: 'c-1', nombre: 'Bogotá' }]);
+    backend.expectOne(`${urlPaises}/pa-co/ciudades`).flush([
+      { idCiudad: 'c-1', nombre: 'Bogotá' },
+      { idCiudad: 'c-2', nombre: 'Guatavita' },
+    ]);
     if (respuesta) {
       backend.expectOne(urlDetalle).flush(respuesta);
       await estabilizar(cargarPoliticas);
@@ -324,6 +330,28 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
       .expectOne(`${api}/publicaciones/p-9`)
       .flush({ idPublicacion: 'p-9', titulo: 'x', estado: 'ACTIVA', imagenes: [] });
     expect(resumen()).toBe('');
+  });
+
+  it('pide el país si la ciudad guardada no es de Colombia y la recupera al elegirlo', async () => {
+    await crear(detalle({ ciudad: 'Lima' }));
+    const select = (nombre: string) =>
+      elemento().querySelector<HTMLSelectElement>(`select[formControlName="${nombre}"]`);
+
+    expect(componente.formulario.controls.pais.value).toBe('');
+    expect(componente.formulario.controls.ciudad.value).toBe('');
+    expect(elemento().querySelector('#error-pais')?.textContent).toContain('Lima');
+    expect(select('pais')?.getAttribute('aria-describedby')).toBe('error-pais');
+
+    const pais = select('pais') as HTMLSelectElement;
+    pais.value = 'pa-pe';
+    pais.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(`${urlPaises}/pa-pe/ciudades`).flush([{ idCiudad: 'c-3', nombre: 'Lima' }]);
+    await fixture.whenStable();
+
+    expect(componente.formulario.controls.ciudad.value).toBe('Lima');
+    expect(elemento().querySelector('#error-pais')).toBeNull();
   });
 
   it('no deja editar una publicación en revisión', async () => {

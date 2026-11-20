@@ -40,7 +40,7 @@
           @for (celda of semana; track $index) {
             <td>
               @if (celda) {
-                @if (celda.estado === 'pasada') {
+                @if (!celda.seleccionable) {
                   <span class="dia" [class]="celda.estado" [attr.aria-label]="celda.etiqueta">
                     {{ celda.numero }}
                   </span>
@@ -52,6 +52,7 @@
                     [class.elegido]="seleccionado(celda.dia)"
                     [attr.aria-label]="celda.etiqueta"
                     [attr.aria-pressed]="seleccionado(celda.dia)"
+                    [disabled]="bloqueado()"
                     (click)="elegir(celda)"
                   >
                     {{ celda.numero }}

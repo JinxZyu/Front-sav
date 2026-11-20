@@ -115,12 +115,12 @@
         <app-tarifas-publicacion
           [idPublicacion]="publicacion.idPublicacion"
           [editable]="editable()"
-          (guardado)="actualizarDatos({ tarifaLimpieza: $event.tarifaLimpieza })"
+          (guardado)="alGuardarTarifas($event)"
         />
         <app-modo-aceptacion-publicacion
           [idPublicacion]="publicacion.idPublicacion"
           [editable]="editable()"
-          (guardado)="actualizarDatos({ modoAceptacion: $event.modoAceptacion })"
+          (guardado)="alGuardarModo($event)"
         />
       </div>
     </section>

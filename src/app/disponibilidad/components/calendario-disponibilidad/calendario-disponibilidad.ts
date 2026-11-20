@@ -12,6 +12,7 @@ export interface DiaCalendario {
   numero: number;
   estado: EstadoDia;
   etiqueta: string;
+  seleccionable: boolean;
 }
 
 const NOMBRE_MES = new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' });
@@ -33,6 +34,7 @@ export class CalendarioDisponibilidad {
 
   readonly idAlojamiento = input.required<string>();
   readonly actualizacion = input(0);
+  readonly bloqueado = input(false);
   readonly seleccion = output<NuevoPeriodo>();
 
   readonly desde = linkedSignal<number, string | null>({
@@ -90,6 +92,7 @@ export class CalendarioDisponibilidad {
         numero,
         estado,
         etiqueta: `${NOMBRE_DIA.format(fecha)}: ${ETIQUETAS[estado]}`,
+        seleccionable: dia >= hoyTexto,
       });
     }
     while (celdas.length % 7 !== 0) {
@@ -103,7 +106,7 @@ export class CalendarioDisponibilidad {
   });
 
   elegir(celda: DiaCalendario): void {
-    if (celda.estado === 'pasada') {
+    if (!celda.seleccionable || this.bloqueado()) {
       return;
     }
     const desde = this.desde();

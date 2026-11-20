@@ -10,7 +10,9 @@ import { ModoAceptacionPublicacion } from '../../components/modo-aceptacion-publ
 import { PoliticaPublicacion } from '../../components/politica-publicacion/politica-publicacion';
 import { TarifasPublicacion } from '../../components/tarifas-publicacion/tarifas-publicacion';
 import {
+  ConfiguracionComercial,
   DetallePublicacion as DatosPublicacion,
+  ModoAceptacionDePublicacion,
   estadoPublicacion,
   modoAceptacion,
   motivoSinEdicion,
@@ -90,7 +92,25 @@ export class DetallePublicacion {
     this.actualizarDatos({ estado });
   }
 
+  alGuardarTarifas(configuracion: ConfiguracionComercial): void {
+    this.actualizarDatos({
+      tarifaLimpieza: configuracion.tarifaLimpieza,
+      ...conFecha(configuracion.fechaActualizacion),
+    });
+  }
+
+  alGuardarModo(respuesta: ModoAceptacionDePublicacion): void {
+    this.actualizarDatos({
+      modoAceptacion: respuesta.modoAceptacion,
+      ...conFecha(respuesta.fechaActualizacion),
+    });
+  }
+
   actualizarDatos(cambios: Partial<DatosPublicacion>): void {
     this.consulta.update((actual) => (actual ? { ...actual, ...cambios } : actual));
   }
+}
+
+function conFecha(fechaActualizacion: string | null): Partial<DatosPublicacion> {
+  return fechaActualizacion ? { fechaActualizacion } : {};
 }

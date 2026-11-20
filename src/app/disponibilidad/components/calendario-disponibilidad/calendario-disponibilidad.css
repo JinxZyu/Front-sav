@@ -74,7 +74,11 @@ button.dia {
   cursor: pointer;
 }
 
-button.dia:hover {
+button.dia:disabled {
+  cursor: not-allowed;
+}
+
+button.dia:hover:not(:disabled) {
   border-color: #a5b4fc;
 }
 

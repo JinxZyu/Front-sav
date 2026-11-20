@@ -156,4 +156,33 @@ describe('CalendarioDisponibilidad (HU-023)', () => {
     await fixture.whenStable();
     expect(dia(21)?.classList.contains('elegido')).toBe(false);
   });
+
+  it('no deja elegir días pasados aunque estén ocupados ni elegir mientras está bloqueado', async () => {
+    await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: ['2026-11-10'] });
+    const elegidos: object[] = [];
+    fixture.componentInstance.seleccion.subscribe((periodo) => elegidos.push(periodo));
+
+    expect(dia(10)?.classList).toContain('ocupada');
+    expect(dia(10)?.tagName).toBe('SPAN');
+
+    fixture.componentRef.setInput('bloqueado', true);
+    await fixture.whenStable();
+    expect(dia(21)?.hasAttribute('disabled')).toBe(true);
+    fixture.componentInstance.elegir({
+      dia: '2026-11-21',
+      numero: 21,
+      estado: 'sin-periodo',
+      etiqueta: '',
+      seleccionable: true,
+    });
+    fixture.componentInstance.elegir({
+      dia: '2026-11-22',
+      numero: 22,
+      estado: 'sin-periodo',
+      etiqueta: '',
+      seleccionable: true,
+    });
+    expect(elegidos).toEqual([]);
+    expect(fixture.componentInstance.desde()).toBeNull();
+  });
 });

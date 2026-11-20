@@ -148,6 +148,9 @@ export class DisponibilidadAlojamiento {
   private readonly botonAgregar = viewChild<ElementRef<HTMLButtonElement>>('botonAgregar');
 
   usarSeleccion(periodo: NuevoPeriodo): void {
+    if (this.procesando()) {
+      return;
+    }
     this.sinCierre.setValue(false);
     this.nuevo.setValue(periodo);
     this.nuevo.markAsDirty();

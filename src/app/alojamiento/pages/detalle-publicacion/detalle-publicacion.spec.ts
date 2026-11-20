@@ -179,6 +179,7 @@ describe('DetallePublicacion (HU-011)', () => {
 
   it('no permite editar ni cambiar las condiciones si está bloqueada o en revisión', async () => {
     for (const estado of ['BLOQUEADA', 'PENDIENTE_REVISION']) {
+      restaurarUrls();
       TestBed.resetTestingModule();
       crear();
       backend.expectOne(url).flush(detalle({ imagenes: [], estado }));
@@ -206,17 +207,35 @@ describe('DetallePublicacion (HU-011)', () => {
     await fixture.whenStable();
     modo.querySelectorAll<HTMLInputElement>('input[type="radio"]')[0].click();
     boton(modo, 'Guardar')?.click();
-    backend
-      .expectOne(`${api}/publicaciones/p-1/modo-aceptacion`)
-      .flush({ idPublicacion: 'p-1', modoAceptacion: 'INMEDIATA', fechaActualizacion: null });
+    backend.expectOne(`${api}/publicaciones/p-1/modo-aceptacion`).flush({
+      idPublicacion: 'p-1',
+      modoAceptacion: 'INMEDIATA',
+      fechaActualizacion: '2026-11-19T09:00:00-05:00',
+    });
     await fixture.whenStable();
 
     backend.expectNone(url);
-    expect(elemento().querySelector('.datos')?.textContent).toContain('Reserva inmediata');
+    const datos = () => elemento().querySelector('.datos')?.textContent ?? '';
+    expect(datos()).toContain('Reserva inmediata');
+    expect(datos()).toContain('Última actualización');
+    expect(datos()).toContain('19 de nov');
 
-    fixture.componentInstance.actualizarDatos({ tarifaLimpieza: 45000 });
+    fixture.componentInstance.alGuardarTarifas({
+      idPublicacion: 'p-1',
+      tarifaLimpieza: 45000,
+      serviciosAdicionales: [],
+      fechaActualizacion: '2026-11-20T09:00:00-05:00',
+    });
     await fixture.whenStable();
-    expect(elemento().querySelector('.datos')?.textContent).toContain('45.000');
+    expect(datos()).toContain('45.000');
+    expect(datos()).toContain('20 de nov');
+    fixture.componentInstance.alGuardarModo({
+      idPublicacion: 'p-1',
+      modoAceptacion: 'APROBACION',
+      fechaActualizacion: null,
+    });
+    await fixture.whenStable();
+    expect(datos()).toContain('20 de nov');
     backend.expectNone(url);
   });
 

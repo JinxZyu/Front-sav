@@ -29,6 +29,7 @@
       <app-calendario-disponibilidad
         [idAlojamiento]="idAlojamiento"
         [actualizacion]="actualizacion()"
+        [bloqueado]="procesando()"
         (seleccion)="usarSeleccion($event)"
       />
     </div>

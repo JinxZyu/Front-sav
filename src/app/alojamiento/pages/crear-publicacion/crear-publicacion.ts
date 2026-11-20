@@ -193,9 +193,8 @@ export class CrearPublicacion {
   private readonly idPais = toSignal(this.formulario.controls.pais.valueChanges, {
     initialValue: '',
   });
-  private readonly ciudadElegida = toSignal(this.formulario.controls.ciudad.valueChanges, {
-    initialValue: '',
-  });
+  private readonly ciudadGuardada = signal<string | null>(null);
+  readonly ciudadSinPais = signal<string | null>(null);
 
   readonly paises = rxResource({ stream: () => this.ubicacion.paises() });
   readonly ciudades = rxResource({
@@ -204,13 +203,11 @@ export class CrearPublicacion {
   });
 
   readonly listaPaises = computed(() => (this.paises.hasValue() ? this.paises.value() : []));
-  readonly opcionesCiudad = computed(() => {
-    const nombres = this.ciudades.hasValue()
+  readonly opcionesCiudad = computed(() =>
+    this.ciudades.hasValue()
       ? [...new Set(this.ciudades.value().map((ciudad) => ciudad.nombre))]
-      : [];
-    const actual = this.ciudadElegida();
-    return actual && !nombres.includes(actual) ? [...nombres, actual] : nombres;
-  });
+      : [],
+  );
 
   readonly errorPaises = computed(() =>
     this.paises.status() === 'error'
@@ -233,6 +230,13 @@ export class CrearPublicacion {
           control.setValue(porDefecto.idPais);
         }
       });
+    });
+    effect(() => {
+      const nombres = this.opcionesCiudad();
+      const guardada = this.ciudadGuardada();
+      if (guardada && this.ciudades.hasValue()) {
+        untracked(() => this.ubicarCiudadGuardada(guardada, nombres));
+      }
     });
     this.formulario.valueChanges
       .pipe(takeUntilDestroyed())
@@ -405,7 +409,27 @@ export class CrearPublicacion {
     this.faltantes.set([]);
     this.error.set(null);
     this.politicaInactiva.set(false);
+    this.ciudadSinPais.set(null);
+    this.ciudadGuardada.set(detalle.ciudad);
     this.cargada.set(detalle.idPublicacion);
+  }
+
+  private ubicarCiudadGuardada(guardada: string, nombres: string[]): void {
+    const ciudad = this.formulario.controls.ciudad;
+    const pais = this.formulario.controls.pais;
+    if (nombres.includes(guardada)) {
+      if (!ciudad.value) {
+        ciudad.setValue(guardada);
+      }
+      this.ciudadGuardada.set(null);
+      this.ciudadSinPais.set(null);
+      return;
+    }
+    if (!pais.dirty) {
+      pais.setValue('');
+      ciudad.setValue('');
+      this.ciudadSinPais.set(guardada);
+    }
   }
 
   private descartarPoliticaInactiva(politicas: PoliticaCancelacion[]): void {

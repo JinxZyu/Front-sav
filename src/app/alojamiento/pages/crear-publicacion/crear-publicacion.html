@@ -132,7 +132,9 @@
               (change)="alCambiarPais()"
               [class.invalido]="invalido('pais')"
               [attr.aria-invalid]="invalido('pais')"
-              [attr.aria-describedby]="errorPaises() || invalido('pais') ? 'error-pais' : null"
+              [attr.aria-describedby]="
+                errorPaises() || ciudadSinPais() || invalido('pais') ? 'error-pais' : null
+              "
               [attr.aria-busy]="paises.isLoading()"
             >
               <option value="" disabled>
@@ -148,6 +150,11 @@
                 <button type="button" class="boton-texto" (click)="paises.reload()">
                   Reintentar
                 </button>
+              </span>
+            } @else if (ciudadSinPais(); as ciudadSinPais) {
+              <span class="error-campo" id="error-pais">
+                La ciudad guardada ({{ ciudadSinPais }}) no está en la lista de Colombia. Elige su
+                país.
               </span>
             } @else if (invalido('pais')) {
               <span class="error-campo" id="error-pais">Elige el país.</span>

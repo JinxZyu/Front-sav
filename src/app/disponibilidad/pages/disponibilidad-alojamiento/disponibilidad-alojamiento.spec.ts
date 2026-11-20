@@ -345,6 +345,26 @@ describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
     expect(elemento().querySelector('app-consulta-fechas .nota-inactiva')).not.toBeNull();
   });
 
+  it('no cambia el formulario si se eligen días mientras se guarda otro periodo', async () => {
+    await crear([]);
+    escribir('form.tarjeta input[formControlName="fechaInicio"]', enDias(1));
+    escribir('form.tarjeta input[formControlName="fechaFin"]', enDias(3));
+    botonPorTexto('Agregar periodo')?.click();
+    const peticion = backend.expectOne(urlPeriodos);
+    fixture.detectChanges();
+
+    const calendario = fixture.debugElement.query(
+      (nodo) => nodo.name === 'app-calendario-disponibilidad',
+    );
+    expect(calendario.componentInstance.bloqueado()).toBe(true);
+    componente.usarSeleccion({ fechaInicio: enDias(5), fechaFin: enDias(7) });
+    expect(componente.nuevo.getRawValue()).toEqual({ fechaInicio: enDias(1), fechaFin: enDias(3) });
+
+    peticion.flush(periodo({ idPeriodo: 'nuevo', fechaInicio: enDias(1), fechaFin: enDias(3) }));
+    await responderCalendario();
+    expect(calendario.componentInstance.bloqueado()).toBe(false);
+  });
+
   it('llena el formulario con los días elegidos en el calendario', async () => {
     await crear();
     componente.sinCierre.setValue(true);
