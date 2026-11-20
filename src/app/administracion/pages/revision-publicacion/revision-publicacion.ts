@@ -1,5 +1,13 @@
 import { TitleCasePipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, linkedSignal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  untracked,
+} from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, Subscription, finalize, map } from 'rxjs';
@@ -87,8 +95,14 @@ export class RevisionPublicacion {
     return MODOS_ACEPTACION_ADMINISTRACION[valor] ?? valor;
   }
 
+  private operacion = 0;
+
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.envio?.unsubscribe());
+    inject(DestroyRef).onDestroy(() => this.descartarEnvio());
+    effect(() => {
+      this.idPublicacion();
+      untracked(() => this.descartarEnvio());
+    });
   }
 
   protected abrir(accion: Accion): void {
@@ -129,24 +143,39 @@ export class RevisionPublicacion {
     if (this.ocupado()) {
       return;
     }
-    const idPublicacion = this.idPublicacion();
+    this.descartarEnvio();
+    const operacion = this.operacion;
+    const vigente = () => this.operacion === operacion;
     this.enviando.set(true);
     this.errorAccion.set(null);
-    this.envio = peticion(idPublicacion)
+    this.envio = peticion(this.idPublicacion())
       .pipe(
         finalize(() => {
-          if (this.idPublicacion() === idPublicacion) {
+          if (vigente()) {
             this.enviando.set(false);
           }
         }),
       )
       .subscribe({
         next: (respuesta) => {
+          if (!vigente()) {
+            return;
+          }
           this.accion.set(null);
           this.avisos.mostrar(titulo, respuesta.mensaje);
           this.consulta.reload();
         },
-        error: (error: unknown) => this.errorAccion.set(mensajeDeError(error, porDefecto)),
+        error: (error: unknown) => {
+          if (vigente()) {
+            this.errorAccion.set(mensajeDeError(error, porDefecto));
+          }
+        },
       });
+  }
+
+  private descartarEnvio(): void {
+    this.operacion++;
+    this.envio?.unsubscribe();
+    this.envio = null;
   }
 }

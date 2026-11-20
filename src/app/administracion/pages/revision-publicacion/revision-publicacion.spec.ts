@@ -227,6 +227,37 @@ describe('RevisionPublicacion (HU-014)', () => {
     );
   });
 
+  it('al cambiar de publicación descarta el envío pendiente de la anterior', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar());
+    const mostrar = vi.spyOn(TestBed.inject(AvisosService), 'mostrar');
+
+    boton(decision(), 'Rechazar').click();
+    refrescar();
+    const campo = decision().querySelector('textarea') as HTMLTextAreaElement;
+    campo.value = 'Fotos falsas';
+    campo.dispatchEvent(new Event('input'));
+    decision().querySelector('form')?.dispatchEvent(new Event('submit'));
+    refrescar();
+    const pendiente = backend.expectOne(`${api}/p-1/rechazar`);
+
+    await harness.navigateByUrl('/administracion/publicaciones/p-2');
+    expect(pendiente.cancelled).toBe(true);
+    const otra = publicacionParaRevisar();
+    backend.expectOne(`${api}/p-2`).flush({
+      ...otra,
+      publicacion: { ...otra.publicacion, idPublicacion: 'p-2', titulo: 'Cabaña' },
+    });
+    await new Promise((resolver) => setTimeout(resolver));
+    refrescar();
+
+    expect(mostrar).not.toHaveBeenCalled();
+    expect(elemento().querySelector('h1')?.textContent?.trim()).toBe('Cabaña');
+    expect(decision().querySelector('form')).toBeNull();
+    expect(decision().querySelector('[role="alert"]')).toBeNull();
+    expect(boton(decision(), 'Aprobar y publicar').disabled).toBe(false);
+  });
+
   it('avisa si la publicación no existe', async () => {
     await abrir();
     await responder(
