@@ -357,6 +357,7 @@ export class CrearPublicacion {
 
     const valores = this.formulario.getRawValue();
     const idPublicacion = this.idPublicacion();
+    const pais = this.listaPaises().find((opcion) => opcion.idPais === valores.pais);
     const datos = {
       titulo: valores.titulo.trim(),
       descripcion: valores.descripcion.trim(),
@@ -369,6 +370,8 @@ export class CrearPublicacion {
       camas: Number(valores.camas),
       banos: Number(valores.banos),
       propietarioInmueble: valores.propietarioInmueble.trim(),
+      pais: pais?.nombre,
+      codigoPais: pais?.codigoIso2,
       precioPorNoche: Number(valores.precioPorNoche),
       tarifaLimpieza: Number(valores.tarifaLimpieza || 0),
       modoAceptacion: valores.modoAceptacion as ModoAceptacion,

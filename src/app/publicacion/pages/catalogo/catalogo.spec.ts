@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { environment } from '../../../../environments/environment';
+import { crearToken } from '../../../config/auth/sesion.testing';
 import { Catalogo } from './catalogo';
 
 describe('Catalogo (HU-024)', () => {
@@ -12,8 +13,9 @@ describe('Catalogo (HU-024)', () => {
   const busqueda = `${environment.apiUrl}/publicaciones/busqueda`;
   const catalogo = `${environment.apiUrl}/publicaciones/catalogo`;
   const servicios = `${environment.apiUrl}/servicios`;
+  const miCuenta = `${environment.apiUrl}/usuarios/mi_cuenta`;
 
-  const resumen = (id: string, titulo: string, ciudad = 'Bogotá') => ({
+  const resumen = (id: string, titulo: string, ciudad = 'Bogotá', codigoPais?: string) => ({
     idPublicacion: id,
     idAlojamiento: `a-${id}`,
     titulo,
@@ -23,7 +25,16 @@ describe('Catalogo (HU-024)', () => {
     precioPorNoche: 180000,
     estado: 'ACTIVA',
     fechaCreacion: '2026-11-18T10:00:00-05:00',
+    codigoPais,
   });
+
+  const variosPaises = [
+    resumen('p-1', 'Loft en Chapinero', 'Bogotá', 'CO'),
+    resumen('p-2', 'Depa en Miraflores', 'Lima', 'PE'),
+    resumen('p-3', 'Casa en El Poblado', 'Medellín', 'CO'),
+    resumen('p-4', 'Hostal en San Blas', 'Cusco', 'PE'),
+    resumen('p-5', 'Estudio en Barranco', 'lima', 'PE'),
+  ];
 
   const todas = [
     resumen('p-1', 'Loft en Chapinero'),
@@ -102,7 +113,17 @@ describe('Catalogo (HU-024)', () => {
     await refrescar();
   };
 
-  afterEach(() => backend.verify());
+  const titulosCarruseles = () =>
+    [...elemento().querySelectorAll('app-carrusel-publicaciones h2')].map((h2) =>
+      h2.textContent?.trim(),
+    );
+
+  beforeEach(() => localStorage.clear());
+
+  afterEach(() => {
+    backend.verify();
+    localStorage.clear();
+  });
 
   it('criterio 1: sin filtros muestra carruseles de los recientes y por ciudad', async () => {
     await abrir();
@@ -311,5 +332,66 @@ describe('Catalogo (HU-024)', () => {
 
     expect(elemento().querySelector('.aviso-servicios')).toBeNull();
     expect(elemento().querySelectorAll('.servicio').length).toBe(2);
+  });
+
+  it('con sesión muestra primero el país y la ciudad de la cuenta', async () => {
+    localStorage.setItem(
+      'marketplace.token',
+      crearToken({
+        sub: 'ana@correo.com',
+        role: 'HUESPED',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    await abrir('/publicaciones', { catalogo: variosPaises });
+    backend.expectOne(miCuenta).flush({ ciudad: 'Lima', pais: 'Perú', codigoPais: 'PE' });
+    await refrescar();
+
+    expect(titulosCarruseles()).toEqual([
+      'Publicados recientemente',
+      'Cerca de ti en Lima',
+      'Alojamientos en Cusco',
+      'Alojamientos en Colombia',
+    ]);
+    const carruseles = elemento().querySelectorAll('app-carrusel-publicaciones');
+    expect(carruseles[0].querySelectorAll('a.tarjeta')).toHaveLength(3);
+    expect(carruseles[1].querySelectorAll('a.tarjeta')).toHaveLength(2);
+    expect(carruseles[3].querySelectorAll('a.tarjeta')).toHaveLength(2);
+    expect(carruseles[3].querySelector('h2 a')).toBeNull();
+  });
+
+  it('sin sesión toma el país del idioma del navegador', async () => {
+    const idiomas = vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['es-PE', 'es']);
+    try {
+      await abrir('/publicaciones', { catalogo: variosPaises });
+      await refrescar();
+
+      backend.expectNone(miCuenta);
+      expect(titulosCarruseles()).toEqual([
+        'Publicados recientemente',
+        'Alojamientos en Lima',
+        'Alojamientos en Cusco',
+        'Alojamientos en Colombia',
+      ]);
+    } finally {
+      idiomas.mockRestore();
+    }
+  });
+
+  it('si el país del visitante no tiene alojamientos usa el que tiene más', async () => {
+    const idiomas = vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['es-MX']);
+    try {
+      await abrir('/publicaciones', { catalogo: variosPaises });
+      await refrescar();
+
+      expect(titulosCarruseles()).toEqual([
+        'Publicados recientemente',
+        'Alojamientos en Lima',
+        'Alojamientos en Cusco',
+        'Alojamientos en Colombia',
+      ]);
+    } finally {
+      idiomas.mockRestore();
+    }
   });
 });

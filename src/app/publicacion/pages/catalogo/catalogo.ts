@@ -10,15 +10,52 @@ import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { BuscadorCatalogo } from '../../components/buscador-catalogo/buscador-catalogo';
 import { CarruselPublicaciones } from '../../components/carrusel-publicaciones/carrusel-publicaciones';
 import { FiltrosBusqueda } from '../../models/catalogo.models';
+import { CuentaService } from '../../../usuario/services/cuenta.service';
 import { CatalogoService } from '../../services/catalogo.service';
 
 const PATRON_ENTERO = /^\d*$/;
-const MAXIMO_CIUDADES = 8;
+const MAXIMO_CIUDADES = 4;
+const MAXIMO_PAISES = 3;
 const MAXIMO_POR_CARRUSEL = 12;
 
 export interface GrupoCiudad {
   ciudad: string;
   publicaciones: ResumenPublicacion[];
+}
+
+export interface SeccionCatalogo {
+  titulo: string;
+  publicaciones: ResumenPublicacion[];
+  verTodos: Record<string, string> | null;
+}
+
+export function regionDelNavegador(): string | null {
+  const idiomas = navigator.languages?.length ? navigator.languages : [navigator.language];
+  for (const idioma of idiomas) {
+    const region = /-([A-Za-z]{2})$/.exec(idioma ?? '')?.[1];
+    if (region) {
+      return region.toUpperCase();
+    }
+  }
+  return null;
+}
+
+function nombrePais(codigo: string, respaldo: string | null | undefined): string {
+  try {
+    return new Intl.DisplayNames(['es'], { type: 'region' }).of(codigo) ?? respaldo ?? codigo;
+  } catch {
+    return respaldo ?? codigo;
+  }
+}
+
+function contarPorPais(publicaciones: readonly ResumenPublicacion[]): Map<string, number> {
+  const conteo = new Map<string, number>();
+  for (const { codigoPais } of publicaciones) {
+    if (codigoPais) {
+      conteo.set(codigoPais, (conteo.get(codigoPais) ?? 0) + 1);
+    }
+  }
+  return conteo;
 }
 
 const sinTildes = (texto: string) =>
@@ -116,18 +153,70 @@ export class Catalogo {
 
   readonly sugerencias = computed(() => this.grupos().map((grupo) => grupo.ciudad));
 
-  readonly carruselesCiudad = computed(() =>
-    this.grupos()
-      .slice(0, MAXIMO_CIUDADES)
-      .map((grupo) => ({
-        ...grupo,
-        publicaciones: grupo.publicaciones.slice(0, MAXIMO_POR_CARRUSEL),
-      })),
+  private readonly cuenta = inject(CuentaService).actual;
+
+  private readonly datosCuenta = computed(() =>
+    this.cuenta.hasValue() ? (this.cuenta.value() ?? null) : null,
   );
 
-  readonly recientes = computed(() =>
-    (this.catalogo.hasValue() ? this.catalogo.value() : []).slice(0, MAXIMO_POR_CARRUSEL),
+  readonly paisVisitante = computed(
+    () => this.datosCuenta()?.codigoPais?.toUpperCase() || regionDelNavegador(),
   );
+
+  readonly secciones = computed<SeccionCatalogo[]>(() => {
+    const todas = this.catalogo.hasValue() ? this.catalogo.value() : [];
+    if (todas.length === 0) {
+      return [];
+    }
+    const conteo = contarPorPais(todas);
+    const visitante = this.paisVisitante();
+    const referencia =
+      visitante && conteo.has(visitante)
+        ? visitante
+        : ([...conteo.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null);
+    const locales = todas.filter(
+      (publicacion) =>
+        !referencia || !publicacion.codigoPais || publicacion.codigoPais === referencia,
+    );
+    const otras = todas.filter(
+      (publicacion) =>
+        referencia && publicacion.codigoPais && publicacion.codigoPais !== referencia,
+    );
+    const propia = sinTildes(this.datosCuenta()?.ciudad ?? '');
+    const ciudades = agruparPorCiudad(locales).sort(
+      (a, b) => Number(sinTildes(b.ciudad) === propia) - Number(sinTildes(a.ciudad) === propia),
+    );
+
+    const secciones: SeccionCatalogo[] = [
+      {
+        titulo: 'Publicados recientemente',
+        publicaciones: locales.slice(0, MAXIMO_POR_CARRUSEL),
+        verTodos: null,
+      },
+    ];
+    for (const grupo of ciudades.slice(0, MAXIMO_CIUDADES)) {
+      secciones.push({
+        titulo:
+          propia && sinTildes(grupo.ciudad) === propia
+            ? `Cerca de ti en ${grupo.ciudad}`
+            : `Alojamientos en ${grupo.ciudad}`,
+        publicaciones: grupo.publicaciones.slice(0, MAXIMO_POR_CARRUSEL),
+        verTodos: { ciudad: grupo.ciudad },
+      });
+    }
+    const paises = [...contarPorPais(otras).entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, MAXIMO_PAISES);
+    for (const [codigo] of paises) {
+      const delPais = otras.filter((publicacion) => publicacion.codigoPais === codigo);
+      secciones.push({
+        titulo: `Alojamientos en ${nombrePais(codigo, delPais[0]?.pais)}`,
+        publicaciones: delPais.slice(0, MAXIMO_POR_CARRUSEL),
+        verTodos: null,
+      });
+    }
+    return secciones.filter((seccion) => seccion.publicaciones.length > 0);
+  });
 
   readonly errorCatalogo = computed(() =>
     this.catalogo.status() === 'error'

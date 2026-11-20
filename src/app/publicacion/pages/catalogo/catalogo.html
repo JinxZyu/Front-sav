@@ -20,18 +20,17 @@
       </div>
     } @else if (!catalogo.hasValue()) {
       <p class="estado-busqueda" role="status">Cargando alojamientos…</p>
-    } @else if (recientes().length === 0) {
+    } @else if (secciones().length === 0) {
       <div class="sin-resultados" role="status">
         <h2>Todavía no hay alojamientos publicados</h2>
         <p>Vuelve pronto para descubrir nuevos lugares.</p>
       </div>
     } @else {
-      <app-carrusel-publicaciones titulo="Publicados recientemente" [publicaciones]="recientes()" />
-      @for (grupo of carruselesCiudad(); track grupo.ciudad) {
+      @for (seccion of secciones(); track seccion.titulo) {
         <app-carrusel-publicaciones
-          [titulo]="'Alojamientos en ' + grupo.ciudad"
-          [publicaciones]="grupo.publicaciones"
-          [verTodos]="{ ciudad: grupo.ciudad }"
+          [titulo]="seccion.titulo"
+          [publicaciones]="seccion.publicaciones"
+          [verTodos]="seccion.verTodos"
         />
       }
     }
