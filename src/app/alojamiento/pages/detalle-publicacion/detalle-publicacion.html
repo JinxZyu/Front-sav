@@ -89,7 +89,12 @@
     </div>
 
     <section class="condiciones" aria-labelledby="titulo-condiciones">
-      <h2 id="titulo-condiciones">Condiciones de reserva</h2>
+      <div class="titulo-seccion">
+        <h2 id="titulo-condiciones">Condiciones de reserva</h2>
+        <a [routerLink]="['/disponibilidad', publicacion.idPublicacion]" class="editar">
+          Gestionar disponibilidad
+        </a>
+      </div>
       <div class="tarjetas">
         <app-politica-publicacion
           [idPublicacion]="publicacion.idPublicacion"
