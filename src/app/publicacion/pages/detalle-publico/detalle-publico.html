@@ -12,6 +12,8 @@
       {{ datos.publicacion.capacidad === 1 ? 'huésped' : 'huéspedes' }}
     </p>
 
+    <p class="lugar">{{ datos.publicacion.ubicacion }}, {{ datos.publicacion.ciudad }}</p>
+
     @if (imagenes().length > 0) {
       <ul
         class="galeria"
@@ -104,7 +106,7 @@
     </div>
   } @else if (noEncontrada()) {
     <div class="vacio" role="alert">
-      <h1 id="titulo-alojamiento">Este alojamiento no está disponible</h1>
+      <h1 id="titulo-alojamiento">Este alojamiento no existe o no está disponible</h1>
       <p>Puede que el anfitrión lo haya pausado o que el enlace no sea correcto.</p>
       <a routerLink="/publicaciones" class="boton">Buscar otros alojamientos</a>
     </div>

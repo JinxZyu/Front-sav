@@ -58,7 +58,7 @@ describe('DetallePublico (HU-025)', () => {
     expect(texto).toContain('Devolución del 100 %');
     expect(texto).toContain('24 horas');
     expect(texto).toContain('Desayuno');
-    expect(texto).not.toContain('Calle 60');
+    expect(elemento().querySelector('.lugar')?.textContent).toContain('Calle 60 # 5-10, Bogotá');
     const fotos = [...elemento().querySelectorAll<HTMLImageElement>('.galeria img')];
     expect(fotos.map((foto) => foto.getAttribute('src'))).toEqual([
       'https://img.test/1.jpg',
@@ -84,7 +84,7 @@ describe('DetallePublico (HU-025)', () => {
     );
 
     expect(elemento().querySelector('[role="alert"] h1')?.textContent).toContain(
-      'Este alojamiento no está disponible',
+      'Este alojamiento no existe o no está disponible',
     );
   });
 

@@ -48,6 +48,12 @@ h2 {
   color: #64748b;
 }
 
+.lugar {
+  margin: 0.3rem 0 0;
+  color: #475569;
+  font-weight: 500;
+}
+
 .galeria {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
