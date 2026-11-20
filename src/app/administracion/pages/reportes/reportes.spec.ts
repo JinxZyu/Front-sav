@@ -172,6 +172,40 @@ describe('Reportes (HU-044)', () => {
     );
   });
 
+  it('al cambiar de reporte descarta la descarga pendiente del anterior', async () => {
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    await abrir('/administracion/reportes/e-1');
+    await responder(exportacion({ estado: 'COMPLETADO', formato: 'PDF' }));
+
+    boton('Descargar PDF').click();
+    await refrescar();
+    const pendiente = backend.expectOne(`${api}/e-1/archivo`);
+
+    await harness.navigateByUrl('/administracion/reportes/e-2');
+    await refrescar();
+    expect(pendiente.cancelled).toBe(true);
+    await responder(
+      exportacion({ idExportacion: 'e-2', estado: 'COMPLETADO', formato: 'EXCEL' }),
+      undefined,
+      'e-2',
+    );
+
+    expect(solicitado()?.querySelector('h2')?.textContent).toContain('Reporte en Excel');
+    expect(boton('Descargar Excel').disabled).toBe(false);
+    expect(solicitado()?.querySelector('[role="alert"]')).toBeNull();
+    expect(clic).not.toHaveBeenCalled();
+
+    boton('Descargar Excel').click();
+    await refrescar();
+    backend
+      .expectOne(`${api}/e-2/archivo`)
+      .flush(new Blob(['{}']), { status: 410, statusText: 'Gone' });
+    await refrescar();
+    expect(solicitado()?.querySelector('[role="alert"]')?.textContent).toContain(
+      'ya no está disponible',
+    );
+  });
+
   it('si el reporte falló no ofrece descargarlo', async () => {
     await abrir('/administracion/reportes/e-1');
     await responder(exportacion({ estado: 'FALLIDO', formato: 'PDF' }));

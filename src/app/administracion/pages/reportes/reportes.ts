@@ -1,9 +1,18 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, computed, inject, linkedSignal, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  signal,
+  untracked,
+} from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { defer, finalize, map, repeat, takeWhile } from 'rxjs';
+import { Subscription, defer, finalize, map, repeat, takeWhile } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import {
@@ -84,9 +93,19 @@ export class Reportes {
     computation: () => null,
   });
 
+  private descarga: Subscription | null = null;
+
   protected readonly estado = estadoExportacion;
   protected readonly nombreFormato = (formato: string) => formatoReporte(formato).nombre;
   protected readonly fechaHora = formatearFechaHora;
+
+  constructor() {
+    effect(() => {
+      this.idExportacion();
+      untracked(() => this.descartarDescarga());
+    });
+    this.destroyRef.onDestroy(() => this.descartarDescarga());
+  }
 
   protected elegir(formato: FormatoReporte): void {
     this.formato.set(formato);
@@ -118,12 +137,9 @@ export class Reportes {
     }
     this.descargando.set(true);
     this.errorDescarga.set(null);
-    this.servicio
+    this.descarga = this.servicio
       .descargar(exportacion.idExportacion)
-      .pipe(
-        finalize(() => this.descargando.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .pipe(finalize(() => this.descargando.set(false)))
       .subscribe({
         next: (archivo) => this.guardar(archivo, exportacion),
         error: (error: unknown) =>
@@ -132,6 +148,11 @@ export class Reportes {
               mensajeDeError(error, 'No pudimos descargar el reporte. Intenta de nuevo.'),
           ),
       });
+  }
+
+  private descartarDescarga(): void {
+    this.descarga?.unsubscribe();
+    this.descarga = null;
   }
 
   private guardar(archivo: Blob, exportacion: ExportacionReporte): void {
