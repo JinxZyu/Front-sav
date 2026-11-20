@@ -53,6 +53,20 @@ export class PublicacionAlojamientoService {
     );
   }
 
+  pausar(idPublicacion: string): Observable<CambioEstadoPublicacion> {
+    return this.http.patch<CambioEstadoPublicacion>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/pausar`,
+      null,
+    );
+  }
+
+  reactivar(idPublicacion: string): Observable<CambioEstadoPublicacion> {
+    return this.http.patch<CambioEstadoPublicacion>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/reactivar`,
+      null,
+    );
+  }
+
   imagen(ruta: string): Observable<Blob> {
     const separador = ruta.startsWith('/') ? '' : '/';
     return this.http.get(`${this.api}${separador}${ruta}`, { responseType: 'blob' });

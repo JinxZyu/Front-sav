@@ -6,7 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { DetallePublicacion } from '../../models/alojamiento.models';
 import { AccionesEstado } from './acciones-estado';
 
-describe('AccionesEstado (HU-013)', () => {
+describe('AccionesEstado (HU-013 y HU-015)', () => {
   let fixture: ComponentFixture<AccionesEstado>;
   let backend: HttpTestingController;
   let cambios: string[];
@@ -114,9 +114,55 @@ describe('AccionesEstado (HU-013)', () => {
     expect(elemento().textContent).toContain('rechazó esta publicación');
   });
 
-  it('no muestra nada para una publicación activa', async () => {
+  it('HU-015 criterio 1: pausa una publicación activa', async () => {
     await crear('ACTIVA');
+    expect(boton()?.textContent?.trim()).toBe('Pausar publicación');
+    boton()?.click();
 
-    expect(elemento().textContent?.trim()).toBe('');
+    const peticion = backend.expectOne(`${environment.apiUrl}/publicaciones/p-1/pausar`);
+    expect(peticion.request.method).toBe('PATCH');
+    peticion.flush({ estadoAnterior: 'ACTIVA', estadoActual: 'PAUSADA' });
+    fixture.componentRef.setInput('publicacion', publicacion('PAUSADA'));
+    await fixture.whenStable();
+
+    expect(cambios).toEqual(['PAUSADA']);
+    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Pausamos');
+    expect(boton()?.textContent?.trim()).toBe('Reactivar publicación');
+  });
+
+  it('HU-015 criterio 2: reactiva una publicación pausada', async () => {
+    await crear('PAUSADA');
+    expect(elemento().textContent).toContain('Las reservas que ya tenías se mantienen');
+    boton()?.click();
+
+    backend
+      .expectOne(`${environment.apiUrl}/publicaciones/p-1/reactivar`)
+      .flush({ estadoAnterior: 'PAUSADA', estadoActual: 'ACTIVA' });
+    await fixture.whenStable();
+
+    expect(cambios).toEqual(['ACTIVA']);
+    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Reactivamos');
+  });
+
+  it('HU-015 criterio 4: muestra el rechazo del servidor al pausar sin ser dueño', async () => {
+    await crear('ACTIVA');
+    boton()?.click();
+    backend
+      .expectOne(`${environment.apiUrl}/publicaciones/p-1/pausar`)
+      .flush(
+        { mensaje: 'No tienes permisos para pausar esta publicación.' },
+        { status: 403, statusText: 'Forbidden' },
+      );
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('[role="alert"]')?.textContent).toContain('No tienes permisos');
+    expect(cambios).toEqual([]);
+  });
+
+  it('HU-015 criterio 3: una publicación bloqueada no ofrece pausar ni reactivar', async () => {
+    await crear('BLOQUEADA');
+
+    expect(elemento().textContent).not.toContain('Pausar');
+    expect(elemento().textContent).not.toContain('Reactivar');
   });
 });

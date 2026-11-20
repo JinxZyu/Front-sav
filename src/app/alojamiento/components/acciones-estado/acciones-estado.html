@@ -10,6 +10,28 @@
       </button>
     </div>
   }
+  @case ('ACTIVA') {
+    <div class="caja">
+      <p>
+        Tu publicación está visible en el marketplace. Si necesitas dejar de recibir reservas por
+        un tiempo, puedes pausarla.
+      </p>
+      <button type="button" class="secundario" [disabled]="procesando()" (click)="pausar()">
+        {{ procesando() ? 'Pausando…' : 'Pausar publicación' }}
+      </button>
+    </div>
+  }
+  @case ('PAUSADA') {
+    <div class="caja">
+      <p>
+        Tu publicación está pausada y no aparece en el marketplace. Las reservas que ya tenías se
+        mantienen.
+      </p>
+      <button type="button" class="principal" [disabled]="procesando()" (click)="reactivar()">
+        {{ procesando() ? 'Reactivando…' : 'Reactivar publicación' }}
+      </button>
+    </div>
+  }
   @case ('PENDIENTE_REVISION') {
     <p class="caja informativa">
       Un administrador está revisando tu publicación. Te avisaremos cuando tome una decisión.

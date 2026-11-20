@@ -33,6 +33,22 @@ export class AccionesEstado {
     );
   }
 
+  pausar(): void {
+    this.ejecutar(
+      this.servicio.pausar(this.publicacion().idPublicacion),
+      'Pausamos tu publicación. Ya no aparece en el marketplace.',
+      'No pudimos pausar la publicación.',
+    );
+  }
+
+  reactivar(): void {
+    this.ejecutar(
+      this.servicio.reactivar(this.publicacion().idPublicacion),
+      'Reactivamos tu publicación. Ya aparece de nuevo en el marketplace.',
+      'No pudimos reactivar la publicación.',
+    );
+  }
+
   private ejecutar(
     peticion: Observable<CambioEstadoPublicacion>,
     exito: string,
