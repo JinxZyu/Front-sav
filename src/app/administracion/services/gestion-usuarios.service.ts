@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { UsuarioAdministrado } from '../models/usuario-administrado.models';
+import { NuevoDocumento, UsuarioAdministrado } from '../models/usuario-administrado.models';
 
 @Injectable({ providedIn: 'root' })
 export class GestionUsuariosService {
@@ -19,6 +19,12 @@ export class GestionUsuariosService {
       { motivo },
       { responseType: 'text' },
     );
+  }
+
+  modificarDocumento(idUsuario: string, documento: NuevoDocumento): Observable<string> {
+    return this.http.patch(`${this.api}/${encodeURIComponent(idUsuario)}/documento`, documento, {
+      responseType: 'text',
+    });
   }
 
   levantarRestriccion(idUsuario: string): Observable<string> {

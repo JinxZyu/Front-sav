@@ -26,4 +26,9 @@ export const NOMBRES_ESTADO_CUENTA: Record<EstadoCuenta, string> = {
   INACTIVA: 'Inactiva',
 };
 
+export interface NuevoDocumento {
+  tipoDocumento: string;
+  documentoIdentidad: string;
+}
+
 export const MAXIMO_MOTIVO_RESTRICCION = 255;
