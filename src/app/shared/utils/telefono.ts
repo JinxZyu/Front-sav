@@ -1,6 +1,7 @@
 import { ValidatorFn } from '@angular/forms';
 import {
   CountryCode,
+  getCountryCallingCode,
   getExampleNumber,
   isSupportedCountry,
   parsePhoneNumberFromString,
@@ -29,6 +30,11 @@ export const telefonoInternacional = (numero: string, indicativo: string): strin
     extract: false,
   });
   return telefono?.isValid() ? telefono.number : null;
+};
+
+export const indicativoDePais = (codigoIso2: string): string | null => {
+  const pais = codigoIso2.toUpperCase();
+  return isSupportedCountry(pais) ? String(getCountryCallingCode(pais)) : null;
 };
 
 export const ejemploTelefono = (indicativo: string): string => {
