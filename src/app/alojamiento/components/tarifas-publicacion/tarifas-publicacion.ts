@@ -26,6 +26,14 @@ import { PublicacionAlojamientoService } from '../../services/publicacion-alojam
 import { formatearPesos } from '../../utils/formato';
 
 const PATRON_ENTERO = /^\d+$/;
+
+const enteroSeguro = (control: AbstractControl<string>): ValidationErrors | null => {
+  const valor = String(control.value ?? '');
+  if (valor === '') {
+    return null;
+  }
+  return PATRON_ENTERO.test(valor) && Number.isSafeInteger(Number(valor)) ? null : { entero: true };
+};
 export const MAX_SERVICIOS_ADICIONALES = 20;
 
 const nombresUnicos = (control: AbstractControl): ValidationErrors | null => {
@@ -73,7 +81,7 @@ export class TarifasPublicacion {
   );
 
   readonly formulario = this.fb.group({
-    tarifaLimpieza: ['0', [Validators.required, Validators.pattern(PATRON_ENTERO)]],
+    tarifaLimpieza: ['0', [Validators.required, enteroSeguro]],
     servicios: this.fb.array<FormGroup>([], nombresUnicos),
   });
 
@@ -170,10 +178,7 @@ export class TarifasPublicacion {
         [Validators.required, Validators.pattern(PATRON_CON_TEXTO), Validators.maxLength(100)],
       ],
       descripcion: [adicional?.descripcion ?? '', [Validators.maxLength(255)]],
-      costo: [
-        adicional ? String(adicional.costo) : '',
-        [Validators.required, Validators.pattern(PATRON_ENTERO)],
-      ],
+      costo: [adicional ? String(adicional.costo) : '', [Validators.required, enteroSeguro]],
     });
   }
 }
