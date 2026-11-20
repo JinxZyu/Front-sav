@@ -11,6 +11,14 @@ export const RESERVA_ROUTES: Routes = [
       import('./pages/lista-reservas/lista-reservas').then((m) => m.ListaReservas),
   },
   {
+    path: 'alojamientos',
+    title: 'Reservas de mis alojamientos',
+    canMatch: [rolGuard('ANFITRION')],
+    data: { vista: 'anfitrion' },
+    loadComponent: () =>
+      import('./pages/lista-reservas/lista-reservas').then((m) => m.ListaReservas),
+  },
+  {
     path: ':idReserva',
     title: 'Reserva',
     canMatch: [rolGuard('HUESPED')],

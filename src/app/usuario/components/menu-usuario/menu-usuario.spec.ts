@@ -166,7 +166,7 @@ describe('MenuUsuario (HU-004)', () => {
     expect(navegar).toHaveBeenCalled();
   });
 
-  it('al Anfitrión le ofrece publicar un alojamiento', async () => {
+  it('al Anfitrión le ofrece sus reservas recibidas y publicar un alojamiento', async () => {
     await crear('ANFITRION');
     await responderCuenta();
     disparador()?.click();
@@ -175,6 +175,7 @@ describe('MenuUsuario (HU-004)', () => {
     const enlaces = [...elemento().querySelectorAll<HTMLAnchorElement>('a.opcion')];
     expect(enlaces.map((enlace) => enlace.getAttribute('href'))).toEqual([
       '/usuario/mi-cuenta',
+      '/reservas/alojamientos',
       '/alojamientos/nuevo',
     ]);
   });

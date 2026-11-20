@@ -8,6 +8,7 @@ import {
   MisReservas,
   PagoReserva,
   ReservaPropia,
+  ReservasDeAlojamientos,
   RetencionReserva,
   SolicitudCotizacion,
   SolicitudReserva,
@@ -62,6 +63,10 @@ export class ReservaService {
 
   cancelar(idReserva: string, motivo: string): Observable<CancelacionReserva> {
     return this.http.post<CancelacionReserva>(`${this.ruta(idReserva)}/cancelacion`, { motivo });
+  }
+
+  reservasDeMisAlojamientos(): Observable<ReservasDeAlojamientos> {
+    return this.http.get<ReservasDeAlojamientos>(`${this.api}/mis-alojamientos`);
   }
 
   private ruta(idReserva: string): string {

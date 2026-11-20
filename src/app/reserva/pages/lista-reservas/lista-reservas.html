@@ -1,5 +1,24 @@
 <section class="contenedor" aria-labelledby="titulo-reservas">
-  <h1 id="titulo-reservas">Mis reservas</h1>
+  <h1 id="titulo-reservas">{{ anfitrion ? 'Reservas de mis alojamientos' : 'Mis reservas' }}</h1>
+
+  @if (anfitrion && todas()?.length) {
+    <div class="filtros" role="group" aria-label="Filtrar reservas">
+      <button
+        type="button"
+        [attr.aria-pressed]="!soloPendientes()"
+        (click)="soloPendientes.set(false)"
+      >
+        Todas
+      </button>
+      <button
+        type="button"
+        [attr.aria-pressed]="soloPendientes()"
+        (click)="soloPendientes.set(true)"
+      >
+        Por responder ({{ pendientes() }})
+      </button>
+    </div>
+  }
 
   @if (error(); as error) {
     <div class="alerta" role="alert">
@@ -7,27 +26,38 @@
       <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
     </div>
   } @else if (reservas(); as reservas) {
-    @if (reservas.length === 0) {
+    @if (reservas.length > 0) {
+      <ul class="lista">
+        @for (reserva of reservas; track reserva.idReserva) {
+          <li>
+            <app-tarjeta-reserva
+              [enlace]="enlace(reserva.idReserva)"
+              [titulo]="reserva.titulo"
+              [detalle]="reserva.detalle"
+              [fechaEntrada]="reserva.fechaEntrada"
+              [fechaSalida]="reserva.fechaSalida"
+              [estado]="reserva.estado"
+              [monto]="reserva.monto"
+            />
+          </li>
+        }
+      </ul>
+    } @else if (soloPendientes()) {
+      <div class="vacio">
+        <h2>No tienes solicitudes por responder</h2>
+        <p>Las nuevas solicitudes de tus huéspedes aparecerán aquí.</p>
+      </div>
+    } @else if (anfitrion) {
+      <div class="vacio">
+        <h2>Aún no recibes reservas</h2>
+        <p>Cuando un huésped reserve uno de tus alojamientos lo verás aquí.</p>
+      </div>
+    } @else {
       <div class="vacio">
         <h2>Aún no tienes reservas</h2>
         <p>Cuando reserves un alojamiento lo verás aquí.</p>
         <a routerLink="/publicaciones" class="boton">Buscar alojamientos</a>
       </div>
-    } @else {
-      <ul class="lista">
-        @for (reserva of reservas; track reserva.idReserva) {
-          <li>
-            <app-tarjeta-reserva
-              [enlace]="['/reservas', reserva.idReserva]"
-              [titulo]="reserva.alojamiento"
-              [fechaEntrada]="reserva.fechaEntrada"
-              [fechaSalida]="reserva.fechaSalida"
-              [estado]="reserva.estado"
-              [monto]="reserva.montoTotal"
-            />
-          </li>
-        }
-      </ul>
     }
   } @else {
     <ul class="lista" aria-busy="true" aria-label="Cargando reservas">

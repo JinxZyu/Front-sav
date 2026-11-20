@@ -79,6 +79,24 @@ export interface MisReservas {
   mensaje: string | null;
 }
 
+export interface ReservaDeAlojamiento {
+  idReserva: string;
+  idAlojamiento: string;
+  alojamiento: string;
+  idHuesped: string;
+  huesped: string;
+  fechaEntrada: string;
+  fechaSalida: string;
+  estado: string;
+  montoTotal: number;
+}
+
+export interface ReservasDeAlojamientos {
+  reservas: ReservaDeAlojamiento[];
+  totalResultados: number;
+  mensaje: string | null;
+}
+
 export interface CancelacionReserva {
   idReserva: string;
   estadoFinal: string;
