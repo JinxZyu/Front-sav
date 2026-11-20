@@ -15,6 +15,7 @@ export interface RegistroRequest {
   documentoIdentidad: string;
   telefono: string;
   contrasena: string;
+  idCiudad: string;
   rol: RolRegistro;
 }
 
