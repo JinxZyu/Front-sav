@@ -129,7 +129,12 @@
                 <p class="alerta" role="alert">{{ errorAccion() }}</p>
               }
               <div class="botones">
-                <button type="button" class="principal" [disabled]="ocupado()" (click)="aprobar()">
+                <button
+                  type="button"
+                  class="principal"
+                  [disabled]="!puedeAprobar()"
+                  (click)="aprobar()"
+                >
                   {{ enviando() && accion() === null ? 'Aprobando…' : 'Aprobar y publicar' }}
                 </button>
                 <button

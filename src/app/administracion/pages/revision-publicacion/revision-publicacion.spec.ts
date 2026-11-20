@@ -308,6 +308,47 @@ describe('RevisionPublicacion (HU-014)', () => {
     expect(decision().querySelector('[role="alert"]')).toBeNull();
   });
 
+  it('HU-017: con el formulario de bloqueo abierto no deja aprobar', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar());
+
+    boton(moderacion(), 'Bloquear publicación').click();
+    refrescar();
+
+    expect(boton(decision(), 'Aprobar y publicar').disabled).toBe(true);
+    boton(decision(), 'Aprobar y publicar').click();
+    refrescar();
+    backend.expectNone(`${api}/p-1/aprobar`);
+
+    boton(moderacion(), 'Cancelar').click();
+    refrescar();
+    expect(boton(decision(), 'Aprobar y publicar').disabled).toBe(false);
+  });
+
+  it('HU-017: el error de la aprobación no aparece en el formulario de bloqueo', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar());
+
+    boton(decision(), 'Aprobar y publicar').click();
+    refrescar();
+    backend
+      .expectOne(`${api}/p-1/aprobar`)
+      .flush(
+        { mensaje: 'La cuenta del anfitrión está restringida.' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    refrescar();
+    expect(decision().querySelector('[role="alert"]')?.textContent).toContain(
+      'La cuenta del anfitrión está restringida.',
+    );
+
+    boton(moderacion(), 'Bloquear publicación').click();
+    refrescar();
+
+    expect(moderacion().querySelector('[role="alert"]')).toBeNull();
+    expect(decision().querySelector('[role="alert"]')).toBeNull();
+  });
+
   it('HU-017: abrir el bloqueo cierra el formulario de rechazo', async () => {
     await abrir();
     await responder(publicacionParaRevisar());

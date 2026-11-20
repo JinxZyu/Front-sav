@@ -84,6 +84,7 @@ export class RevisionPublicacion {
     computation: () => null,
   });
   protected readonly ocupado = computed(() => this.enviando() || this.consulta.isLoading());
+  protected readonly puedeAprobar = computed(() => !this.ocupado() && this.accion() === null);
 
   protected readonly maximoMotivo = MAXIMO_MOTIVO_PUBLICACION;
   protected readonly estado = estadoPublicacion;
@@ -122,6 +123,9 @@ export class RevisionPublicacion {
   }
 
   protected aprobar(): void {
+    if (!this.puedeAprobar()) {
+      return;
+    }
     this.ejecutar(
       (id) => this.servicio.aprobar(id),
       'Publicación aprobada',
