@@ -87,6 +87,16 @@
         }
       </dl>
     </div>
+
+    <section class="condiciones" aria-labelledby="titulo-condiciones">
+      <h2 id="titulo-condiciones">Condiciones de reserva</h2>
+      <div class="tarjetas">
+        <app-politica-publicacion
+          [idPublicacion]="publicacion.idPublicacion"
+          [editable]="publicacion.estado !== 'BLOQUEADA'"
+        />
+      </div>
+    </section>
   } @else if (noEncontrada()) {
     <div class="vacio" role="alert">
       <h1 id="titulo-detalle">No encontramos esta publicación</h1>

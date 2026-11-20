@@ -141,3 +141,12 @@ export interface CambioEstadoPublicacion {
   mensaje: string;
   fechaActualizacion: string;
 }
+
+export interface PoliticaDePublicacion extends PoliticaCancelacion {
+  idPublicacion: string;
+  activa: boolean;
+}
+
+export function formatearPorcentaje(valor: number | null): string {
+  return valor === null ? '' : `${Number(valor)} %`;
+}

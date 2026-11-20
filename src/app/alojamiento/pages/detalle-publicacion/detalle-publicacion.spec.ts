@@ -63,12 +63,28 @@ describe('DetallePublicacion (HU-011)', () => {
 
   const elemento = () => fixture.nativeElement as HTMLElement;
 
-  const responderImagenes = async () => {
+  const RESPUESTAS_SECCIONES: Record<string, object> = {
+    '/politica-cancelacion': {
+      idPublicacion: 'p-1',
+      idPolitica: 'pol-1',
+      nombre: 'Flexible',
+      version: 1,
+      descripcion: null,
+      anticipacionHoras: 24,
+      porcentajeDevolucion: 100,
+      activa: true,
+    },
+  };
+
+  const responderSecciones = async () => {
     await new Promise((resolver) => setTimeout(resolver));
     fixture.detectChanges();
     TestBed.tick();
-    for (const pendiente of backend.match((peticion) => peticion.url.includes('/imagenes/'))) {
-      pendiente.flush(new Blob(['x']));
+    for (const pendiente of backend.match((peticion) => peticion.url !== url)) {
+      const seccion = Object.keys(RESPUESTAS_SECCIONES).find((ruta) =>
+        pendiente.request.url.endsWith(ruta),
+      );
+      pendiente.flush(seccion ? RESPUESTAS_SECCIONES[seccion] : new Blob(['x']));
     }
     await fixture.whenStable();
   };
@@ -81,7 +97,7 @@ describe('DetallePublicacion (HU-011)', () => {
   it('criterio 2: muestra el detalle de la publicación propia', async () => {
     crear();
     backend.expectOne(url).flush(detalle());
-    await responderImagenes();
+    await responderSecciones();
 
     const texto = elemento().textContent ?? '';
     expect(elemento().querySelector('h1')?.textContent).toBe('Cabaña frente al lago');
@@ -100,7 +116,7 @@ describe('DetallePublicacion (HU-011)', () => {
   it('permite editar la publicación desde el detalle', async () => {
     crear();
     backend.expectOne(url).flush(detalle({ imagenes: [] }));
-    await fixture.whenStable();
+    await responderSecciones();
 
     expect(elemento().querySelector('a.editar')?.getAttribute('href')).toBe(
       '/alojamientos/p-1/editar',
@@ -111,7 +127,7 @@ describe('DetallePublicacion (HU-011)', () => {
   it('actualiza el estado mostrado cuando se envía a revisión', async () => {
     crear();
     backend.expectOne(url).flush(detalle({ imagenes: [], estado: 'BORRADOR' }));
-    await fixture.whenStable();
+    await responderSecciones();
 
     elemento().querySelector<HTMLButtonElement>('app-acciones-estado button')?.click();
     backend.expectOne(`${api}/publicaciones/p-1/enviar-revision`).flush({
@@ -127,10 +143,30 @@ describe('DetallePublicacion (HU-011)', () => {
     );
   });
 
+  it('muestra las condiciones de reserva de la publicación', async () => {
+    crear();
+    backend.expectOne(url).flush(detalle({ imagenes: [] }));
+    await responderSecciones();
+
+    const condiciones = elemento().querySelector('.condiciones');
+    expect(condiciones?.querySelector('h2')?.textContent).toBe('Condiciones de reserva');
+    expect(condiciones?.querySelector('app-politica-publicacion')?.textContent).toContain(
+      'Flexible',
+    );
+  });
+
+  it('no permite cambiar las condiciones de una publicación bloqueada', async () => {
+    crear();
+    backend.expectOne(url).flush(detalle({ imagenes: [], estado: 'BLOQUEADA' }));
+    await responderSecciones();
+
+    expect(elemento().querySelector('.condiciones button')).toBeNull();
+  });
+
   it('confirma que se guardaron los cambios al volver de editar', async () => {
     crear('actualizada');
     backend.expectOne(url).flush(detalle({ imagenes: [] }));
-    await fixture.whenStable();
+    await responderSecciones();
 
     expect(elemento().querySelector('.aviso[role="status"]')?.textContent).toContain(
       'Guardamos los cambios',
@@ -140,7 +176,7 @@ describe('DetallePublicacion (HU-011)', () => {
   it('pone la portada de primera en la galería', async () => {
     crear();
     backend.expectOne(url).flush(detalle());
-    await responderImagenes();
+    await responderSecciones();
 
     const imagenes = elemento().querySelectorAll<HTMLImageElement>('.galeria img');
     expect(imagenes).toHaveLength(2);
@@ -158,7 +194,7 @@ describe('DetallePublicacion (HU-011)', () => {
         fechaActualizacion: '2026-11-19T10:00:00Z',
       }),
     );
-    await fixture.whenStable();
+    await responderSecciones();
 
     const texto = elemento().textContent ?? '';
     expect(texto).not.toContain('Reglas de la casa');
@@ -192,7 +228,7 @@ describe('DetallePublicacion (HU-011)', () => {
     TestBed.tick();
 
     backend.expectOne(url).flush(detalle({ imagenes: [] }));
-    await fixture.whenStable();
+    await responderSecciones();
     expect(elemento().querySelector('h1')?.textContent).toBe('Cabaña frente al lago');
   });
 });

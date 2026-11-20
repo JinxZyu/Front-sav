@@ -1,0 +1,88 @@
+<div class="encabezado">
+  <h3 id="titulo-politica">Política de cancelación</h3>
+  @if (editable() && actual.hasValue() && !editando()) {
+    <button type="button" class="texto" (click)="cambiar()">Cambiar</button>
+  }
+</div>
+
+@if (editando()) {
+  @if (opciones.hasValue()) {
+    <fieldset class="opciones" aria-labelledby="titulo-politica" [disabled]="guardando()">
+      @for (politica of opciones.value(); track politica.idPolitica) {
+        <label class="opcion">
+          <input
+            type="radio"
+            name="politica"
+            [value]="politica.idPolitica"
+            [checked]="seleccion() === politica.idPolitica"
+            (change)="seleccion.set(politica.idPolitica)"
+          />
+          <span>
+            <strong>{{ politica.nombre }}</strong>
+            @if (politica.descripcion) {
+              <span class="nota">{{ politica.descripcion }}</span>
+            }
+          </span>
+        </label>
+      } @empty {
+        <p class="nota">No hay políticas activas. Comunícate con un administrador.</p>
+      }
+    </fieldset>
+    <div class="acciones">
+      <button
+        type="button"
+        class="principal"
+        [disabled]="guardando() || !seleccionValida()"
+        (click)="guardar()"
+      >
+        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+      </button>
+      <ng-container [ngTemplateOutlet]="botonCancelar" />
+    </div>
+  } @else if (errorOpciones(); as errorOpciones) {
+    <p class="mensaje falla" role="alert">
+      {{ errorOpciones }}
+      <button type="button" class="texto" (click)="opciones.reload()">Reintentar</button>
+    </p>
+    <div class="acciones"><ng-container [ngTemplateOutlet]="botonCancelar" /></div>
+  } @else {
+    <div class="cargando" aria-busy="true" aria-label="Cargando políticas"></div>
+    <div class="acciones"><ng-container [ngTemplateOutlet]="botonCancelar" /></div>
+  }
+} @else if (actual.hasValue()) {
+  <p class="valor">{{ actual.value().nombre }}</p>
+  @if (actual.value().descripcion) {
+    <p class="nota">{{ actual.value().descripcion }}</p>
+  }
+  @if (actual.value().porcentajeDevolucion !== null) {
+    <p class="nota">
+      Devolución: {{ porcentaje(actual.value().porcentajeDevolucion) }}
+      @if (actual.value().anticipacionHoras !== null) {
+        si se cancela con {{ actual.value().anticipacionHoras }} horas de anticipación
+      }
+    </p>
+  }
+  @if (!actual.value().activa) {
+    <p class="mensaje falla">Esta política ya no está vigente. Elige una de las actuales.</p>
+  }
+} @else if (errorCarga(); as errorCarga) {
+  <p class="mensaje falla" role="alert">
+    {{ errorCarga }}
+    <button type="button" class="texto" (click)="actual.reload()">Reintentar</button>
+  </p>
+} @else {
+  <div class="cargando" aria-busy="true" aria-label="Cargando política"></div>
+}
+
+@if (error(); as error) {
+  <p class="mensaje falla" role="alert">{{ error }}</p>
+}
+@if (aviso(); as aviso) {
+  <p class="mensaje exito" role="status">{{ aviso }}</p>
+}
+
+<ng-template #botonCancelar>
+  <button type="button" class="secundario" [disabled]="guardando()" (click)="cancelar()">
+    Cancelar
+  </button>
+</ng-template>

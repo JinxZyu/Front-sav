@@ -8,6 +8,7 @@ import {
   MisPublicaciones,
   NuevaPublicacion,
   PoliticaCancelacion,
+  PoliticaDePublicacion,
   PublicacionCreada,
   ServicioDisponible,
 } from '../models/alojamiento.models';
@@ -64,6 +65,19 @@ export class PublicacionAlojamientoService {
     return this.http.patch<CambioEstadoPublicacion>(
       `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/reactivar`,
       null,
+    );
+  }
+
+  politicaDe(idPublicacion: string): Observable<PoliticaDePublicacion> {
+    return this.http.get<PoliticaDePublicacion>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/politica-cancelacion`,
+    );
+  }
+
+  cambiarPolitica(idPublicacion: string, idPolitica: string): Observable<PoliticaDePublicacion> {
+    return this.http.patch<PoliticaDePublicacion>(
+      `${this.api}/publicaciones/${encodeURIComponent(idPublicacion)}/politica-cancelacion`,
+      { idPolitica },
     );
   }
 

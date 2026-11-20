@@ -265,6 +265,16 @@ dd {
   border-radius: 1rem;
 }
 
+.condiciones {
+  margin-top: 2rem;
+}
+
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+
 @media (width < 48rem) {
   .cuerpo {
     grid-template-columns: minmax(0, 1fr);
