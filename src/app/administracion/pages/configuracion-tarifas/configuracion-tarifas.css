@@ -1,0 +1,93 @@
+.columnas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.2rem 1.4rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+h2 {
+  margin: 0 0 0.3rem;
+  color: #1e1b4b;
+  font-size: 1.05rem;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 0;
+}
+
+dt {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+dd {
+  margin: 0.2rem 0 0;
+  color: #1e1b4b;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.nota {
+  margin: 0;
+  color: #64748b;
+}
+
+label {
+  margin-top: 0.3rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font: inherit;
+}
+
+input[aria-invalid='true'] {
+  border-color: #fb7185;
+}
+
+input:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.ayuda {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.ayuda.error-campo {
+  color: #e11d48;
+}
+
+.botones {
+  margin-top: 0.5rem;
+}
+
+.esqueleto {
+  height: 14rem;
+}
+
+@media (width <= 44rem) {
+  .columnas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

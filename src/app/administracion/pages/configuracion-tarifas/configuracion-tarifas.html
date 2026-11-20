@@ -1,0 +1,91 @@
+<section class="contenedor" aria-labelledby="titulo-tarifas">
+  <h1 id="titulo-tarifas">Tarifas</h1>
+  <p class="subtitulo">Define los porcentajes que el sistema aplica al calcular cada cotización.</p>
+
+  @if (errorCarga(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else if (vigente() || sinConfiguracion()) {
+    <div class="columnas">
+      <section class="tarjeta vigente" aria-labelledby="titulo-vigente">
+        <h2 id="titulo-vigente">Valores vigentes</h2>
+        @if (vigente(); as vigente) {
+          <dl>
+            <div>
+              <dt>Servicio de la plataforma</dt>
+              <dd>{{ porcentaje(vigente.porcentajeServicio) }}</dd>
+            </div>
+            <div>
+              <dt>Descuento</dt>
+              <dd>{{ porcentaje(vigente.porcentajeDescuento) }}</dd>
+            </div>
+          </dl>
+          <p class="nota">Vigentes desde el {{ fecha(vigente.vigenteDesde) }}</p>
+        } @else {
+          <p class="nota">
+            Aún no hay porcentajes configurados. Mientras tanto no se pueden calcular cotizaciones.
+          </p>
+        }
+      </section>
+
+      <form
+        class="tarjeta"
+        [formGroup]="formulario"
+        (ngSubmit)="guardar()"
+        novalidate
+        aria-labelledby="titulo-nuevos"
+      >
+        <h2 id="titulo-nuevos">
+          {{ vigente() ? 'Cambiar porcentajes' : 'Configurar porcentajes' }}
+        </h2>
+        <label for="porcentaje-servicio">Servicio de la plataforma (%)</label>
+        <input
+          id="porcentaje-servicio"
+          inputmode="decimal"
+          formControlName="porcentajeServicio"
+          [attr.aria-invalid]="invalido('porcentajeServicio')"
+          aria-describedby="ayuda-servicio"
+        />
+        <span
+          class="ayuda"
+          id="ayuda-servicio"
+          [class.error-campo]="invalido('porcentajeServicio')"
+        >
+          Se calcula sobre el valor de las noches y se suma al total. Entre 0 y 100, con hasta dos
+          decimales.
+        </span>
+
+        <label for="porcentaje-descuento">Descuento (%)</label>
+        <input
+          id="porcentaje-descuento"
+          inputmode="decimal"
+          formControlName="porcentajeDescuento"
+          [attr.aria-invalid]="invalido('porcentajeDescuento')"
+          aria-describedby="ayuda-descuento"
+        />
+        <span
+          class="ayuda"
+          id="ayuda-descuento"
+          [class.error-campo]="invalido('porcentajeDescuento')"
+        >
+          Se calcula sobre el valor de las noches y se resta del total. Entre 0 y 100, con hasta dos
+          decimales.
+        </span>
+
+        @if (error(); as error) {
+          <p class="alerta" role="alert">{{ error }}</p>
+        }
+
+        <div class="botones">
+          <button type="submit" class="principal" [disabled]="enviando()">
+            {{ enviando() ? 'Guardando…' : 'Guardar porcentajes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  } @else {
+    <div class="esqueleto" aria-busy="true" aria-label="Cargando tarifas"></div>
+  }
+</section>
