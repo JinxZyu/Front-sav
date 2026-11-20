@@ -54,6 +54,7 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     },
   ];
   const urlPoliticas = `${api}/politicas-cancelacion/activas`;
+  const urlPaises = `${api}/autenticacion/ubicaciones/paises`;
 
   const estabilizar = async (completo = true) => {
     if (completo) {
@@ -101,6 +102,11 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     if (cargarPoliticas) {
       backend.expectOne(urlPoliticas).flush(politicasActivas);
     }
+    backend.expectOne(urlPaises).flush([{ idPais: 'pa-co', codigoIso2: 'CO', nombre: 'Colombia' }]);
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(`${urlPaises}/pa-co/ciudades`).flush([{ idCiudad: 'c-1', nombre: 'Bogotá' }]);
     if (respuesta) {
       backend.expectOne(urlDetalle).flush(respuesta);
       await estabilizar(cargarPoliticas);
@@ -124,6 +130,7 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
       descripcion: 'Vista al embalse.',
       reglas: 'No fumar',
       ubicacion: 'Vereda El Lago',
+      pais: 'pa-co',
       ciudad: 'Guatavita',
       tipoAlojamiento: 'Cabaña',
       capacidad: '4',
@@ -136,6 +143,13 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
       idPolitica: 'p-1',
       idsServicios: ['s-2'],
     });
+    const ciudades = [
+      ...(elemento().querySelector<HTMLSelectElement>('select[formControlName="ciudad"]')
+        ?.options ?? []),
+    ]
+      .filter((opcion) => opcion.value)
+      .map((opcion) => opcion.text);
+    expect(ciudades).toEqual(['Bogotá', 'Guatavita']);
     expect(elemento().querySelector('button[type="submit"]')?.textContent?.trim()).toBe(
       'Guardar cambios',
     );
@@ -164,6 +178,7 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
 
     expect(router.navigate).toHaveBeenCalledWith(['/alojamientos', 'p-9'], {
       queryParams: { aviso: 'actualizada' },
+      replaceUrl: true,
     });
   });
 
