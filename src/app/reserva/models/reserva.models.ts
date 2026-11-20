@@ -50,6 +50,17 @@ export interface RetencionReserva {
   mensaje: string;
 }
 
+export interface PagoReserva {
+  idReserva: string;
+  idPago: string;
+  estadoReserva: string;
+  estadoPago: string;
+  monto: number;
+  retencionHasta: string | null;
+  referenciaPago: string | null;
+  mensaje: string;
+}
+
 export interface ReservaPropia {
   idReserva: string;
   idAlojamiento: string;

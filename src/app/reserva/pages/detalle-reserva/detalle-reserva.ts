@@ -2,11 +2,11 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, finalize, map } from 'rxjs';
-import { formatearFechaHora } from '../../../alojamiento/utils/formato';
+import { formatearFechaHora, formatearPesos } from '../../../alojamiento/utils/formato';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { EncabezadoReserva } from '../../components/encabezado-reserva/encabezado-reserva';
 import { ResumenReserva } from '../../components/resumen-reserva/resumen-reserva';
-import { AvisoReserva, retencionVigente } from '../../models/reserva.models';
+import { AvisoReserva, PagoReserva, retencionVigente } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
 import { estadoDeConsulta } from '../../utils/consulta-reserva';
 
@@ -70,12 +70,18 @@ export class DetalleReserva {
       : { tono: 'exito', texto: 'Creamos tu reserva.' };
   });
   protected readonly procesando = signal(false);
+  protected readonly pagoEnProceso = signal(false);
 
+  protected readonly pesos = formatearPesos;
   protected readonly fechaHora = formatearFechaHora;
 
   constructor() {
     const reloj = setInterval(() => this.ahora.set(Date.now()), 15_000);
     inject(DestroyRef).onDestroy(() => clearInterval(reloj));
+  }
+
+  protected pagar(): void {
+    this.ejecutar(this.servicio.pagar(this.idReserva()), (pago) => this.alPagar(pago));
   }
 
   protected apartar(): void {
@@ -85,6 +91,24 @@ export class DetalleReserva {
         texto: 'Apartamos de nuevo tus fechas. Ya puedes pagar.',
       }),
     );
+  }
+
+  private alPagar(pago: PagoReserva): void {
+    this.pagoEnProceso.set(pago.estadoPago === 'PENDIENTE');
+    if (pago.estadoReserva === 'CONFIRMADA') {
+      this.resultado.set({ tono: 'exito', texto: '¡Pago aprobado! Tu reserva está confirmada.' });
+    } else if (pago.estadoPago === 'FALLIDO') {
+      this.resultado.set({
+        tono: 'error',
+        texto:
+          'El pago fue rechazado. Puedes intentarlo de nuevo mientras tus fechas sigan apartadas.',
+      });
+    } else {
+      this.resultado.set({
+        tono: 'info',
+        texto: 'Estamos confirmando tu pago. Consulta de nuevo en unos segundos.',
+      });
+    }
   }
 
   private ejecutar<T>(operacion: Observable<T>, alTerminar: (respuesta: T) => void): void {

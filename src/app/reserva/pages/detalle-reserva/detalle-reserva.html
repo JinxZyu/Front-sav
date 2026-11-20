@@ -48,6 +48,15 @@
           <strong>{{ fechaHora(reserva.retencionHasta) }}</strong>; te quedan
           {{ minutosRestantes() }} {{ minutosRestantes() === 1 ? 'minuto' : 'minutos' }} para pagar.
         </p>
+        <button type="button" class="principal" [disabled]="procesando()" (click)="pagar()">
+          @if (procesando()) {
+            Procesando…
+          } @else if (pagoEnProceso()) {
+            Consultar estado del pago
+          } @else {
+            Pagar {{ pesos(reserva.montoTotal) }}
+          }
+        </button>
       </div>
     } @else if (puedeApartar()) {
       <div class="accion">

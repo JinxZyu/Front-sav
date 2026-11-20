@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import {
   Cotizacion,
   MisReservas,
+  PagoReserva,
   ReservaPropia,
   RetencionReserva,
   SolicitudCotizacion,
@@ -16,6 +17,7 @@ export class ReservaService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/reservas`;
   private readonly clavesSolicitud = new Map<string, string>();
+  private readonly clavesPago = new Map<string, string>();
 
   cotizar(solicitud: SolicitudCotizacion): Observable<Cotizacion> {
     return this.http.post<Cotizacion>(`${environment.apiUrl}/cotizaciones`, solicitud);
@@ -30,6 +32,21 @@ export class ReservaService {
 
   retener(idReserva: string): Observable<RetencionReserva> {
     return this.http.post<RetencionReserva>(`${this.ruta(idReserva)}/retencion`, null);
+  }
+
+  pagar(idReserva: string): Observable<PagoReserva> {
+    const clave = this.clave(this.clavesPago, idReserva);
+    return this.http
+      .post<PagoReserva>(`${this.ruta(idReserva)}/pago-simulado`, null, {
+        headers: idempotencia(clave),
+      })
+      .pipe(
+        tap((pago) => {
+          if (pago.estadoPago !== 'PENDIENTE') {
+            this.clavesPago.delete(idReserva);
+          }
+        }),
+      );
   }
 
   misReservas(): Observable<MisReservas> {

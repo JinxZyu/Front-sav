@@ -38,4 +38,22 @@ describe('ReservaService', () => {
     expect(clave(tercera)).not.toBe(usada);
     tercera.flush({ idReserva: 'r-1' });
   });
+
+  it('consulta un pago pendiente con la misma clave y la renueva al terminar', () => {
+    const url = `${api}/r-1/pago-simulado`;
+    servicio.pagar('r-1').subscribe();
+    const primera = backend.expectOne(url);
+    const usada = clave(primera);
+    primera.flush({ estadoPago: 'PENDIENTE' });
+
+    servicio.pagar('r-1').subscribe();
+    const segunda = backend.expectOne(url);
+    expect(clave(segunda)).toBe(usada);
+    segunda.flush({ estadoPago: 'FALLIDO' });
+
+    servicio.pagar('r-1').subscribe();
+    const tercera = backend.expectOne(url);
+    expect(clave(tercera)).not.toBe(usada);
+    tercera.flush({ estadoPago: 'PAGADO' });
+  });
 });

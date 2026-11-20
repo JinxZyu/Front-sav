@@ -91,6 +91,50 @@ describe('DetalleReserva del huésped', () => {
     expect(elemento().textContent).toContain('No encontramos esta reserva');
   });
 
+  it('HU-036 criterio 1: paga mientras las fechas están apartadas', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+    expect(elemento().textContent).toContain('Tus fechas están apartadas hasta');
+
+    boton('Pagar $')!.click();
+    const pago = backend.expectOne(`${api}/r-1/pago-simulado`);
+    expect(pago.request.headers.get('Idempotency-Key')).toBeTruthy();
+    pago.flush({ estadoReserva: 'CONFIRMADA', estadoPago: 'PAGADO' });
+    await refrescar();
+    await responder(consulta, reservaPropia({ estado: 'CONFIRMADA' }));
+
+    expect(aviso()).toBe('¡Pago aprobado! Tu reserva está confirmada.');
+    expect(elemento().textContent).toContain('Confirmada');
+    expect(boton('Pagar')).toBeUndefined();
+  });
+
+  it('HU-036 criterio 2: si el pago queda en proceso permite consultarlo de nuevo', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+
+    boton('Pagar $')!.click();
+    backend
+      .expectOne(`${api}/r-1/pago-simulado`)
+      .flush({ estadoReserva: 'PENDIENTE_PAGO', estadoPago: 'PENDIENTE' });
+    await refrescar();
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+
+    expect(aviso()).toContain('Estamos confirmando tu pago');
+    expect(boton('Consultar estado del pago')).toBeDefined();
+  });
+
+  it('HU-036 criterio 3: informa un pago rechazado o un plazo vencido', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+
+    boton('Pagar $')!.click();
+    await responder(`${api}/r-1/pago-simulado`, { mensaje: 'El plazo de pago venció.' }, 410);
+    await responder(consulta, reservaPropia({ estado: 'EXPIRADA' }));
+
+    expect(aviso()).toBe('El plazo de pago venció.');
+    expect(elemento().textContent).toContain('El plazo para pagar venció');
+  });
+
   it('HU-030: aparta de nuevo las fechas cuando la retención venció', async () => {
     await abrir();
     await responder(consulta, reservaPropia({ retencionHasta: null }));
@@ -101,5 +145,6 @@ describe('DetalleReserva del huésped', () => {
 
     expect(aviso()).toContain('Apartamos de nuevo tus fechas');
     expect(boton('Apartar fechas')).toBeUndefined();
+    expect(boton('Pagar $')).toBeDefined();
   });
 });
