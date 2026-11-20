@@ -137,7 +137,7 @@ describe('Cotizador (HU-027 y HU-028)', () => {
 
     const texto = elemento().textContent ?? '';
     expect(texto).toContain('La salida debe ser posterior a la llegada.');
-    expect(texto).toContain('Puedes reservar para 1 a 4 huéspedes.');
+    expect(texto).toContain('Indica un número entero de 1 a 4 huéspedes.');
     backend.expectNone(url);
   });
 
@@ -150,6 +150,47 @@ describe('Cotizador (HU-027 y HU-028)', () => {
 
     expect(elemento().querySelector('[role="alert"]')?.textContent).toContain(
       'no está disponible para las fechas indicadas',
+    );
+  });
+
+  it('no cotiza con un número de huéspedes que no es entero', () => {
+    crear({ llegada, salida });
+    backend.expectOne(url).flush(cotizacion());
+    escribir('huespedes', '1.5');
+    enviar();
+
+    expect(elemento().textContent).toContain('Indica un número entero de 1 a 4 huéspedes.');
+    backend.expectNone(url);
+  });
+
+  it('actualiza el formulario y recalcula cuando cambian las fechas de la búsqueda', async () => {
+    crear({ llegada, salida });
+    await responder(cotizacion());
+
+    const nuevaSalida = moverDias(salida, 2);
+    fixture.componentRef.setInput('salida', nuevaSalida);
+    fixture.componentRef.setInput('huespedes', '3');
+    fixture.detectChanges();
+
+    const peticion = backend.expectOne(url);
+    expect(peticion.request.body.fechaSalida).toBe(nuevaSalida);
+    expect(peticion.request.body.cantidadHuespedes).toBe(3);
+    expect(campo('salida').value).toBe(nuevaSalida);
+    expect(elemento().querySelector('.desglose')).toBeNull();
+    peticion.flush(cotizacion({ noches: 5, fechaSalida: nuevaSalida }));
+  });
+
+  it('descarta la respuesta de una cotización si el formulario cambió mientras se calculaba', async () => {
+    crear({ llegada, salida });
+    const pendiente = backend.expectOne(url);
+
+    escribir('salida', moverDias(salida, 1));
+    fixture.detectChanges();
+
+    expect(pendiente.cancelled).toBe(true);
+    expect(elemento().querySelector('.desglose')).toBeNull();
+    expect(elemento().querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(
+      false,
     );
   });
 });

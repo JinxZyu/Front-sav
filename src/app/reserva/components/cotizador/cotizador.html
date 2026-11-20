@@ -52,7 +52,9 @@
     />
   </label>
   @if (formulario.controls.huespedes.invalid) {
-    <p class="error-campo">Puedes reservar para 1 a {{ publicacion().capacidad }} huéspedes.</p>
+    <p class="error-campo">
+      Indica un número entero de 1 a {{ publicacion().capacidad }} huéspedes.
+    </p>
   }
 
   @if (adicionales().length > 0) {

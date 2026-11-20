@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { Subscription, finalize } from 'rxjs';
 import {
   DetallePublicacion,
   ServicioAdicional,
@@ -13,13 +13,16 @@ import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { Cotizacion } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
 
+const ENTERO = /^\d+$/;
+const VALIDADORES_HUESPEDES = [Validators.required, Validators.min(1), Validators.pattern(ENTERO)];
+
 @Component({
   selector: 'app-cotizador',
   imports: [ReactiveFormsModule],
   templateUrl: './cotizador.html',
   styleUrl: './cotizador.css',
 })
-export class Cotizador implements OnInit {
+export class Cotizador {
   private readonly servicio = inject(ReservaService);
 
   readonly publicacion = input.required<DetallePublicacion>();
@@ -37,7 +40,7 @@ export class Cotizador implements OnInit {
     {
       llegada: ['', [Validators.required, desdeHoy]],
       salida: ['', [Validators.required]],
-      huespedes: [1, [Validators.required, Validators.min(1)]],
+      huespedes: [1, VALIDADORES_HUESPEDES],
       adicionales: [[] as string[]],
     },
     { validators: rangoValido('llegada', 'salida') },
@@ -47,26 +50,50 @@ export class Cotizador implements OnInit {
   protected readonly porcentaje = formatearPorcentaje;
   protected readonly moverDias = moverDias;
 
+  private solicitud: Subscription | null = null;
+
   constructor() {
-    this.formulario.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
-      this.cotizacion.set(null);
-      this.error.set(null);
+    this.formulario.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.descartarCotizacion());
+    inject(DestroyRef).onDestroy(() => this.solicitud?.unsubscribe());
+    effect(() => {
+      const capacidad = this.publicacion().capacidad;
+      const busqueda = {
+        llegada: this.llegada(),
+        salida: this.salida(),
+        huespedes: this.huespedes(),
+      };
+      untracked(() => this.prepararBusqueda(capacidad, busqueda));
     });
   }
 
-  ngOnInit(): void {
-    const capacidad = this.publicacion().capacidad;
-    this.formulario.controls.huespedes.addValidators(Validators.max(capacidad));
-    const huespedes = Number(this.huespedes());
+  private prepararBusqueda(
+    capacidad: number,
+    busqueda: { llegada: string; salida: string; huespedes: string },
+  ): void {
+    const huespedes = Number(busqueda.huespedes);
+    this.formulario.controls.huespedes.setValidators([
+      ...VALIDADORES_HUESPEDES,
+      Validators.max(capacidad),
+    ]);
     this.formulario.setValue({
-      llegada: this.llegada(),
-      salida: this.salida(),
+      llegada: busqueda.llegada,
+      salida: busqueda.salida,
       huespedes: Number.isInteger(huespedes) && huespedes > 0 ? Math.min(huespedes, capacidad) : 1,
       adicionales: [],
     });
     if (this.formulario.valid) {
       this.cotizar();
     }
+  }
+
+  private descartarCotizacion(): void {
+    this.solicitud?.unsubscribe();
+    this.solicitud = null;
+    this.calculando.set(false);
+    this.cotizacion.set(null);
+    this.error.set(null);
   }
 
   protected marcado(idAdicional: string): boolean {
@@ -88,9 +115,10 @@ export class Cotizador implements OnInit {
       return;
     }
     const valores = this.formulario.getRawValue();
+    this.solicitud?.unsubscribe();
     this.calculando.set(true);
     this.error.set(null);
-    this.servicio
+    this.solicitud = this.servicio
       .cotizar({
         idPublicacion: this.publicacion().idPublicacion,
         fechaEntrada: valores.llegada,
