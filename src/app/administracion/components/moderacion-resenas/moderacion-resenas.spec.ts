@@ -118,6 +118,51 @@ describe('ModeracionResenas (HU-042)', () => {
     expect(elemento().textContent).not.toContain('Comentario con insultos');
   });
 
+  it('al cambiar de publicación descarta el ocultamiento pendiente de la anterior', async () => {
+    crear();
+    await responder();
+    const mostrar = vi.spyOn(TestBed.inject(AvisosService), 'mostrar');
+
+    boton(items()[0], 'Ocultar').click();
+    fixture.detectChanges();
+    escribirYEnviar(items()[0], 'Spam');
+    const pendiente = backend.expectOne(ocultar('rs-1'));
+
+    fixture.componentRef.setInput('idPublicacion', 'p-2');
+    fixture.detectChanges();
+    TestBed.tick();
+
+    expect(pendiente.cancelled).toBe(true);
+    backend
+      .expectOne(`${environment.apiUrl}/publicaciones/p-2/resenas`)
+      .flush({
+        idPublicacion: 'p-2',
+        resenas: [],
+        totalResenas: 0,
+        calificacionPromedio: 0,
+        mensaje: null,
+      });
+    await fixture.whenStable();
+    expect(mostrar).not.toHaveBeenCalled();
+    expect(elemento().textContent).toContain('Esta publicación no tiene reseñas visibles.');
+  });
+
+  it('al destruirse descarta el ocultamiento pendiente', async () => {
+    crear();
+    await responder();
+    const mostrar = vi.spyOn(TestBed.inject(AvisosService), 'mostrar');
+
+    boton(items()[0], 'Ocultar').click();
+    fixture.detectChanges();
+    escribirYEnviar(items()[0], 'Spam');
+    const pendiente = backend.expectOne(ocultar('rs-1'));
+
+    fixture.destroy();
+
+    expect(pendiente.cancelled).toBe(true);
+    expect(mostrar).not.toHaveBeenCalled();
+  });
+
   it('criterio 3: informa si la reseña ya no puede modificarse', async () => {
     crear();
     await responder();

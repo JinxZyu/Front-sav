@@ -1,6 +1,15 @@
-import { Component, computed, inject, input, linkedSignal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  untracked,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs';
+import { Subscription, finalize } from 'rxjs';
 import { formatearFecha } from '../../../alojamiento/utils/formato';
 import { Estrellas } from '../../../resena/components/estrellas/estrellas';
 import { ResenaService } from '../../../resena/services/resena.service';
@@ -54,6 +63,16 @@ export class ModeracionResenas {
   protected readonly maximoMotivo = MAXIMO_MOTIVO_RESENA;
   protected readonly fecha = formatearFecha;
 
+  private envio: Subscription | null = null;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.cancelarEnvio());
+    effect(() => {
+      this.idPublicacion();
+      untracked(() => this.cancelarEnvio());
+    });
+  }
+
   protected abrir(idResena: string): void {
     if (!this.enviando()) {
       this.errorAccion.set(null);
@@ -74,7 +93,7 @@ export class ModeracionResenas {
     }
     this.enviando.set(true);
     this.errorAccion.set(null);
-    this.moderacion
+    this.envio = this.moderacion
       .ocultar(idResena, motivo)
       .pipe(finalize(() => this.enviando.set(false)))
       .subscribe({
@@ -86,5 +105,10 @@ export class ModeracionResenas {
         error: (error: unknown) =>
           this.errorAccion.set(mensajeDeError(error, 'No pudimos ocultar la reseña.')),
       });
+  }
+
+  private cancelarEnvio(): void {
+    this.envio?.unsubscribe();
+    this.envio = null;
   }
 }
