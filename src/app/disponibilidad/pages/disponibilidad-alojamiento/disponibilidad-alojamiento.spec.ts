@@ -166,6 +166,52 @@ describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
     expect(elemento().querySelector('.periodos form')).toBeNull();
   });
 
+  it('al editar marca solo el campo que tiene el error', async () => {
+    await crear();
+    botonPorTexto('Editar')?.click();
+    await fixture.whenStable();
+    const formulario = elemento().querySelector('.periodos form') as HTMLFormElement;
+    const llegada = () => formulario.querySelector('input[formControlName="fechaInicio"]');
+    const salida = () => formulario.querySelector('input[formControlName="fechaFin"]');
+
+    escribir('input[formControlName="fechaInicio"]', '', formulario);
+    botonPorTexto('Guardar')?.click();
+    await fixture.whenStable();
+
+    backend.expectNone(`${urlPeriodos}/pe-1`);
+    expect(llegada()?.getAttribute('aria-invalid')).toBe('true');
+    expect(llegada()?.getAttribute('aria-describedby')).toBe('error-edicion-llegada');
+    expect(llegada()?.hasAttribute('required')).toBe(true);
+    expect(salida()?.getAttribute('aria-invalid')).toBe('false');
+    expect(formulario.querySelector('#error-edicion-llegada')?.textContent).toContain('llegada');
+
+    escribir('input[formControlName="fechaInicio"]', '2027-01-15', formulario);
+    await fixture.whenStable();
+    expect(llegada()?.getAttribute('aria-invalid')).toBe('false');
+    expect(salida()?.getAttribute('aria-describedby')).toBe('error-edicion-salida');
+    expect(formulario.querySelector('#error-edicion-salida')?.textContent).toContain(
+      'posterior a la llegada',
+    );
+  });
+
+  it('vuelve a validar la llegada al enviar por si cambió el día', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 20, 23, 59));
+    try {
+      await crear([]);
+      escribir('form.tarjeta input[formControlName="fechaInicio"]', '2026-11-20');
+      escribir('form.tarjeta input[formControlName="fechaFin"]', '2026-11-22');
+      vi.setSystemTime(new Date(2026, 10, 21, 0, 1));
+      botonPorTexto('Agregar periodo')?.click();
+      await fixture.whenStable();
+
+      backend.expectNone(urlPeriodos);
+      expect(elemento().querySelector('#error-llegada')?.textContent).toContain('fecha futura');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('criterio 3: muestra que un periodo con reservas no se puede modificar', async () => {
     await crear();
     botonPorTexto('Editar')?.click();

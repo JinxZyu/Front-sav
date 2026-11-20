@@ -112,6 +112,7 @@ export class DisponibilidadAlojamiento {
 
   agregar(): void {
     this.intentoNuevo.set(true);
+    this.nuevo.controls.fechaInicio.updateValueAndValidity();
     const idAlojamiento = this.idAlojamiento();
     if (this.nuevo.invalid || !idAlojamiento) {
       this.nuevo.markAllAsTouched();
@@ -183,6 +184,15 @@ export class DisponibilidadAlojamiento {
   invalidoNuevo(campo: 'fechaInicio' | 'fechaFin'): boolean {
     const control = this.nuevo.controls[campo];
     return control.invalid && (control.touched || this.intentoNuevo());
+  }
+
+  invalidoEdicion(campo: 'fechaInicio' | 'fechaFin'): boolean {
+    const control = this.edicion.controls[campo];
+    return control.invalid && (control.touched || this.intentoEdicion());
+  }
+
+  rangoInvalidoEdicion(): boolean {
+    return this.intentoEdicion() && this.edicion.hasError('rango');
   }
 
   private ejecutar(
