@@ -157,4 +157,18 @@ describe('PublicacionAlojamientoService', () => {
     consulta.flush({});
     guardado.flush({});
   });
+
+  it('consulta y cambia el modo de aceptación', () => {
+    servicio.modoAceptacionDe('p-1').subscribe();
+    servicio.cambiarModoAceptacion('p-1', 'APROBACION').subscribe();
+    const consulta = backend.expectOne(
+      (peticion) => peticion.method === 'GET' && peticion.url.endsWith('/p-1/modo-aceptacion'),
+    );
+    const cambio = backend.expectOne(
+      (peticion) => peticion.method === 'PATCH' && peticion.url.endsWith('/p-1/modo-aceptacion'),
+    );
+    expect(cambio.request.body).toEqual({ modoAceptacion: 'APROBACION' });
+    consulta.flush({});
+    cambio.flush({});
+  });
 });
