@@ -22,7 +22,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize, map } from 'rxjs';
+import { finalize, map, merge } from 'rxjs';
 import { PAIS_POR_DEFECTO } from '../../../shared/models/ubicacion.models';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { UbicacionService } from '../../../shared/services/ubicacion.service';
@@ -281,7 +281,7 @@ export class CrearPublicacion {
         untracked(() => this.ubicarCiudadGuardada(guardada, nombres));
       }
     });
-    this.formulario.valueChanges
+    merge(this.formulario.valueChanges, this.mensajeCambios.valueChanges)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.actualizarFaltantes());
     effect(() => {

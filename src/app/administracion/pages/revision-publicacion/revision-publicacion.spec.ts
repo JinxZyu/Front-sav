@@ -453,12 +453,19 @@ describe('RevisionPublicacion (HU-014)', () => {
     expect(solicitud.querySelector('blockquote')?.textContent).toContain('Remodelamos la cocina');
     expect(solicitud.textContent).toContain('19 de nov');
     expect(solicitud.textContent).toContain('Estaba pausada');
+    const decision = elemento().querySelector('section[aria-labelledby="titulo-decision"]') as HTMLElement;
+    expect(decision.textContent).toContain('seguirá pausada como la dejó el anfitrión');
+    expect(decision.textContent).not.toContain('quedará publicada');
+    expect(decision.querySelector('button.principal')?.textContent?.trim()).toBe('Aprobar cambios');
   });
 
   it('sin solicitud de cambios no muestra esa sección', async () => {
     await abrir();
     await responder(publicacionParaRevisar());
     expect(elemento().querySelector('section.solicitud')).toBeNull();
+    const decision = elemento().querySelector('section[aria-labelledby="titulo-decision"]') as HTMLElement;
+    expect(decision.textContent).toContain('quedará publicada en el marketplace');
+    expect(decision.querySelector('button.principal')?.textContent?.trim()).toBe('Aprobar y publicar');
   });
 
   it('avisa si la publicación no existe', async () => {

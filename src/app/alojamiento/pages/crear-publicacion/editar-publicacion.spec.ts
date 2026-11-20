@@ -224,6 +224,7 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     expect(seccion.textContent).toContain('Explica qué cambiaste y por qué.');
 
     componente.mensajeCambios.setValue('  Ampliamos la casa y nos mudamos de ciudad.  ');
+    expect(componente.faltantes()).not.toContain('Mensaje para el administrador');
     componente.publicar();
     const peticion = backend.expectOne(`${api}/publicaciones/p-9`);
     expect((peticion.request.body as FormData).get('mensajeCambios')).toBe(

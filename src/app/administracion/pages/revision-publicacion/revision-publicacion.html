@@ -147,8 +147,13 @@
               />
             } @else {
               <p class="texto">
-                Si la apruebas quedará publicada en el marketplace. Si la rechazas volverá a
-                borrador para que el anfitrión la corrija.
+                @if (sigueEnPausa()) {
+                  Si apruebas los cambios, la publicación seguirá pausada como la dejó el anfitrión.
+                  Si la rechazas volverá a borrador para que el anfitrión la corrija.
+                } @else {
+                  Si la apruebas quedará publicada en el marketplace. Si la rechazas volverá a
+                  borrador para que el anfitrión la corrija.
+                }
               </p>
               @if (accion() === null && errorAccion()) {
                 <p class="alerta" role="alert">{{ errorAccion() }}</p>
@@ -160,7 +165,13 @@
                   [disabled]="!puedeAprobar()"
                   (click)="aprobar()"
                 >
-                  {{ enviando() && accion() === null ? 'Aprobando…' : 'Aprobar y publicar' }}
+                  @if (enviando() && accion() === null) {
+                    Aprobando…
+                  } @else if (sigueEnPausa()) {
+                    Aprobar cambios
+                  } @else {
+                    Aprobar y publicar
+                  }
                 </button>
                 <button
                   type="button"

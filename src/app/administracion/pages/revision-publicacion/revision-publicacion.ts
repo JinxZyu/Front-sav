@@ -30,6 +30,7 @@ import { ReservasAfectadas } from '../../components/reservas-afectadas/reservas-
 import {
   BLOQUEADA,
   EN_REVISION,
+  PAUSADA,
   MAXIMO_MOTIVO_PUBLICACION,
   MODOS_ACEPTACION_ADMINISTRACION,
 } from '../../models/publicacion-administrada.models';
@@ -84,6 +85,9 @@ export class RevisionPublicacion {
 
   protected readonly enRevision = computed(() => this.datos()?.publicacion.estado === EN_REVISION);
   protected readonly bloqueada = computed(() => this.datos()?.publicacion.estado === BLOQUEADA);
+  protected readonly sigueEnPausa = computed(
+    () => this.datos()?.solicitudCambios?.estadoAnterior === PAUSADA,
+  );
 
   protected readonly accion = linkedSignal<string, Accion | null>({
     source: this.idPublicacion,

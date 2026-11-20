@@ -61,6 +61,7 @@ export interface PublicacionParaRevision extends PublicacionPublica {
 
 export const EN_REVISION = 'PENDIENTE_REVISION';
 export const BLOQUEADA = 'BLOQUEADA';
+export const PAUSADA = 'PAUSADA';
 export const BORRADOR = 'BORRADOR';
 
 export const MAXIMO_MOTIVO_PUBLICACION = 2000;
