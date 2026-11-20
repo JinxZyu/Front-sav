@@ -17,6 +17,8 @@
     {{ error }}
     <button type="button" class="texto" (click)="calendario.reload()">Reintentar</button>
   </p>
+} @else if (!calendario.hasValue()) {
+  <p class="cargando" role="status">Cargando calendario…</p>
 } @else {
   <table [attr.aria-busy]="calendario.isLoading()">
     <caption class="oculto">

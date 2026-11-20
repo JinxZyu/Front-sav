@@ -79,7 +79,7 @@ td {
 
 .sin-periodo {
   background: #f1f5f9;
-  color: #64748b;
+  color: #475569;
 }
 
 .pasada {
@@ -115,6 +115,13 @@ td {
   height: 1px;
   overflow: hidden;
   clip-path: inset(50%);
+}
+
+.cargando {
+  margin: 0;
+  padding: 2rem 0;
+  color: #475569;
+  text-align: center;
 }
 
 .falla {

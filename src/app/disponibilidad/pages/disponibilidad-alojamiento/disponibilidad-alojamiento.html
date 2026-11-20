@@ -32,7 +32,7 @@
     <div class="tarjeta">
       <h2>Consultar fechas</h2>
       <p class="nota">Revisa si tu alojamiento puede reservarse en un rango de fechas.</p>
-      <app-consulta-fechas [idAlojamiento]="idAlojamiento" />
+      <app-consulta-fechas [idAlojamiento]="idAlojamiento" [actualizacion]="actualizacion()" />
     </div>
 
     <form class="tarjeta" [formGroup]="nuevo" (ngSubmit)="agregar()" novalidate>

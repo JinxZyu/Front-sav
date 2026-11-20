@@ -80,6 +80,21 @@ describe('CalendarioDisponibilidad (HU-023)', () => {
     expect(elemento().querySelector('h3')?.textContent?.trim()).toBe('Noviembre de 2026');
   });
 
+  it('muestra que está cargando antes de clasificar los días', async () => {
+    await crear(null);
+
+    expect(elemento().querySelector('[role="status"]')?.textContent).toContain(
+      'Cargando calendario',
+    );
+    expect(elemento().querySelector('table')).toBeNull();
+    expect(elemento().querySelector('.leyenda')).toBeNull();
+
+    backend.expectOne(url).flush({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    await fixture.whenStable();
+    expect(elemento().querySelector('table')).not.toBeNull();
+    expect(dia(20)?.classList).toContain('sin-periodo');
+  });
+
   it('vuelve a consultar cuando cambian los periodos', async () => {
     await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
     fixture.componentRef.setInput('actualizacion', 1);

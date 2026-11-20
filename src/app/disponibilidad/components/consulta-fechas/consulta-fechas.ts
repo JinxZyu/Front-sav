@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -18,6 +18,7 @@ export class ConsultaFechas {
   private readonly destruccion = inject(DestroyRef);
 
   readonly idAlojamiento = input.required<string>();
+  readonly actualizacion = input(0);
 
   readonly formulario = inject(FormBuilder).nonNullable.group(
     {
@@ -29,7 +30,11 @@ export class ConsultaFechas {
 
   readonly consultando = signal(false);
   readonly intento = signal(false);
-  readonly resultado = signal<ConsultaDisponibilidad | null>(null);
+  private readonly version = () => `${this.idAlojamiento()}|${this.actualizacion()}`;
+  readonly resultado = linkedSignal<string, ConsultaDisponibilidad | null>({
+    source: this.version,
+    computation: () => null,
+  });
   readonly error = signal<string | null>(null);
 
   readonly minimo = hoy();
@@ -51,6 +56,7 @@ export class ConsultaFechas {
       return;
     }
     const { fechaInicio, fechaFin } = this.formulario.getRawValue();
+    const version = this.version();
     this.resultado.set(null);
     this.error.set(null);
     this.consultando.set(true);
@@ -61,7 +67,11 @@ export class ConsultaFechas {
         takeUntilDestroyed(this.destruccion),
       )
       .subscribe({
-        next: (resultado) => this.resultado.set(resultado),
+        next: (resultado) => {
+          if (version === this.version()) {
+            this.resultado.set(resultado);
+          }
+        },
         error: (error: unknown) =>
           this.error.set(mensajeDeError(error, 'No pudimos consultar la disponibilidad.')),
       });

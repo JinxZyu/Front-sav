@@ -97,4 +97,22 @@ describe('ConsultaFechas (HU-023)', () => {
       'Las fechas no son válidas.',
     );
   });
+
+  it('descarta el resultado cuando cambian los periodos', async () => {
+    consultar('2026-12-01', '2026-12-05');
+    backend.expectOne((p) => p.url === url).flush(respuesta({ disponible: true }));
+    await fixture.whenStable();
+    expect(elemento().querySelector('.resultado.si')).not.toBeNull();
+
+    fixture.componentRef.setInput('actualizacion', 1);
+    await fixture.whenStable();
+    expect(elemento().querySelector('.resultado')).toBeNull();
+
+    consultar('2026-12-01', '2026-12-05');
+    const pendiente = backend.expectOne((p) => p.url === url);
+    fixture.componentRef.setInput('actualizacion', 2);
+    pendiente.flush(respuesta({ disponible: true }));
+    await fixture.whenStable();
+    expect(elemento().querySelector('.resultado')).toBeNull();
+  });
 });
