@@ -115,4 +115,24 @@ describe('ConsultaFechas (HU-023)', () => {
     await fixture.whenStable();
     expect(elemento().querySelector('.resultado')).toBeNull();
   });
+
+  it('descarta los errores de consultas anteriores a un cambio de periodos', async () => {
+    consultar('2026-12-01', '2026-12-05');
+    backend
+      .expectOne((p) => p.url === url)
+      .flush({ mensaje: 'Falló la consulta.' }, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    expect(elemento().querySelector('[role="alert"]')?.textContent).toContain('Falló');
+
+    fixture.componentRef.setInput('actualizacion', 1);
+    await fixture.whenStable();
+    expect(elemento().querySelector('[role="alert"]')).toBeNull();
+
+    consultar('2026-12-01', '2026-12-05');
+    const pendiente = backend.expectOne((p) => p.url === url);
+    fixture.componentRef.setInput('actualizacion', 2);
+    pendiente.flush({ mensaje: 'Falló la consulta.' }, { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    expect(elemento().querySelector('[role="alert"]')).toBeNull();
+  });
 });

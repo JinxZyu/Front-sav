@@ -35,7 +35,10 @@ export class ConsultaFechas {
     source: this.version,
     computation: () => null,
   });
-  readonly error = signal<string | null>(null);
+  readonly error = linkedSignal<string, string | null>({
+    source: this.version,
+    computation: () => null,
+  });
 
   readonly minimo = hoy();
   readonly dia = formatearDia;
@@ -72,8 +75,11 @@ export class ConsultaFechas {
             this.resultado.set(resultado);
           }
         },
-        error: (error: unknown) =>
-          this.error.set(mensajeDeError(error, 'No pudimos consultar la disponibilidad.')),
+        error: (error: unknown) => {
+          if (version === this.version()) {
+            this.error.set(mensajeDeError(error, 'No pudimos consultar la disponibilidad.'));
+          }
+        },
       });
   }
 }
