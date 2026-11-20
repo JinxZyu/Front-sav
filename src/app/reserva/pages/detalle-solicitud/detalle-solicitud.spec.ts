@@ -113,4 +113,40 @@ describe('DetalleSolicitud del anfitrión (HU-032 y HU-035)', () => {
     await responder(consulta, { mensaje: 'No autorizado.' }, 403);
     expect(elemento().querySelector('h1')?.textContent).toContain('No encontramos esta reserva');
   });
+
+  it('reinicia la confirmación y descarta la decisión al cambiar de reserva', async () => {
+    await abrir();
+    await responder(consulta, reservaDeAlojamiento());
+    boton('Rechazar')!.click();
+    harness.detectChanges();
+    boton('Sí, rechazar')!.click();
+    const decision = backend.expectOne(`${api}/r-1/rechazar`);
+
+    await harness.navigateByUrl('/reservas/alojamientos/r-2');
+    await responder(`${api}/mis-alojamientos/r-2`, reservaDeAlojamiento({ idReserva: 'r-2' }));
+
+    expect(decision.cancelled).toBe(true);
+    expect(aviso()).toBeUndefined();
+    expect(elemento().textContent).not.toContain('¿Seguro que quieres rechazarla?');
+    expect(boton('Aprobar solicitud')?.disabled).toBe(false);
+  });
+
+  it('mantiene bloqueadas las decisiones mientras se recarga la solicitud', async () => {
+    await abrir();
+    await responder(consulta, reservaDeAlojamiento());
+
+    boton('Aprobar solicitud')!.click();
+    backend
+      .expectOne(`${api}/r-1/aprobar`)
+      .flush({ estado: 'PENDIENTE_PAGO', mensaje: 'Solicitud aprobada.' });
+    await new Promise((resolver) => setTimeout(resolver));
+    harness.detectChanges();
+
+    const aprobando = boton('Aprobando')!;
+    expect(aprobando.disabled).toBe(true);
+    aprobando.click();
+    backend.expectNone(`${api}/r-1/aprobar`);
+    await responder(consulta, reservaDeAlojamiento({ estado: 'PENDIENTE_PAGO' }));
+    expect(boton('Aprobar solicitud')).toBeUndefined();
+  });
 });

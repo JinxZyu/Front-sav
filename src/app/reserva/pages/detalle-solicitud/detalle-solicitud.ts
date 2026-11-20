@@ -1,7 +1,15 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  untracked,
+} from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { finalize, map } from 'rxjs';
+import { Subscription, finalize, map } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { EncabezadoReserva } from '../../components/encabezado-reserva/encabezado-reserva';
@@ -64,20 +72,43 @@ export class DetalleSolicitud {
     return estado ? (EXPLICACIONES[estado] ?? null) : null;
   });
 
-  protected readonly aviso = signal<AvisoReserva | null>(null);
-  protected readonly decidiendo = signal(false);
-  protected readonly confirmandoRechazo = signal(false);
+  protected readonly aviso = linkedSignal<string, AvisoReserva | null>({
+    source: this.idReserva,
+    computation: () => null,
+  });
+  protected readonly confirmandoRechazo = linkedSignal({
+    source: this.idReserva,
+    computation: () => false,
+  });
+  private readonly enviando = linkedSignal({ source: this.idReserva, computation: () => false });
+  protected readonly decidiendo = computed(() => this.enviando() || this.consulta.isLoading());
+
+  private decision: Subscription | null = null;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.decision?.unsubscribe());
+    effect(() => {
+      this.idReserva();
+      untracked(() => this.decision?.unsubscribe());
+    });
+  }
 
   protected decidir(aprobar: boolean): void {
-    this.decidiendo.set(true);
+    if (this.decidiendo()) {
+      return;
+    }
+    const idReserva = this.idReserva();
+    this.enviando.set(true);
     this.aviso.set(null);
-    this.servicio
-      .decidir(this.idReserva(), aprobar)
+    this.decision = this.servicio
+      .decidir(idReserva, aprobar)
       .pipe(
         finalize(() => {
-          this.decidiendo.set(false);
-          this.confirmandoRechazo.set(false);
-          this.consulta.reload();
+          if (this.idReserva() === idReserva) {
+            this.enviando.set(false);
+            this.confirmandoRechazo.set(false);
+            this.consulta.reload();
+          }
         }),
       )
       .subscribe({
