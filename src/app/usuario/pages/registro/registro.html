@@ -51,6 +51,55 @@
       </label>
     </div>
 
+    <div class="fila">
+      <label>
+        País
+        <select formControlName="idPais" autocomplete="country-name" [class.invalido]="invalido('idPais')" [attr.aria-invalid]="invalido('idPais')" [attr.aria-describedby]="errorPaises() || invalido('idPais') ? 'error-pais' : null" [attr.aria-busy]="paises.isLoading()">
+          @if (paises.isLoading()) {
+            <option value="" disabled>Cargando países…</option>
+          } @else {
+            <option value="" disabled>Elige tu país</option>
+          }
+          @for (pais of listaPaises(); track pais.idPais) {
+            <option [value]="pais.idPais">{{ pais.nombre }}</option>
+          }
+        </select>
+        @if (errorPaises(); as errorPaises) {
+          <span class="error-campo" id="error-pais">
+            {{ errorPaises }}
+            <button type="button" class="boton-texto" (click)="paises.reload()">Reintentar</button>
+          </span>
+        } @else if (invalido('idPais')) {
+          <span class="error-campo" id="error-pais">Elige tu país.</span>
+        }
+      </label>
+      <label>
+        Ciudad
+        <select formControlName="idCiudad" autocomplete="address-level2" [class.invalido]="invalido('idCiudad')" [attr.aria-invalid]="invalido('idCiudad')" [attr.aria-describedby]="errorCiudades() || invalido('idCiudad') ? 'error-ciudad' : null" [attr.aria-busy]="ciudades.isLoading()">
+          @if (ciudades.isLoading()) {
+            <option value="" disabled>Cargando ciudades…</option>
+          } @else if (!formulario.controls.idPais.value) {
+            <option value="" disabled>Primero elige el país</option>
+          } @else if (listaCiudades().length === 0 && !errorCiudades()) {
+            <option value="" disabled>No hay ciudades para este país</option>
+          } @else {
+            <option value="" disabled>Elige tu ciudad</option>
+          }
+          @for (ciudad of listaCiudades(); track ciudad.idCiudad) {
+            <option [value]="ciudad.idCiudad">{{ ciudad.nombre }}</option>
+          }
+        </select>
+        @if (errorCiudades(); as errorCiudades) {
+          <span class="error-campo" id="error-ciudad">
+            {{ errorCiudades }}
+            <button type="button" class="boton-texto" (click)="ciudades.reload()">Reintentar</button>
+          </span>
+        } @else if (invalido('idCiudad')) {
+          <span class="error-campo" id="error-ciudad">Elige tu ciudad.</span>
+        }
+      </label>
+    </div>
+
     <div class="campo">
       <span class="etiqueta" id="etiqueta-telefono">Teléfono</span>
       <div class="telefono" role="group" aria-labelledby="etiqueta-telefono">

@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { simularUrlsDeObjeto } from '../../../shared/utils/url-objeto.testing';
 import { MisPublicaciones } from './mis-publicaciones';
 
 describe('MisPublicaciones (HU-011)', () => {
@@ -74,6 +75,33 @@ describe('MisPublicaciones (HU-011)', () => {
     expect(tarjetas()[1].querySelector('.estado')?.textContent?.trim()).toBe('Publicada');
     expect(tarjetas()[1].textContent).toContain('1 huésped');
     expect(elemento().querySelector('.conteo')?.textContent).toContain('2');
+  });
+
+  it('muestra la portada de cada publicación o un marcador si no tiene', async () => {
+    const restaurar = simularUrlsDeObjeto(() => 'blob:portada', vi.fn());
+    crear();
+    backend.expectOne(url).flush({
+      mensaje: '',
+      publicaciones: [
+        publicacion({ imagenPortada: '/imagenes/publicaciones/portada.jpg' }),
+        publicacion({ idPublicacion: 'p-2', imagenPortada: null }),
+      ],
+    });
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend
+      .expectOne(`${environment.apiUrl}/imagenes/publicaciones/portada.jpg`)
+      .flush(new Blob(['x']));
+    await fixture.whenStable();
+
+    const [conFoto, sinFoto] = tarjetas();
+    expect(conFoto.querySelector('.foto img')?.getAttribute('alt')).toBe(
+      'Portada de Cabaña frente al lago',
+    );
+    expect(sinFoto.querySelector('app-imagen-publicacion')).toBeNull();
+    expect(sinFoto.querySelector('.sin-foto')).not.toBeNull();
+    restaurar();
   });
 
   it('criterio 2: cada publicación lleva a su detalle', async () => {
