@@ -15,6 +15,22 @@ export const ADMINISTRACION_ROUTES: Routes = [
         loadComponent: () =>
           import('./pages/gestion-usuarios/gestion-usuarios').then((m) => m.GestionUsuarios),
       },
+      {
+        path: 'publicaciones',
+        title: 'Publicaciones',
+        loadComponent: () =>
+          import('./pages/lista-publicaciones/lista-publicaciones').then(
+            (m) => m.ListaPublicaciones,
+          ),
+      },
+      {
+        path: 'publicaciones/:idPublicacion',
+        title: 'Revisar publicación',
+        loadComponent: () =>
+          import('./pages/revision-publicacion/revision-publicacion').then(
+            (m) => m.RevisionPublicacion,
+          ),
+      },
     ],
   },
 ];

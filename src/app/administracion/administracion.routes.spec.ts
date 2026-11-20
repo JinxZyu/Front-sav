@@ -26,5 +26,17 @@ describe('rutas de administración', () => {
     expect(actual.textContent?.trim()).toBe('Usuarios');
     expect(actual.getAttribute('href')).toBe('/administracion/usuarios');
     expect(elemento.querySelector('app-gestion-usuarios')).not.toBeNull();
+    expect(
+      [...elemento.querySelectorAll('nav a')].map((enlace) => enlace.getAttribute('href')),
+    ).toEqual(['/administracion/usuarios', '/administracion/publicaciones']);
+  });
+
+  it('cada sección carga su página', async () => {
+    const panel = ADMINISTRACION_ROUTES[0];
+    for (const ruta of panel.children ?? []) {
+      if (ruta.loadComponent) {
+        expect(await ruta.loadComponent()).toBeDefined();
+      }
+    }
   });
 });

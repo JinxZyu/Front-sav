@@ -1,0 +1,165 @@
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+  color: #4f46e5;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.volver svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+}
+
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+}
+
+.encabezado h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.subtitulo {
+  margin-top: 0.4rem;
+}
+
+.galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.6rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.galeria li {
+  height: 8.5rem;
+  overflow: hidden;
+  border-radius: 0.8rem;
+}
+
+.cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  align-items: start;
+  gap: 1.5rem;
+}
+
+.informacion,
+.panel {
+  padding: 1.2rem 1.4rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.lateral {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+h2 {
+  margin: 1.2rem 0 0.4rem;
+  color: #1e1b4b;
+  font-size: 1.05rem;
+}
+
+.panel h2 {
+  margin: 0;
+}
+
+.texto,
+.nota {
+  margin: 0;
+  color: #475569;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.nota {
+  margin-bottom: 1.5rem;
+}
+
+.espacios,
+.incluye {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.espacios li,
+.incluye li {
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.adicionales {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.adicionales li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.condiciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 0;
+}
+
+.condiciones dt {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.condiciones dd {
+  margin: 0.15rem 0 0;
+  color: #1e1b4b;
+  font-weight: 600;
+}
+
+.esqueleto {
+  height: 20rem;
+}
+
+@media (width <= 52rem) {
+  .cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lateral {
+    position: static;
+  }
+}

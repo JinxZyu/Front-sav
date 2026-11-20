@@ -5,4 +5,5 @@ export interface SeccionAdministracion {
 
 export const SECCIONES_ADMINISTRACION: readonly SeccionAdministracion[] = [
   { ruta: 'usuarios', nombre: 'Usuarios' },
+  { ruta: 'publicaciones', nombre: 'Publicaciones' },
 ];
