@@ -21,6 +21,7 @@
     <p class="subtitulo">
       {{ publicacion.tipoAlojamiento }} · {{ publicacion.ciudad }} · {{ publicacion.ubicacion }}
     </p>
+    <app-acciones-estado [publicacion]="publicacion" (cambio)="actualizarEstado($event)" />
 
     @if (imagenes().length > 0) {
       <ul class="galeria" aria-label="Imágenes de la publicación">

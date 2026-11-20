@@ -4,6 +4,7 @@ import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import { AccionesEstado } from '../../components/acciones-estado/acciones-estado';
 import { ImagenPublicacion } from '../../components/imagen-publicacion/imagen-publicacion';
 import { estadoPublicacion, modoAceptacion } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
@@ -11,7 +12,7 @@ import { formatearFecha, formatearPesos } from '../../utils/formato';
 
 @Component({
   selector: 'app-detalle-publicacion',
-  imports: [RouterLink, ImagenPublicacion],
+  imports: [RouterLink, ImagenPublicacion, AccionesEstado],
   templateUrl: './detalle-publicacion.html',
   styleUrl: './detalle-publicacion.css',
 })
@@ -62,5 +63,9 @@ export class DetallePublicacion {
 
   reintentar(): void {
     this.consulta.reload();
+  }
+
+  actualizarEstado(estado: string): void {
+    this.consulta.update((actual) => (actual ? { ...actual, estado } : actual));
   }
 }

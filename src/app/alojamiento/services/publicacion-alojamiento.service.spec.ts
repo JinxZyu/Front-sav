@@ -111,4 +111,11 @@ describe('PublicacionAlojamientoService', () => {
     expect(cuerpo.getAll('imagenes')).toEqual([]);
     peticion.flush({});
   });
+
+  it('envía una publicación a revisión', () => {
+    servicio.enviarRevision('p 1').subscribe();
+    const peticion = backend.expectOne(`${api}/publicaciones/p%201/enviar-revision`);
+    expect(peticion.request.method).toBe('PATCH');
+    peticion.flush({ estadoActual: 'PENDIENTE_REVISION' });
+  });
 });
