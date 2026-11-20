@@ -95,4 +95,29 @@ describe('ImagenPublicacion', () => {
       'No se pudo cargar: Sala',
     );
   });
+
+  it('muestra directo las imágenes guardadas en internet, sin pedirlas al backend', async () => {
+    backend.expectOne(`${api}/imagenes/publicaciones/a.jpg`).flush(new Blob(['a']));
+    await fixture.whenStable();
+    const externa = 'https://res.cloudinary.com/demo/image/upload/v1/sav/foto.jpg';
+    fixture.componentRef.setInput('ruta', externa);
+    await fixture.whenStable();
+
+    const imagen = elemento().querySelector('img');
+    expect(imagen?.getAttribute('src')).toBe(externa);
+    expect(imagen?.getAttribute('loading')).toBe('lazy');
+    expect(revocar).toHaveBeenCalledWith('blob:1');
+
+    imagen?.dispatchEvent(new Event('error'));
+    await fixture.whenStable();
+    expect(elemento().querySelector('img')).toBeNull();
+    expect(elemento().querySelector('.aviso')).not.toBeNull();
+
+    fixture.componentRef.setInput(
+      'ruta',
+      'https://res.cloudinary.com/demo/image/upload/v1/sav/otra.jpg',
+    );
+    await fixture.whenStable();
+    expect(elemento().querySelector('img')?.getAttribute('src')).toContain('otra.jpg');
+  });
 });
