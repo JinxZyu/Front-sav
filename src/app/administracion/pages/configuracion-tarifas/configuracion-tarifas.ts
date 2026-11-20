@@ -79,13 +79,19 @@ export class ConfiguracionTarifas {
     }
     const { porcentajeServicio, porcentajeDescuento } = this.formulario.getRawValue();
     this.enviando.set(true);
+    this.formulario.disable();
     this.error.set(null);
     this.servicio
       .configurar({
         porcentajeServicio: this.numero(porcentajeServicio),
         porcentajeDescuento: this.numero(porcentajeDescuento),
       })
-      .pipe(finalize(() => this.enviando.set(false)))
+      .pipe(
+        finalize(() => {
+          this.formulario.enable();
+          this.enviando.set(false);
+        }),
+      )
       .subscribe({
         next: () => {
           this.formulario.markAsPristine();

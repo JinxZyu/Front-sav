@@ -74,6 +74,8 @@ describe('ConfiguracionTarifas (HU-026)', () => {
     expect(
       (elemento().querySelector('button[type="submit"]') as HTMLButtonElement).textContent,
     ).toContain('Guardando');
+    expect(campo('porcentaje-servicio').disabled).toBe(true);
+    expect(campo('porcentaje-descuento').disabled).toBe(true);
     const peticion = backend.expectOne((solicitud) => solicitud.method === 'PUT');
     expect(peticion.request.body).toEqual({ porcentajeServicio: 15.25, porcentajeDescuento: 5 });
     peticion.flush(configuracionTarifa({ porcentajeServicio: 15.25, porcentajeDescuento: 5 }));
@@ -86,6 +88,7 @@ describe('ConfiguracionTarifas (HU-026)', () => {
     await responder(configuracionTarifa({ porcentajeServicio: 15.25, porcentajeDescuento: 5 }));
     expect(elemento().querySelector('.vigente')?.textContent).toContain('15,25 %');
     expect(campo('porcentaje-servicio').value).toBe('15.25');
+    expect(campo('porcentaje-servicio').disabled).toBe(false);
   });
 
   it('no guarda valores vacíos, mayores que 100 o con más de dos decimales', async () => {
@@ -123,6 +126,7 @@ describe('ConfiguracionTarifas (HU-026)', () => {
     expect(elemento().querySelector('form [role="alert"]')?.textContent).toContain(
       'El porcentaje de servicio no puede superar 100.',
     );
+    expect(campo('porcentaje-servicio').disabled).toBe(false);
   });
 
   it('sin configuración previa permite crearla', async () => {
