@@ -21,6 +21,7 @@ import { estadoDeConsulta } from '../../../reserva/utils/consulta-reserva';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { FormularioMotivo } from '../../components/formulario-motivo/formulario-motivo';
+import { ReservasAfectadas } from '../../components/reservas-afectadas/reservas-afectadas';
 import {
   BLOQUEADA,
   EN_REVISION,
@@ -33,7 +34,7 @@ type Accion = 'rechazar' | 'bloquear' | 'desbloquear';
 
 @Component({
   selector: 'app-revision-publicacion',
-  imports: [RouterLink, TitleCasePipe, ImagenPublicacion, FormularioMotivo],
+  imports: [RouterLink, TitleCasePipe, ImagenPublicacion, FormularioMotivo, ReservasAfectadas],
   templateUrl: './revision-publicacion.html',
   styleUrls: ['../../styles/pagina-administracion.css', './revision-publicacion.css'],
 })

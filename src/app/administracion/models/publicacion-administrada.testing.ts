@@ -1,5 +1,5 @@
 import { PublicacionPublica } from '../../publicacion/models/catalogo.models';
-import { PublicacionAdministrada } from './publicacion-administrada.models';
+import { PublicacionAdministrada, ReservaAfectada } from './publicacion-administrada.models';
 
 export const publicacionAdministrada = (
   cambios: Partial<PublicacionAdministrada> = {},
@@ -52,4 +52,17 @@ export const publicacionParaRevisar = (estado = 'PENDIENTE_REVISION'): Publicaci
     porcentajeDevolucion: 100,
     activa: true,
   },
+});
+
+export const reservaAfectada = (cambios: Partial<ReservaAfectada> = {}): ReservaAfectada => ({
+  idReserva: 'r-1',
+  idPublicacion: 'p-1',
+  tituloPublicacion: 'Loft en Chapinero',
+  idAlojamiento: 'a-1',
+  nombreHuesped: 'Hugo Díaz',
+  fechaEntrada: '2026-12-20',
+  fechaSalida: '2026-12-23',
+  estadoReserva: 'CONFIRMADA',
+  motivoBloqueo: 'Información engañosa',
+  ...cambios,
 });

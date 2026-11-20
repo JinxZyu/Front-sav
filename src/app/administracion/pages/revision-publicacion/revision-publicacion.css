@@ -54,6 +54,13 @@
   gap: 1.5rem;
 }
 
+.principal-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
 .informacion,
 .panel {
   padding: 1.2rem 1.4rem;

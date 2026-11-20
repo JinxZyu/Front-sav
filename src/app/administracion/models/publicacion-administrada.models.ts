@@ -29,6 +29,23 @@ export interface ModeracionPublicacion {
   fechaOperacion: string;
 }
 
+export interface ReservaAfectada {
+  idReserva: string;
+  idPublicacion: string;
+  tituloPublicacion: string;
+  idAlojamiento: string;
+  nombreHuesped: string;
+  fechaEntrada: string;
+  fechaSalida: string;
+  estadoReserva: string;
+  motivoBloqueo: string | null;
+}
+
+export interface ReservasAfectadas {
+  mensaje: string;
+  reservas: ReservaAfectada[];
+}
+
 export const EN_REVISION = 'PENDIENTE_REVISION';
 export const BLOQUEADA = 'BLOQUEADA';
 

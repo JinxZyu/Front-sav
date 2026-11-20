@@ -80,4 +80,15 @@ describe('GestionPublicacionesService', () => {
     expect(peticion.request.body).toEqual({ motivo: 'El anfitrión corrigió las fotos' });
     peticion.flush({});
   });
+
+  it('consulta las reservas afectadas por el bloqueo', () => {
+    let respuesta: unknown;
+    servicio.reservasAfectadas('p-1').subscribe((datos) => (respuesta = datos));
+
+    const peticion = backend.expectOne(`${api}/p-1/reservas-afectadas`);
+    expect(peticion.request.method).toBe('GET');
+    peticion.flush({ mensaje: 'ok', reservas: [] });
+
+    expect(respuesta).toEqual({ mensaje: 'ok', reservas: [] });
+  });
 });

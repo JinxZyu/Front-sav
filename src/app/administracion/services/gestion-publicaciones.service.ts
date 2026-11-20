@@ -7,6 +7,7 @@ import {
   DecisionPublicacion,
   ModeracionPublicacion,
   PublicacionAdministrada,
+  ReservasAfectadas,
 } from '../models/publicacion-administrada.models';
 
 @Injectable({ providedIn: 'root' })
@@ -42,6 +43,10 @@ export class GestionPublicacionesService {
     return this.http.patch<ModeracionPublicacion>(`${this.ruta(idPublicacion)}/desbloquear`, {
       motivo,
     });
+  }
+
+  reservasAfectadas(idPublicacion: string): Observable<ReservasAfectadas> {
+    return this.http.get<ReservasAfectadas>(`${this.ruta(idPublicacion)}/reservas-afectadas`);
   }
 
   private ruta(idPublicacion: string): string {
