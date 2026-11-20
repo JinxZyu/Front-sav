@@ -1,0 +1,82 @@
+:host {
+  display: block;
+}
+
+h2 {
+  margin: 1.6rem 0 0.5rem;
+  color: #1e1b4b;
+  font-size: 1.1rem;
+}
+
+.resumen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.8rem;
+  color: #475569;
+}
+
+.resumen strong {
+  color: #1e1b4b;
+  font-size: 1.2rem;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista li {
+  padding: 0.9rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  background: #fff;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.comentario {
+  margin: 0.5rem 0 0;
+  color: #334155;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.vacio {
+  margin: 0;
+  color: #64748b;
+}
+
+.alerta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.8rem;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.enlace {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}

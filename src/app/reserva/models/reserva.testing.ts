@@ -10,6 +10,7 @@ export const reservaPropia = (cambios: Partial<ReservaPropia> = {}): ReservaProp
   estado: 'PENDIENTE_PAGO',
   fechaSolicitud: '2026-11-20T07:11:16Z',
   retencionHasta: null,
+  resenada: false,
   ...cambios,
 });
 

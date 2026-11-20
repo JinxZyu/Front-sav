@@ -8,6 +8,7 @@ import { ImagenPublicacion } from '../../../alojamiento/components/imagen-public
 import { formatearPorcentaje } from '../../../alojamiento/models/alojamiento.models';
 import { formatearEspacios, formatearPesos } from '../../../alojamiento/utils/formato';
 import { Cotizador } from '../../../reserva/components/cotizador/cotizador';
+import { ResenasPublicacion } from '../../../resena/components/resenas-publicacion/resenas-publicacion';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { CatalogoService } from '../../services/catalogo.service';
 
@@ -15,7 +16,7 @@ const DISPOSICIONES_GALERIA = [5, 3, 2, 1];
 
 @Component({
   selector: 'app-detalle-publico',
-  imports: [RouterLink, TitleCasePipe, ImagenPublicacion, Cotizador],
+  imports: [RouterLink, TitleCasePipe, ImagenPublicacion, Cotizador, ResenasPublicacion],
   templateUrl: './detalle-publico.html',
   styleUrl: './detalle-publico.css',
 })

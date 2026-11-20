@@ -15,6 +15,7 @@ import { Observable, Subscription, finalize, map } from 'rxjs';
 import { formatearPorcentaje } from '../../../alojamiento/models/alojamiento.models';
 import { formatearFechaHora, formatearPesos } from '../../../alojamiento/utils/formato';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import { FormularioResena } from '../../../resena/components/formulario-resena/formulario-resena';
 import { EncabezadoReserva } from '../../components/encabezado-reserva/encabezado-reserva';
 import { ResumenReserva } from '../../components/resumen-reserva/resumen-reserva';
 import {
@@ -29,7 +30,7 @@ import { estadoDeConsulta } from '../../utils/consulta-reserva';
 
 @Component({
   selector: 'app-detalle-reserva',
-  imports: [ReactiveFormsModule, EncabezadoReserva, ResumenReserva],
+  imports: [ReactiveFormsModule, EncabezadoReserva, ResumenReserva, FormularioResena],
   templateUrl: './detalle-reserva.html',
   styleUrls: ['../../styles/pagina-reserva.css', './detalle-reserva.css'],
 })
@@ -107,6 +108,10 @@ export class DetalleReserva {
     computation: () => false,
   });
   protected readonly cancelando = linkedSignal({
+    source: this.idReserva,
+    computation: () => false,
+  });
+  protected readonly resenaPublicada = linkedSignal({
     source: this.idReserva,
     computation: () => false,
   });
