@@ -35,6 +35,15 @@ export class ConsultaFechas {
   readonly minimo = hoy();
   readonly dia = formatearDia;
 
+  invalido(campo: 'fechaInicio' | 'fechaFin'): boolean {
+    const control = this.formulario.controls[campo];
+    return control.invalid && (control.touched || this.intento());
+  }
+
+  rangoInvalido(): boolean {
+    return this.intento() && this.formulario.hasError('rango');
+  }
+
   consultar(): void {
     this.intento.set(true);
     if (this.formulario.invalid || this.consultando()) {

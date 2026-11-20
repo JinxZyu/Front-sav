@@ -68,11 +68,25 @@ describe('ConsultaFechas (HU-023)', () => {
     expect(elemento().querySelector('.no')?.textContent).toContain('periodo habilitado');
   });
 
+  it('marca solo el campo que tiene el error', async () => {
+    consultar('', '2026-12-05');
+    await fixture.whenStable();
+
+    backend.expectNone((p) => p.url === url);
+    const llegada = elemento().querySelector('input[formControlName="fechaInicio"]');
+    const salida = elemento().querySelector('input[formControlName="fechaFin"]');
+    expect(llegada?.getAttribute('aria-invalid')).toBe('true');
+    expect(llegada?.getAttribute('aria-describedby')).toBe('error-consulta-llegada');
+    expect(llegada?.hasAttribute('required')).toBe(true);
+    expect(salida?.getAttribute('aria-invalid')).toBe('false');
+    expect(elemento().querySelector('#error-consulta-llegada')?.textContent).toContain('llegada');
+  });
+
   it('criterio 4: no consulta un rango inválido y muestra el error del servidor', async () => {
     consultar('2026-12-05', '2026-12-05');
     await fixture.whenStable();
     backend.expectNone((p) => p.url === url);
-    expect(elemento().querySelector('#error-consulta')?.textContent).toContain('posterior');
+    expect(elemento().querySelector('#error-consulta-salida')?.textContent).toContain('posterior');
 
     consultar('2026-12-01', '2026-12-05');
     backend
