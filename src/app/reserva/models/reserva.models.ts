@@ -98,6 +98,14 @@ export interface ReservasDeAlojamientos {
   mensaje: string | null;
 }
 
+export interface DecisionReserva {
+  idReserva: string;
+  estado: string;
+  fechaDecision: string;
+  retencionHasta: string | null;
+  mensaje: string;
+}
+
 export interface CancelacionReserva {
   idReserva: string;
   estadoFinal: string;

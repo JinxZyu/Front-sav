@@ -5,8 +5,10 @@ import { environment } from '../../../environments/environment';
 import {
   CancelacionReserva,
   Cotizacion,
+  DecisionReserva,
   MisReservas,
   PagoReserva,
+  ReservaDeAlojamiento,
   ReservaPropia,
   ReservasDeAlojamientos,
   RetencionReserva,
@@ -67,6 +69,17 @@ export class ReservaService {
 
   reservasDeMisAlojamientos(): Observable<ReservasDeAlojamientos> {
     return this.http.get<ReservasDeAlojamientos>(`${this.api}/mis-alojamientos`);
+  }
+
+  reservaDeMiAlojamiento(idReserva: string): Observable<ReservaDeAlojamiento> {
+    return this.http.get<ReservaDeAlojamiento>(
+      `${this.api}/mis-alojamientos/${encodeURIComponent(idReserva)}`,
+    );
+  }
+
+  decidir(idReserva: string, aprobar: boolean): Observable<DecisionReserva> {
+    const accion = aprobar ? 'aprobar' : 'rechazar';
+    return this.http.patch<DecisionReserva>(`${this.ruta(idReserva)}/${accion}`, null);
   }
 
   private ruta(idReserva: string): string {
