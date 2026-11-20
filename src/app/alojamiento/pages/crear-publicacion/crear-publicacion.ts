@@ -49,6 +49,13 @@ const texto = (maximo: number) => [
   Validators.maxLength(maximo),
 ];
 
+const cantidadEspacio = [
+  Validators.required,
+  Validators.pattern(PATRON_ENTERO),
+  Validators.min(1),
+  Validators.max(50),
+];
+
 const cantidadServicios = (control: AbstractControl<string[]>): ValidationErrors | null => {
   const total = control.value.length;
   return total === 0 || total > MAX_SERVICIOS ? { cantidad: true } : null;
@@ -62,6 +69,9 @@ const ETIQUETAS = {
   ciudad: 'Ciudad',
   ubicacion: 'Dirección o ubicación',
   capacidad: 'Capacidad',
+  habitaciones: 'Habitaciones',
+  camas: 'Camas',
+  banos: 'Baños',
   precioPorNoche: 'Precio por noche',
   tarifaLimpieza: 'Tarifa de limpieza',
   modoAceptacion: 'Cómo aceptas las reservas',
@@ -116,6 +126,12 @@ export class CrearPublicacion {
     return imagenes.sort((a, b) => Number(b.esPortada) - Number(a.esPortada) || a.orden - b.orden);
   });
 
+  readonly espacios = [
+    { campo: 'habitaciones', etiqueta: 'Habitaciones' },
+    { campo: 'camas', etiqueta: 'Camas' },
+    { campo: 'banos', etiqueta: 'Baños' },
+  ] as const;
+
   readonly tipos = computed<readonly string[]>(() => {
     const actual = this.original.hasValue() ? this.original.value().tipoAlojamiento : '';
     return actual && !(TIPOS_ALOJAMIENTO as readonly string[]).includes(actual)
@@ -150,15 +166,10 @@ export class CrearPublicacion {
     ubicacion: ['', texto(255)],
     ciudad: ['', texto(100)],
     tipoAlojamiento: ['', [Validators.required]],
-    capacidad: [
-      '',
-      [
-        Validators.required,
-        Validators.pattern(PATRON_ENTERO),
-        Validators.min(1),
-        Validators.max(50),
-      ],
-    ],
+    capacidad: ['', cantidadEspacio],
+    habitaciones: ['1', cantidadEspacio],
+    camas: ['1', cantidadEspacio],
+    banos: ['1', cantidadEspacio],
     precioPorNoche: [
       '',
       [Validators.required, Validators.pattern(PATRON_ENTERO), Validators.min(1)],
@@ -242,6 +253,9 @@ export class CrearPublicacion {
       ciudad: valores.ciudad.trim(),
       tipoAlojamiento: valores.tipoAlojamiento,
       capacidad: Number(valores.capacidad),
+      habitaciones: Number(valores.habitaciones),
+      camas: Number(valores.camas),
+      banos: Number(valores.banos),
       precioPorNoche: Number(valores.precioPorNoche),
       tarifaLimpieza: Number(valores.tarifaLimpieza || 0),
       modoAceptacion: valores.modoAceptacion as ModoAceptacion,
@@ -319,6 +333,9 @@ export class CrearPublicacion {
       ciudad: detalle.ciudad,
       tipoAlojamiento: detalle.tipoAlojamiento,
       capacidad: String(detalle.capacidad),
+      habitaciones: String(detalle.habitaciones),
+      camas: String(detalle.camas),
+      banos: String(detalle.banos),
       precioPorNoche: String(detalle.precioPorNoche),
       tarifaLimpieza: String(detalle.tarifaLimpieza ?? 0),
       modoAceptacion: MODOS_ACEPTACION.some((modo) => modo.valor === detalle.modoAceptacion)

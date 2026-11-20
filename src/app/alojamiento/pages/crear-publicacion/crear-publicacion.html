@@ -45,8 +45,8 @@
         @if (edicion()) {
           Actualiza la información de tu publicación. Su estado no cambia al guardar.
         } @else {
-          Completa la información de tu alojamiento. Se guardará como borrador hasta que lo envíes
-          a revisión.
+          Completa la información de tu alojamiento. Se guardará como borrador hasta que lo envíes a
+          revisión.
         }
       </p>
       @if (!edicion() && cuenta.hasValue()) {
@@ -174,6 +174,35 @@
       </fieldset>
 
       <fieldset [disabled]="enviando()">
+        <legend>Espacios del alojamiento</legend>
+        <div class="fila tres">
+          @for (espacio of espacios; track espacio.campo) {
+            <label>
+              {{ espacio.etiqueta }}
+              <input
+                type="number"
+                [formControlName]="espacio.campo"
+                [name]="espacio.campo"
+                [readonly]="enviando()"
+                [class.invalido]="invalido(espacio.campo)"
+                [attr.aria-invalid]="invalido(espacio.campo)"
+                [attr.aria-describedby]="invalido(espacio.campo) ? 'error-' + espacio.campo : null"
+                min="1"
+                max="50"
+                step="1"
+                inputmode="numeric"
+              />
+              @if (invalido(espacio.campo)) {
+                <span class="error-campo" [id]="'error-' + espacio.campo"
+                  >Debe ser un número entero entre 1 y 50.</span
+                >
+              }
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset [disabled]="enviando()">
         <legend>Capacidad y precios</legend>
         <div class="fila tres">
           <label>
@@ -260,7 +289,9 @@
                   formControlName="modoAceptacion"
                   [value]="modo.valor"
                   [attr.aria-invalid]="invalido('modoAceptacion')"
-                  [attr.aria-describedby]="invalido('modoAceptacion') ? 'error-modoAceptacion' : null"
+                  [attr.aria-describedby]="
+                    invalido('modoAceptacion') ? 'error-modoAceptacion' : null
+                  "
                 />
                 <span class="titulo-opcion">{{ modo.titulo }}</span>
                 <span class="detalle">{{ modo.descripcion }}</span>
@@ -323,7 +354,9 @@
             <p class="ayuda" role="status">Cargando políticas…</p>
           }
           @if (politicaInactiva()) {
-            <p class="ayuda">La política que tenías ya no está activa. Elige una de las actuales.</p>
+            <p class="ayuda">
+              La política que tenías ya no está activa. Elige una de las actuales.
+            </p>
           }
           @if (invalido('idPolitica')) {
             <span class="error-campo" id="error-idPolitica"

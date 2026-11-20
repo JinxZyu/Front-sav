@@ -21,3 +21,19 @@ export function formatearFecha(valor: string | null): string {
   const fecha = new Date(valor);
   return Number.isNaN(fecha.getTime()) ? '' : FECHA.format(fecha);
 }
+
+export function formatearEspacios(espacios: {
+  habitaciones: number;
+  camas: number;
+  banos: number;
+}): string {
+  return [
+    contar(espacios.habitaciones, 'habitación', 'habitaciones'),
+    contar(espacios.camas, 'cama', 'camas'),
+    contar(espacios.banos, 'baño', 'baños'),
+  ].join(' · ');
+}
+
+function contar(cantidad: number, singular: string, plural: string): string {
+  return `${cantidad}\u00a0${cantidad === 1 ? singular : plural}`;
+}
