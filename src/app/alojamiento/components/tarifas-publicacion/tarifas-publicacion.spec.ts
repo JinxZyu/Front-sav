@@ -158,7 +158,7 @@ describe('TarifasPublicacion (HU-020)', () => {
     ).toBe('true');
   });
 
-  it('no guarda importes que superan los enteros seguros', async () => {
+  it('no guarda importes que superan los enteros seguros ni solo espacios', async () => {
     await crear();
     botonPorTexto('Cambiar')?.click();
     await fixture.whenStable();
@@ -167,6 +167,14 @@ describe('TarifasPublicacion (HU-020)', () => {
     botonPorTexto('Guardar')?.click();
     await fixture.whenStable();
 
+    backend.expectNone(url);
+    expect(elemento().querySelector('#error-tarifa')).not.toBeNull();
+    expect(elemento().querySelector('#error-costo-0')).not.toBeNull();
+
+    componente.formulario.controls.tarifaLimpieza.setValue('   ');
+    componente.filas.at(0).patchValue({ costo: '  ' });
+    botonPorTexto('Guardar')?.click();
+    await fixture.whenStable();
     backend.expectNone(url);
     expect(elemento().querySelector('#error-tarifa')).not.toBeNull();
     expect(elemento().querySelector('#error-costo-0')).not.toBeNull();

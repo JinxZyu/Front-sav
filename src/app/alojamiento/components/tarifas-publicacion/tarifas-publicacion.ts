@@ -28,8 +28,8 @@ import { formatearPesos } from '../../utils/formato';
 const PATRON_ENTERO = /^\d+$/;
 
 const enteroSeguro = (control: AbstractControl<string>): ValidationErrors | null => {
-  const valor = String(control.value ?? '').trim();
-  if (!valor) {
+  const valor = String(control.value ?? '');
+  if (valor === '') {
     return null;
   }
   return PATRON_ENTERO.test(valor) && Number.isSafeInteger(Number(valor)) ? null : { entero: true };
