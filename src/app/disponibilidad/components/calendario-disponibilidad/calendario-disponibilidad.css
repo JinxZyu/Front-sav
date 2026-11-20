@@ -1,0 +1,145 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+h3 {
+  margin: 0;
+  color: #1e1b4b;
+  font-size: 1.05rem;
+}
+
+.flecha {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 50%;
+  background: #fff;
+  color: #4f46e5;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.flecha:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.3rem;
+  table-layout: fixed;
+}
+
+th {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+td {
+  padding: 0;
+  text-align: center;
+}
+
+.dia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.4rem;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.disponible {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.ocupada {
+  background: #fee2e2;
+  color: #991b1b;
+  text-decoration: line-through;
+}
+
+.sin-periodo {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.pasada {
+  color: #cbd5e1;
+}
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  color: #475569;
+  font-size: 0.82rem;
+  list-style: none;
+}
+
+.leyenda li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.muestra {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 0.25rem;
+}
+
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.cargando {
+  margin: 0;
+  padding: 2rem 0;
+  color: #475569;
+  text-align: center;
+}
+
+.falla {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.texto {
+  margin-left: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}

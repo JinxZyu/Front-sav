@@ -1,0 +1,64 @@
+<form [formGroup]="formulario" (ngSubmit)="consultar()" novalidate>
+  <fieldset [disabled]="consultando()">
+    <label>
+      Llegada
+      <input
+        type="date"
+        formControlName="fechaInicio"
+        required
+        [min]="minimo"
+        [attr.aria-invalid]="invalido('fechaInicio')"
+        [attr.aria-describedby]="invalido('fechaInicio') ? 'error-consulta-llegada' : null"
+      />
+      @if (invalido('fechaInicio')) {
+        <span class="error-campo" id="error-consulta-llegada">Elige la fecha de llegada.</span>
+      }
+    </label>
+    <label>
+      Salida
+      <input
+        type="date"
+        formControlName="fechaFin"
+        required
+        [min]="formulario.controls.fechaInicio.value || minimo"
+        [attr.aria-invalid]="invalido('fechaFin') || rangoInvalido()"
+        [attr.aria-describedby]="
+          invalido('fechaFin') || rangoInvalido() ? 'error-consulta-salida' : null
+        "
+      />
+      @if (invalido('fechaFin')) {
+        <span class="error-campo" id="error-consulta-salida">Elige la fecha de salida.</span>
+      } @else if (rangoInvalido()) {
+        <span class="error-campo" id="error-consulta-salida">
+          La salida debe ser posterior a la llegada.
+        </span>
+      }
+    </label>
+    <button type="submit">{{ consultando() ? 'Consultando…' : 'Consultar' }}</button>
+  </fieldset>
+</form>
+
+<div aria-live="polite">
+  @if (resultado(); as resultado) {
+    @if (resultado.disponible) {
+      <p class="resultado si">
+        Disponible del {{ dia(resultado.fechaInicio) }} al {{ dia(resultado.fechaFin) }}.
+      </p>
+    } @else if (!resultado.cubiertoPorPeriodosDisponibles) {
+      <p class="resultado no">
+        No disponible: esas fechas no están dentro de un periodo habilitado.
+      </p>
+    } @else {
+      <p class="resultado no">
+        No disponible: hay noches ocupadas
+        @if (resultado.nochesOcupadas.length) {
+          ({{ resultado.nochesOcupadas.map(dia).join(', ') }})
+        }
+        .
+      </p>
+    }
+  }
+</div>
+@if (error(); as error) {
+  <p class="resultado no" role="alert">{{ error }}</p>
+}

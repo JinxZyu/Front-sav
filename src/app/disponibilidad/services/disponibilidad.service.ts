@@ -1,8 +1,13 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { NuevoPeriodo, PeriodoDisponible } from '../models/disponibilidad.models';
+import {
+  CalendarioDisponibilidad,
+  ConsultaDisponibilidad,
+  NuevoPeriodo,
+  PeriodoDisponible,
+} from '../models/disponibilidad.models';
 
 @Injectable({ providedIn: 'root' })
 export class DisponibilidadService {
@@ -31,6 +36,23 @@ export class DisponibilidadService {
   deshabilitarPeriodo(idAlojamiento: string, idPeriodo: string): Observable<PeriodoDisponible> {
     return this.http.delete<PeriodoDisponible>(
       `${this.urlPeriodos(idAlojamiento)}/${encodeURIComponent(idPeriodo)}`,
+    );
+  }
+
+  calendario(idAlojamiento: string): Observable<CalendarioDisponibilidad> {
+    return this.http.get<CalendarioDisponibilidad>(
+      `${this.api}/${encodeURIComponent(idAlojamiento)}/calendario`,
+    );
+  }
+
+  consultar(
+    idAlojamiento: string,
+    fechaInicio: string,
+    fechaFin: string,
+  ): Observable<ConsultaDisponibilidad> {
+    return this.http.get<ConsultaDisponibilidad>(
+      `${this.api}/${encodeURIComponent(idAlojamiento)}/disponibilidad`,
+      { params: new HttpParams().set('fechaInicio', fechaInicio).set('fechaFin', fechaFin) },
     );
   }
 

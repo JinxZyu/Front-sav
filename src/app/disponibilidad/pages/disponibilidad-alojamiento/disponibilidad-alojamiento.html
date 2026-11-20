@@ -20,7 +20,21 @@
     </p>
   } @else if (!periodos.hasValue()) {
     <p class="cargando" role="status">Cargando disponibilidad…</p>
-  } @else {
+  } @else if (idAlojamiento(); as idAlojamiento) {
+    <div class="tarjeta">
+      <h2>Calendario</h2>
+      <app-calendario-disponibilidad
+        [idAlojamiento]="idAlojamiento"
+        [actualizacion]="actualizacion()"
+      />
+    </div>
+
+    <div class="tarjeta">
+      <h2>Consultar fechas</h2>
+      <p class="nota">Revisa si tu alojamiento puede reservarse en un rango de fechas.</p>
+      <app-consulta-fechas [idAlojamiento]="idAlojamiento" [actualizacion]="actualizacion()" />
+    </div>
+
     <form class="tarjeta" [formGroup]="nuevo" (ngSubmit)="agregar()" novalidate>
       <h2>Agregar periodo disponible</h2>
       <p class="nota">Los huéspedes solo podrán reservar dentro de los periodos que habilites.</p>
