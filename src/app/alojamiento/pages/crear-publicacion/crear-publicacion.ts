@@ -37,6 +37,7 @@ import {
   DetallePublicacion,
   MODOS_ACEPTACION,
   ModoAceptacion,
+  motivoSinEdicion,
   PoliticaCancelacion,
   TIPOS_ALOJAMIENTO,
 } from '../../models/alojamiento.models';
@@ -113,6 +114,11 @@ export class CrearPublicacion {
   private readonly cargada = signal<string | null>(null);
   readonly listo = computed(() => !this.edicion() || this.cargada() === this.idPublicacion());
   readonly politicaInactiva = signal(false);
+  readonly sinEdicion = computed(() =>
+    this.edicion() && this.original.hasValue()
+      ? motivoSinEdicion(this.original.value().estado)
+      : null,
+  );
 
   readonly noEncontrada = computed(() => {
     const error = this.original.status() === 'error' ? this.original.error() : null;

@@ -16,6 +16,14 @@
     } @else {
       <p class="ayuda" role="status">Cargando publicación…</p>
     }
+  } @else if (sinEdicion(); as sinEdicion) {
+    <h1 id="titulo-crear">Editar publicación</h1>
+    <p class="alerta" role="alert">
+      {{ sinEdicion }}
+      <a [routerLink]="['/alojamientos', idPublicacion()]" class="boton-texto">
+        Volver a la publicación
+      </a>
+    </p>
   } @else {
     <header class="cabecera">
       <h1 id="titulo-crear">{{ edicion() ? 'Editar publicación' : 'Publicar alojamiento' }}</h1>

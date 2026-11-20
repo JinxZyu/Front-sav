@@ -326,6 +326,18 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     expect(resumen()).toBe('');
   });
 
+  it('no deja editar una publicación en revisión', async () => {
+    await crear(detalle({ estado: 'PENDIENTE_REVISION' }));
+
+    expect(elemento().querySelector('form')).toBeNull();
+    expect(elemento().querySelector('[role="alert"]')?.textContent).toContain(
+      'Un administrador está revisando esta publicación',
+    );
+    expect(elemento().querySelector('[role="alert"] a')?.getAttribute('href')).toBe(
+      '/alojamientos/p-9',
+    );
+  });
+
   it('conserva un tipo de alojamiento que no está en la lista', async () => {
     await crear(detalle({ tipoAlojamiento: 'Hostal' }));
 

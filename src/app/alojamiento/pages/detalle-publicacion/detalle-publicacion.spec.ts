@@ -130,7 +130,7 @@ describe('DetallePublicacion (HU-011)', () => {
 
   it('permite editar la publicación desde el detalle', async () => {
     crear();
-    backend.expectOne(url).flush(detalle({ imagenes: [] }));
+    backend.expectOne(url).flush(detalle({ imagenes: [], estado: 'BORRADOR' }));
     await responderSecciones();
 
     expect(elemento().querySelector('a.editar')?.getAttribute('href')).toBe(
@@ -177,12 +177,18 @@ describe('DetallePublicacion (HU-011)', () => {
     );
   });
 
-  it('no permite cambiar las condiciones de una publicación bloqueada', async () => {
-    crear();
-    backend.expectOne(url).flush(detalle({ imagenes: [], estado: 'BLOQUEADA' }));
-    await responderSecciones();
+  it('no permite editar ni cambiar las condiciones si está bloqueada o en revisión', async () => {
+    for (const estado of ['BLOQUEADA', 'PENDIENTE_REVISION']) {
+      TestBed.resetTestingModule();
+      crear();
+      backend.expectOne(url).flush(detalle({ imagenes: [], estado }));
+      await responderSecciones();
 
-    expect(elemento().querySelector('.condiciones button')).toBeNull();
+      expect(elemento().querySelector('.condiciones button')).toBeNull();
+      expect(elemento().querySelector('.cabecera a.editar')).toBeNull();
+      expect(elemento().querySelector('.titulo-seccion a.editar')).not.toBeNull();
+      backend.verify();
+    }
   });
 
   it('confirma que se guardaron los cambios al volver de editar', async () => {

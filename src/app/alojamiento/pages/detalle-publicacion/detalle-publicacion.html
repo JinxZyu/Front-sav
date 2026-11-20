@@ -13,10 +13,12 @@
       <span class="estado" [class]="estado(publicacion.estado).tono">
         {{ estado(publicacion.estado).etiqueta }}
       </span>
-      <a [routerLink]="['/alojamientos', publicacion.idPublicacion, 'editar']" class="editar">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z" /></svg>
-        Editar publicación
-      </a>
+      @if (editable()) {
+        <a [routerLink]="['/alojamientos', publicacion.idPublicacion, 'editar']" class="editar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z" /></svg>
+          Editar publicación
+        </a>
+      }
     </header>
     <p class="subtitulo">
       {{ publicacion.tipoAlojamiento }} · {{ publicacion.ciudad }} · {{ publicacion.ubicacion }}
@@ -108,16 +110,16 @@
       <div class="tarjetas">
         <app-politica-publicacion
           [idPublicacion]="publicacion.idPublicacion"
-          [editable]="publicacion.estado !== 'BLOQUEADA'"
+          [editable]="editable()"
         />
         <app-tarifas-publicacion
           [idPublicacion]="publicacion.idPublicacion"
-          [editable]="publicacion.estado !== 'BLOQUEADA'"
+          [editable]="editable()"
           (guardado)="reintentar()"
         />
         <app-modo-aceptacion-publicacion
           [idPublicacion]="publicacion.idPublicacion"
-          [editable]="publicacion.estado !== 'BLOQUEADA'"
+          [editable]="editable()"
           (guardado)="reintentar()"
         />
       </div>
