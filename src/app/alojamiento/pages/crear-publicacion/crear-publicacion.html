@@ -1,27 +1,5 @@
 <section class="tarjeta" aria-labelledby="titulo-crear">
-  @if (creada(); as creada) {
-    <div class="exito">
-      <span class="icono-exito" aria-hidden="true">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="m5 12 5 5L20 7" />
-        </svg>
-      </span>
-      <h1 id="titulo-crear" #tituloExito tabindex="-1">¡Tu publicación quedó guardada!</h1>
-      <p>
-        <strong>{{ creada.titulo }}</strong> se creó en estado <span class="estado">Borrador</span>.
-        Todavía no aparece en el marketplace: primero debe enviarse a revisión y ser aprobada.
-      </p>
-      <button type="button" class="principal" (click)="crearOtra()">Crear otra publicación</button>
-      <a routerLink="/alojamientos" class="boton-texto">Ver mis alojamientos</a>
-    </div>
-  } @else if (!listo()) {
+  @if (!listo()) {
     <h1 id="titulo-crear">Editar publicación</h1>
     @if (noEncontrada()) {
       <p class="alerta" role="alert">
@@ -140,37 +118,87 @@
         <legend>Ubicación</legend>
         <div class="fila">
           <label>
-            Ciudad
-            <input
-              type="text"
-              formControlName="ciudad"
-              [readonly]="enviando()"
-              [class.invalido]="invalido('ciudad')"
-              [attr.aria-invalid]="invalido('ciudad')"
-              [attr.aria-describedby]="invalido('ciudad') ? 'error-ciudad' : null"
-              maxlength="100"
-            />
-            @if (invalido('ciudad')) {
-              <span class="error-campo" id="error-ciudad">Escribe la ciudad.</span>
+            País
+            <select
+              formControlName="pais"
+              (change)="alCambiarPais()"
+              [class.invalido]="invalido('pais')"
+              [attr.aria-invalid]="invalido('pais')"
+              [attr.aria-describedby]="errorPaises() || invalido('pais') ? 'error-pais' : null"
+              [attr.aria-busy]="paises.isLoading()"
+            >
+              <option value="" disabled>
+                {{ paises.isLoading() ? 'Cargando países…' : 'Elige el país' }}
+              </option>
+              @for (pais of listaPaises(); track pais.idPais) {
+                <option [value]="pais.idPais">{{ pais.nombre }}</option>
+              }
+            </select>
+            @if (errorPaises(); as errorPaises) {
+              <span class="error-campo" id="error-pais">
+                {{ errorPaises }}
+                <button type="button" class="boton-texto" (click)="paises.reload()">
+                  Reintentar
+                </button>
+              </span>
+            } @else if (invalido('pais')) {
+              <span class="error-campo" id="error-pais">Elige el país.</span>
             }
           </label>
           <label>
-            Dirección o ubicación
-            <input
-              type="text"
-              formControlName="ubicacion"
-              [readonly]="enviando()"
-              [class.invalido]="invalido('ubicacion')"
-              [attr.aria-invalid]="invalido('ubicacion')"
-              [attr.aria-describedby]="invalido('ubicacion') ? 'error-ubicacion' : null"
-              placeholder="Ej.: Vereda El Lago, km 3"
-              maxlength="255"
-            />
-            @if (invalido('ubicacion')) {
-              <span class="error-campo" id="error-ubicacion">Escribe la ubicación.</span>
+            Ciudad
+            <select
+              formControlName="ciudad"
+              [class.invalido]="invalido('ciudad')"
+              [attr.aria-invalid]="invalido('ciudad')"
+              [attr.aria-describedby]="
+                errorCiudades() || invalido('ciudad') ? 'error-ciudad' : null
+              "
+              [attr.aria-busy]="ciudades.isLoading()"
+            >
+              <option value="" disabled>
+                @if (ciudades.isLoading()) {
+                  Cargando ciudades…
+                } @else if (!formulario.controls.pais.value) {
+                  Primero elige el país
+                } @else if (opcionesCiudad().length === 0) {
+                  No hay ciudades para este país
+                } @else {
+                  Elige la ciudad
+                }
+              </option>
+              @for (ciudad of opcionesCiudad(); track ciudad) {
+                <option [value]="ciudad">{{ ciudad }}</option>
+              }
+            </select>
+            @if (errorCiudades(); as errorCiudades) {
+              <span class="error-campo" id="error-ciudad">
+                {{ errorCiudades }}
+                <button type="button" class="boton-texto" (click)="ciudades.reload()">
+                  Reintentar
+                </button>
+              </span>
+            } @else if (invalido('ciudad')) {
+              <span class="error-campo" id="error-ciudad">Elige la ciudad.</span>
             }
           </label>
         </div>
+        <label>
+          Dirección o ubicación
+          <input
+            type="text"
+            formControlName="ubicacion"
+            [readonly]="enviando()"
+            [class.invalido]="invalido('ubicacion')"
+            [attr.aria-invalid]="invalido('ubicacion')"
+            [attr.aria-describedby]="invalido('ubicacion') ? 'error-ubicacion' : null"
+            placeholder="Ej.: Vereda El Lago, km 3"
+            maxlength="255"
+          />
+          @if (invalido('ubicacion')) {
+            <span class="error-campo" id="error-ubicacion">Escribe la ubicación.</span>
+          }
+        </label>
       </fieldset>
 
       <fieldset [disabled]="enviando()">
@@ -196,6 +224,8 @@
                 <span class="error-campo" [id]="'error-' + espacio.campo"
                   >Debe ser un número entero entre 1 y 50.</span
                 >
+              } @else if ('ayuda' in espacio) {
+                <span class="ayuda">{{ espacio.ayuda }}</span>
               }
             </label>
           }

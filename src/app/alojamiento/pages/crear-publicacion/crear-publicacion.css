@@ -277,46 +277,6 @@ button {
   text-decoration: underline;
 }
 
-.exito {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 1.5rem 0;
-  text-align: center;
-}
-
-.exito p {
-  max-width: 32rem;
-  margin: 0 0 0.5rem;
-  color: #475569;
-  line-height: 1.5;
-}
-
-.icono-exito {
-  display: grid;
-  place-items: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: #fff;
-}
-
-.icono-exito svg {
-  width: 1.8rem;
-  height: 1.8rem;
-}
-
-.estado {
-  padding: 0.1rem 0.55rem;
-  border-radius: 999px;
-  background: #fffbeb;
-  color: #b45309;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
 @media (width < 40rem) {
   .tarjeta {
     padding: 1.5rem 1.1rem;

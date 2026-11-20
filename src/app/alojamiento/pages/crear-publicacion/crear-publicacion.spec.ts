@@ -1,11 +1,12 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { crearToken } from '../../../config/auth/sesion.testing';
 import { environment } from '../../../../environments/environment';
 import { CrearPublicacion } from './crear-publicacion';
+import { AvisosService } from '../../../shared/services/avisos.service';
 import { simularUrlsDeObjeto } from '../../../shared/utils/url-objeto.testing';
 
 describe('CrearPublicacion (HU-010)', () => {
@@ -37,11 +38,33 @@ describe('CrearPublicacion (HU-010)', () => {
     },
   ];
 
+  const urlPaises = `${api}/autenticacion/ubicaciones/paises`;
+  const paises = [
+    { idPais: 'pa-co', codigoIso2: 'CO', nombre: 'Colombia' },
+    { idPais: 'pa-pe', codigoIso2: 'PE', nombre: 'Perú' },
+  ];
+  const ciudadesDe = (idPais: string) => `${urlPaises}/${idPais}/ciudades`;
+
+  const responderUbicaciones = async () => {
+    backend.expectOne(urlPaises).flush(paises);
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(ciudadesDe('pa-co')).flush([
+      { idCiudad: 'c-1', nombre: 'Bogotá' },
+      { idCiudad: 'c-2', nombre: 'Guatavita' },
+    ]);
+  };
+
   const crear = async (responder = true) => {
     localStorage.clear();
     restaurarUrls = simularUrlsDeObjeto(() => 'blob:x', vi.fn());
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([{ path: '**', children: [] }]),
+      ],
     });
     TestBed.inject(SesionService).iniciar(
       crearToken({
@@ -61,6 +84,7 @@ describe('CrearPublicacion (HU-010)', () => {
         .flush({ nombre: 'Sophia', apellido: 'Mora', correo: 'sophie@correo.com' });
       backend.expectOne(`${api}/servicios`).flush(servicios);
       backend.expectOne(`${api}/politicas-cancelacion/activas`).flush(politicas);
+      await responderUbicaciones();
       await fixture.whenStable();
     }
   };
@@ -71,6 +95,7 @@ describe('CrearPublicacion (HU-010)', () => {
       descripcion: 'Vista al lago',
       reglas: 'No fumar',
       ubicacion: 'Vereda El Lago',
+      pais: 'pa-co',
       ciudad: 'Guatavita',
       tipoAlojamiento: 'Cabaña',
       capacidad: '4',
@@ -106,14 +131,18 @@ describe('CrearPublicacion (HU-010)', () => {
     expect(componente.formatearPorcentaje(null)).toBe('');
   });
 
-  it('criterio 1: crea la publicación y muestra que quedó en borrador', async () => {
+  it('criterio 1: crea la publicación, avisa que quedó en borrador y vuelve a la lista', async () => {
     await crear();
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
     llenar();
     componente.publicar();
 
     const peticion = backend.expectOne(`${api}/alojamientos`);
     const cuerpo = peticion.request.body as FormData;
     expect(cuerpo.get('titulo')).toBe('Cabaña frente al lago');
+    expect(cuerpo.get('ciudad')).toBe('Guatavita');
+    expect(cuerpo.has('pais')).toBe(false);
     expect(cuerpo.get('capacidad')).toBe('4');
     expect(cuerpo.get('habitaciones')).toBe('2');
     expect(cuerpo.get('camas')).toBe('3');
@@ -131,10 +160,10 @@ describe('CrearPublicacion (HU-010)', () => {
     });
     await fixture.whenStable();
 
-    const titulo = elemento().querySelector('h1');
-    expect(titulo?.textContent).toContain('¡Tu publicación quedó guardada!');
-    expect(document.activeElement === titulo || !document.body.contains(titulo)).toBe(true);
-    expect(elemento().textContent).toContain('Borrador');
+    expect(router.navigate).toHaveBeenCalledWith(['/alojamientos'], { replaceUrl: true });
+    const [aviso] = TestBed.inject(AvisosService).avisos();
+    expect(aviso.titulo).toBe('Publicación creada');
+    expect(aviso.detalle).toContain('"Cabaña frente al lago" quedó en borrador');
   });
 
   it('envía tarifa de limpieza 0 si se deja vacía', async () => {
@@ -290,23 +319,46 @@ describe('CrearPublicacion (HU-010)', () => {
     backend.expectOne(`${api}/alojamientos`).flush({ titulo: 'x', estado: 'BORRADOR' });
   });
 
-  it('permite crear otra publicación con el formulario limpio', async () => {
+  it('elige la ciudad según el país, con Colombia por defecto', async () => {
     await crear();
-    llenar();
-    componente.publicar();
-    backend.expectOne(`${api}/alojamientos`).flush({ titulo: 'x', estado: 'BORRADOR' });
+    const select = (nombre: string) =>
+      elemento().querySelector<HTMLSelectElement>(`select[formControlName="${nombre}"]`);
+    const opciones = (nombre: string) =>
+      [...(select(nombre)?.options ?? [])].filter((opcion) => opcion.value).map((o) => o.text);
+
+    expect(componente.formulario.controls.pais.value).toBe('pa-co');
+    expect(opciones('pais')).toEqual(['Colombia', 'Perú']);
+    expect(opciones('ciudad')).toEqual(['Bogotá', 'Guatavita']);
+
+    componente.formulario.controls.ciudad.setValue('Bogotá');
+    const pais = select('pais') as HTMLSelectElement;
+    pais.value = 'pa-pe';
+    pais.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(ciudadesDe('pa-pe')).flush([{ idCiudad: 'c-3', nombre: 'Lima' }]);
     await fixture.whenStable();
 
-    expect(elemento().querySelector('.exito a')?.getAttribute('href')).toBe('/alojamientos');
-    elemento().querySelector<HTMLButtonElement>('.exito button')?.click();
+    expect(componente.formulario.controls.ciudad.value).toBe('');
+    expect(opciones('ciudad')).toEqual(['Lima']);
+    expect(elemento().textContent).toContain('Total de camas en todo el alojamiento.');
+  });
+
+  it('permite reintentar si no cargan los países', async () => {
+    await crear(false);
+    backend.expectOne(`${api}/usuarios/mi_cuenta`).flush({ nombre: 'Sophia', apellido: 'Mora' });
+    backend.expectOne(`${api}/servicios`).flush(servicios);
+    backend.expectOne(`${api}/politicas-cancelacion/activas`).flush(politicas);
+    backend.expectOne(urlPaises).flush('Error', { status: 500, statusText: 'Error' });
     await fixture.whenStable();
 
-    expect(elemento().querySelector('form')).not.toBeNull();
-    expect(componente.formulario.controls.titulo.value).toBe('');
-    expect(componente.formulario.controls.tarifaLimpieza.value).toBe('0');
-    expect(componente.formulario.controls.camas.value).toBe('1');
-    expect(componente.imagenes()).toEqual([]);
-    expect(elemento().querySelector('.resumen-errores')).toBeNull();
+    expect(elemento().querySelector('#error-pais')?.textContent).toContain('Error');
+    elemento().querySelector<HTMLButtonElement>('#error-pais button')?.click();
+    fixture.detectChanges();
+    TestBed.tick();
+    await responderUbicaciones();
+    await fixture.whenStable();
+    expect(elemento().querySelector('#error-pais')).toBeNull();
   });
 
   it('permite reintentar si no cargan los servicios o las políticas', async () => {
@@ -316,6 +368,7 @@ describe('CrearPublicacion (HU-010)', () => {
     backend
       .expectOne(`${api}/politicas-cancelacion/activas`)
       .flush('Error', { status: 500, statusText: 'Error' });
+    backend.expectOne(urlPaises).flush([]);
     await fixture.whenStable();
 
     const botones = [...elemento().querySelectorAll<HTMLButtonElement>('.boton-texto')];
