@@ -158,6 +158,36 @@ describe('TarifasPublicacion (HU-020)', () => {
     ).toBe('true');
   });
 
+  it('no guarda importes que superan los enteros seguros ni solo espacios', async () => {
+    await crear();
+    botonPorTexto('Cambiar')?.click();
+    await fixture.whenStable();
+    componente.formulario.controls.tarifaLimpieza.setValue('9007199254740993');
+    componente.filas.at(0).patchValue({ costo: '9007199254740993' });
+    botonPorTexto('Guardar')?.click();
+    await fixture.whenStable();
+
+    backend.expectNone(url);
+    expect(elemento().querySelector('#error-tarifa')).not.toBeNull();
+    expect(elemento().querySelector('#error-costo-0')).not.toBeNull();
+
+    componente.formulario.controls.tarifaLimpieza.setValue('   ');
+    componente.filas.at(0).patchValue({ costo: '  ' });
+    botonPorTexto('Guardar')?.click();
+    await fixture.whenStable();
+    backend.expectNone(url);
+    expect(elemento().querySelector('#error-tarifa')).not.toBeNull();
+    expect(elemento().querySelector('#error-costo-0')).not.toBeNull();
+
+    componente.formulario.controls.tarifaLimpieza.setValue('0');
+    componente.filas.at(0).patchValue({ costo: '35000' });
+    botonPorTexto('Guardar')?.click();
+    const peticion = backend.expectOne(url);
+    expect(peticion.request.body.tarifaLimpieza).toBe(0);
+    expect(peticion.request.body.serviciosAdicionales[0].costo).toBe(35000);
+    peticion.flush(configuracion());
+  });
+
   it('criterio 4: muestra el rechazo del servidor y conserva lo escrito', async () => {
     await crear();
     botonPorTexto('Cambiar')?.click();
