@@ -1,5 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -135,6 +143,17 @@ export class DisponibilidadAlojamiento {
     this.nuevo.controls.fechaInicio.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.ajustarCierre());
+  }
+
+  private readonly botonAgregar = viewChild<ElementRef<HTMLButtonElement>>('botonAgregar');
+
+  usarSeleccion(periodo: NuevoPeriodo): void {
+    this.sinCierre.setValue(false);
+    this.nuevo.setValue(periodo);
+    this.nuevo.markAsDirty();
+    this.limpiarMensajes();
+    this.lugarMensaje.set('nuevo');
+    this.botonAgregar()?.nativeElement.focus();
   }
 
   reintentar(): void {

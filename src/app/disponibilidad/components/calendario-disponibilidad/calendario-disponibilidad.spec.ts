@@ -123,4 +123,37 @@ describe('CalendarioDisponibilidad (HU-023)', () => {
     await fixture.whenStable();
     expect(elemento().querySelector('table')).not.toBeNull();
   });
+
+  it('permite elegir un rango de días futuros y lo entrega como periodo', async () => {
+    await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    const elegidos: object[] = [];
+    fixture.componentInstance.seleccion.subscribe((periodo) => elegidos.push(periodo));
+
+    expect(dia(10)?.tagName).toBe('SPAN');
+    expect(dia(20)?.tagName).toBe('BUTTON');
+
+    dia(24)?.click();
+    dia(21)?.click();
+    await fixture.whenStable();
+    expect(elegidos).toEqual([]);
+    expect(dia(21)?.getAttribute('aria-pressed')).toBe('true');
+    expect(dia(24)?.getAttribute('aria-pressed')).toBe('false');
+
+    dia(25)?.click();
+    await fixture.whenStable();
+    expect(elegidos).toEqual([{ fechaInicio: '2026-11-21', fechaFin: '2026-11-26' }]);
+    expect([21, 22, 25].map((numero) => dia(numero)?.classList.contains('elegido'))).toEqual([
+      true,
+      true,
+      true,
+    ]);
+    expect(dia(26)?.classList.contains('elegido')).toBe(false);
+
+    fixture.componentRef.setInput('actualizacion', 1);
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(url).flush({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    await fixture.whenStable();
+    expect(dia(21)?.classList.contains('elegido')).toBe(false);
+  });
 });

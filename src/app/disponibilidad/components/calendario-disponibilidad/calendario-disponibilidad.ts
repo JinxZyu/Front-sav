@@ -1,8 +1,9 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { DisponibilidadService } from '../../services/disponibilidad.service';
-import { comoDia, hoy } from '../../utils/fechas';
+import { NuevoPeriodo } from '../../models/disponibilidad.models';
+import { comoDia, hoy, moverDias } from '../../utils/fechas';
 
 export type EstadoDia = 'disponible' | 'ocupada' | 'sin-periodo' | 'pasada';
 
@@ -32,6 +33,16 @@ export class CalendarioDisponibilidad {
 
   readonly idAlojamiento = input.required<string>();
   readonly actualizacion = input(0);
+  readonly seleccion = output<NuevoPeriodo>();
+
+  readonly desde = linkedSignal<number, string | null>({
+    source: this.actualizacion,
+    computation: () => null,
+  });
+  readonly hasta = linkedSignal<number, string | null>({
+    source: this.actualizacion,
+    computation: () => null,
+  });
 
   readonly diasSemana = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
@@ -90,6 +101,28 @@ export class CalendarioDisponibilidad {
     }
     return semanas;
   });
+
+  elegir(celda: DiaCalendario): void {
+    if (celda.estado === 'pasada') {
+      return;
+    }
+    const desde = this.desde();
+    if (!desde || this.hasta() || celda.dia < desde) {
+      this.desde.set(celda.dia);
+      this.hasta.set(null);
+      return;
+    }
+    this.hasta.set(celda.dia);
+    this.seleccion.emit({ fechaInicio: desde, fechaFin: moverDias(celda.dia, 1) });
+  }
+
+  seleccionado(dia: string): boolean {
+    const desde = this.desde();
+    if (!desde) {
+      return false;
+    }
+    return dia === desde || (!!this.hasta() && dia > desde && dia <= (this.hasta() ?? ''));
+  }
 
   moverMes(cantidad: number): void {
     const actual = this.mes();

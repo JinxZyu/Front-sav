@@ -19,6 +19,7 @@ export class ConsultaFechas {
 
   readonly idAlojamiento = input.required<string>();
   readonly actualizacion = input(0);
+  readonly activa = input(true);
 
   readonly formulario = inject(FormBuilder).nonNullable.group(
     {
@@ -53,6 +54,9 @@ export class ConsultaFechas {
   }
 
   consultar(): void {
+    if (!this.activa()) {
+      return;
+    }
     this.intento.set(true);
     if (this.formulario.invalid || this.consultando()) {
       this.formulario.markAllAsTouched();

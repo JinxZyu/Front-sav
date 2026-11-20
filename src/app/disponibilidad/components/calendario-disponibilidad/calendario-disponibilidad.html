@@ -40,9 +40,23 @@
           @for (celda of semana; track $index) {
             <td>
               @if (celda) {
-                <span class="dia" [class]="celda.estado" [attr.aria-label]="celda.etiqueta">
-                  {{ celda.numero }}
-                </span>
+                @if (celda.estado === 'pasada') {
+                  <span class="dia" [class]="celda.estado" [attr.aria-label]="celda.etiqueta">
+                    {{ celda.numero }}
+                  </span>
+                } @else {
+                  <button
+                    type="button"
+                    class="dia"
+                    [class]="celda.estado"
+                    [class.elegido]="seleccionado(celda.dia)"
+                    [attr.aria-label]="celda.etiqueta"
+                    [attr.aria-pressed]="seleccionado(celda.dia)"
+                    (click)="elegir(celda)"
+                  >
+                    {{ celda.numero }}
+                  </button>
+                }
               }
             </td>
           }

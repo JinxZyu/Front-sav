@@ -135,4 +135,18 @@ describe('ConsultaFechas (HU-023)', () => {
     await fixture.whenStable();
     expect(elemento().querySelector('[role="alert"]')).toBeNull();
   });
+
+  it('no consulta mientras la publicación no esté activa', async () => {
+    fixture.componentRef.setInput('activa', false);
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('.nota-inactiva')?.textContent).toContain('publicada');
+    expect(elemento().querySelector('fieldset')?.disabled).toBe(true);
+    fixture.componentInstance.formulario.setValue({
+      fechaInicio: '2026-12-01',
+      fechaFin: '2026-12-05',
+    });
+    fixture.componentInstance.consultar();
+    backend.expectNone((p) => p.url === url);
+  });
 });

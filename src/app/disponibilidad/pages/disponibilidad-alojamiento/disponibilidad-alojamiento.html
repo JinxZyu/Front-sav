@@ -23,16 +23,24 @@
   } @else if (idAlojamiento(); as idAlojamiento) {
     <div class="tarjeta">
       <h2>Calendario</h2>
+      <p class="nota">
+        Toca el primer y el último día que quieres habilitar y se llenará el formulario de abajo.
+      </p>
       <app-calendario-disponibilidad
         [idAlojamiento]="idAlojamiento"
         [actualizacion]="actualizacion()"
+        (seleccion)="usarSeleccion($event)"
       />
     </div>
 
     <div class="tarjeta">
       <h2>Consultar fechas</h2>
       <p class="nota">Revisa si tu alojamiento puede reservarse en un rango de fechas.</p>
-      <app-consulta-fechas [idAlojamiento]="idAlojamiento" [actualizacion]="actualizacion()" />
+      <app-consulta-fechas
+        [idAlojamiento]="idAlojamiento"
+        [actualizacion]="actualizacion()"
+        [activa]="publicacion.hasValue() && publicacion.value().estado === 'ACTIVA'"
+      />
     </div>
 
     <form class="tarjeta" [formGroup]="nuevo" (ngSubmit)="agregar()" novalidate>
@@ -83,7 +91,7 @@
             </span>
           }
         </label>
-        <button type="submit" class="principal">
+        <button type="submit" class="principal" #botonAgregar>
           {{ procesando() ? 'Guardando…' : 'Agregar periodo' }}
         </button>
       </fieldset>
