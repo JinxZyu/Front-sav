@@ -40,7 +40,29 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     ...cambios,
   });
 
-  const crear = async (respuesta: object | null = detalle()) => {
+  const politicasActivas = [
+    {
+      idPolitica: 'p-1',
+      nombre: 'Flexible',
+      version: 1,
+      descripcion: null,
+      anticipacionHoras: null,
+      porcentajeDevolucion: null,
+    },
+  ];
+  const urlPoliticas = `${api}/politicas-cancelacion/activas`;
+
+  const estabilizar = async (completo = true) => {
+    if (completo) {
+      await fixture.whenStable();
+      return;
+    }
+    await new Promise((resolver) => setTimeout(resolver));
+    fixture.detectChanges();
+    TestBed.tick();
+  };
+
+  const crear = async (respuesta: object | null = detalle(), cargarPoliticas = true) => {
     localStorage.clear();
     restaurarUrls = simularUrlsDeObjeto(() => 'blob:x', vi.fn());
     TestBed.configureTestingModule({
@@ -73,19 +95,12 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
       { idServicio: 's-1', nombre: 'Wifi', descripcion: null },
       { idServicio: 's-2', nombre: 'Piscina', descripcion: null },
     ]);
-    backend.expectOne(`${api}/politicas-cancelacion/activas`).flush([
-      {
-        idPolitica: 'p-1',
-        nombre: 'Flexible',
-        version: 1,
-        descripcion: null,
-        anticipacionHoras: null,
-        porcentajeDevolucion: null,
-      },
-    ]);
+    if (cargarPoliticas) {
+      backend.expectOne(urlPoliticas).flush(politicasActivas);
+    }
     if (respuesta) {
       backend.expectOne(urlDetalle).flush(respuesta);
-      await fixture.whenStable();
+      await estabilizar(cargarPoliticas);
     }
   };
 
@@ -256,6 +271,36 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     expect(componente.formulario.controls.idPolitica.value).toBe('');
     expect(componente.formulario.controls.reglas.value).toBe('');
     expect(elemento().textContent).toContain('La política que tenías ya no está activa');
+  });
+
+  it('no guarda hasta validar la política contra las activas y permite reintentar su carga', async () => {
+    await crear(detalle(), false);
+    const resumen = () => elemento().querySelector('.resumen-errores')?.textContent ?? '';
+
+    componente.publicar();
+    await estabilizar(false);
+    backend.expectNone(`${api}/publicaciones/p-9`);
+    expect(resumen()).toContain('Política de cancelación');
+
+    backend.expectOne(urlPoliticas).flush('Error', { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    componente.publicar();
+    backend.expectNone(`${api}/publicaciones/p-9`);
+
+    const reintentar = [...elemento().querySelectorAll<HTMLButtonElement>('button')].find((boton) =>
+      boton.textContent?.includes('Intentar de nuevo'),
+    );
+    reintentar?.click();
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(urlPoliticas).flush(politicasActivas);
+    await fixture.whenStable();
+
+    componente.publicar();
+    backend
+      .expectOne(`${api}/publicaciones/p-9`)
+      .flush({ idPublicacion: 'p-9', titulo: 'x', estado: 'ACTIVA', imagenes: [] });
+    expect(resumen()).toBe('');
   });
 
   it('conserva un tipo de alojamiento que no está en la lista', async () => {
