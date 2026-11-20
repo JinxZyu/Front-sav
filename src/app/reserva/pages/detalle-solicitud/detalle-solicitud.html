@@ -1,0 +1,83 @@
+<section class="contenedor" aria-labelledby="titulo-reserva">
+  @if (reserva(); as reserva) {
+    <app-encabezado-reserva
+      volverA="/reservas/alojamientos"
+      textoVolver="Reservas de mis alojamientos"
+      [titulo]="reserva.alojamiento"
+      [estado]="reserva.estado"
+      [aviso]="aviso()"
+    />
+
+    <app-resumen-reserva
+      [fechaEntrada]="reserva.fechaEntrada"
+      [fechaSalida]="reserva.fechaSalida"
+      [monto]="reserva.montoTotal"
+      [filas]="filas()"
+    />
+
+    @if (explicacion(); as explicacion) {
+      <p class="explicacion">{{ explicacion }}</p>
+    }
+
+    @if (reserva.estado === 'PENDIENTE_APROBACION') {
+      <div class="accion" role="group" aria-label="Responder solicitud">
+        @if (confirmandoRechazo()) {
+          <p class="explicacion">¿Seguro que quieres rechazarla? Las fechas quedarán libres.</p>
+          <div class="opciones">
+            <button
+              type="button"
+              class="peligro"
+              [disabled]="decidiendo()"
+              (click)="decidir(false)"
+            >
+              {{ decidiendo() ? 'Rechazando…' : 'Sí, rechazar' }}
+            </button>
+            <button type="button" class="secundario" (click)="confirmandoRechazo.set(false)">
+              No, volver
+            </button>
+          </div>
+        } @else {
+          <div class="opciones">
+            <button
+              type="button"
+              class="principal"
+              [disabled]="decidiendo()"
+              (click)="decidir(true)"
+            >
+              {{ decidiendo() ? 'Aprobando…' : 'Aprobar solicitud' }}
+            </button>
+            <button
+              type="button"
+              class="secundario"
+              [disabled]="decidiendo()"
+              (click)="confirmandoRechazo.set(true)"
+            >
+              Rechazar
+            </button>
+          </div>
+        }
+      </div>
+    }
+  } @else if (noEncontrada()) {
+    <app-encabezado-reserva
+      volverA="/reservas/alojamientos"
+      textoVolver="Reservas de mis alojamientos"
+      titulo="No encontramos esta reserva"
+    />
+    <p class="explicacion">Puede que no exista o que no sea de uno de tus alojamientos.</p>
+  } @else if (error(); as error) {
+    <app-encabezado-reserva
+      volverA="/reservas/alojamientos"
+      textoVolver="Reservas de mis alojamientos"
+      titulo="Detalle de la reserva"
+      [aviso]="{ tono: 'error', texto: error }"
+    />
+    <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+  } @else {
+    <app-encabezado-reserva
+      volverA="/reservas/alojamientos"
+      textoVolver="Reservas de mis alojamientos"
+      titulo="Cargando reserva…"
+    />
+  }
+</section>

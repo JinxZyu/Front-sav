@@ -29,9 +29,20 @@ describe('Rutas de reservas', () => {
     return TestBed.inject(HttpTestingController);
   };
 
+  it('el anfitrión llega a las reservas de sus alojamientos', async () => {
+    const backend = await abrir('ANFITRION', '/reservas/alojamientos');
+    expect(TestBed.inject(Router).url).toBe('/reservas/alojamientos');
+    backend.expectOne(`${environment.apiUrl}/reservas/mis-alojamientos`).flush({ reservas: [] });
+  });
+
   it('el huésped llega a sus reservas', async () => {
     const backend = await abrir('HUESPED', '/reservas');
     expect(TestBed.inject(Router).url).toBe('/reservas');
     backend.expectOne(`${environment.apiUrl}/reservas/mis-reservas`).flush({ reservas: [] });
+  });
+
+  it('el huésped no entra a las reservas de un anfitrión', async () => {
+    await abrir('HUESPED', '/reservas/alojamientos');
+    expect(TestBed.inject(Router).url).toBe('/publicaciones');
   });
 });

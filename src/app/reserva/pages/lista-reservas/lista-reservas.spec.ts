@@ -2,8 +2,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { environment } from '../../../../environments/environment';
-import { reservaPropia } from '../../models/reserva.testing';
+import { reservaDeAlojamiento, reservaPropia } from '../../models/reserva.testing';
 import { ListaReservas } from './lista-reservas';
 
 describe('ListaReservas del huésped (HU-034)', () => {
@@ -78,5 +79,87 @@ describe('ListaReservas del huésped (HU-034)', () => {
     await responder({ reservas: [reservaPropia()], totalResultados: 1, mensaje: null });
 
     expect(elemento().querySelectorAll('a.tarjeta').length).toBe(1);
+  });
+});
+
+describe('ListaReservas del anfitrión (HU-031)', () => {
+  let harness: RouterTestingHarness;
+  let backend: HttpTestingController;
+  const url = `${environment.apiUrl}/reservas/mis-alojamientos`;
+
+  const abrir = async (cuerpo: object) => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([
+          { path: 'reservas/alojamientos', component: ListaReservas, data: { vista: 'anfitrion' } },
+        ]),
+      ],
+    });
+    backend = TestBed.inject(HttpTestingController);
+    harness = await RouterTestingHarness.create('/reservas/alojamientos');
+    backend.expectOne(url).flush(cuerpo);
+    await new Promise((resolver) => setTimeout(resolver));
+    harness.detectChanges();
+  };
+
+  const elemento = () => harness.routeNativeElement as HTMLElement;
+  const tarjetas = () => [...elemento().querySelectorAll<HTMLAnchorElement>('a.tarjeta')];
+  const filtro = (texto: string) =>
+    [...elemento().querySelectorAll<HTMLButtonElement>('.filtros button')].find((boton) =>
+      boton.textContent?.includes(texto),
+    )!;
+
+  afterEach(() => backend.verify());
+
+  it('criterio 1: lista las reservas de sus alojamientos con el huésped', async () => {
+    await abrir({
+      reservas: [
+        reservaDeAlojamiento(),
+        reservaDeAlojamiento({ idReserva: 'r-2', estado: 'CONFIRMADA', huesped: 'Ana Gómez' }),
+      ],
+      totalResultados: 2,
+      mensaje: null,
+    });
+
+    expect(elemento().querySelector('h1')?.textContent).toContain('Reservas de mis alojamientos');
+    expect(tarjetas().map((tarjeta) => tarjeta.getAttribute('href'))).toEqual([
+      '/reservas/alojamientos/r-1',
+      '/reservas/alojamientos/r-2',
+    ]);
+    expect(tarjetas()[0].textContent).toContain('Huésped: Hugo Pérez');
+    expect(tarjetas()[0].textContent).toContain('Responde antes del');
+    expect(tarjetas()[1].textContent).not.toContain('Responde antes del');
+    expect(tarjetas()[1].textContent).toContain('Confirmada');
+  });
+
+  it('criterio 2: filtra las solicitudes por responder', async () => {
+    await abrir({
+      reservas: [
+        reservaDeAlojamiento(),
+        reservaDeAlojamiento({ idReserva: 'r-2', estado: 'CONFIRMADA' }),
+      ],
+      totalResultados: 2,
+      mensaje: null,
+    });
+
+    filtro('Por responder').click();
+    harness.detectChanges();
+    expect(filtro('Por responder').textContent).toContain('(1)');
+    expect(filtro('Por responder').getAttribute('aria-pressed')).toBe('true');
+    expect(tarjetas().length).toBe(1);
+
+    filtro('Todas').click();
+    harness.detectChanges();
+    expect(tarjetas().length).toBe(2);
+  });
+
+  it('criterio 3: informa cuando aún no recibe reservas', async () => {
+    await abrir({ reservas: [], totalResultados: 0, mensaje: null });
+
+    expect(elemento().textContent).toContain('Aún no recibes reservas');
+    expect(elemento().querySelector('.filtros')).toBeNull();
+    expect(elemento().querySelector('a.boton')).toBeNull();
   });
 });

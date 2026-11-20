@@ -70,6 +70,9 @@ describe('App', () => {
     const enlace = elemento(fixture).querySelector('nav > a') as HTMLAnchorElement;
     expect(enlace.textContent?.trim()).toBe('Mis alojamientos');
     expect(enlace.getAttribute('href')).toBe('/alojamientos');
+    const reservas = elemento(fixture).querySelector('nav > a.opcional') as HTMLAnchorElement;
+    expect(reservas.textContent?.trim()).toBe('Reservas');
+    expect(reservas.getAttribute('href')).toBe('/reservas/alojamientos');
   });
 
   it('al huésped la barra le lleva al listado general de alojamientos', async () => {
