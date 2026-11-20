@@ -191,6 +191,35 @@ describe('DetallePublicacion (HU-011)', () => {
     }
   });
 
+  it('actualiza la tarifa y el modo mostrados al instante, sin volver a consultar', async () => {
+    crear();
+    backend.expectOne(url).flush(detalle({ imagenes: [], estado: 'ACTIVA' }));
+    await responderSecciones();
+    const tarjeta = (selector: string) => elemento().querySelector(selector) as HTMLElement;
+    const boton = (raiz: HTMLElement, texto: string) =>
+      [...raiz.querySelectorAll<HTMLButtonElement>('button')].find(
+        (candidato) => candidato.textContent?.trim() === texto,
+      );
+
+    const modo = tarjeta('app-modo-aceptacion-publicacion');
+    boton(modo, 'Cambiar')?.click();
+    await fixture.whenStable();
+    modo.querySelectorAll<HTMLInputElement>('input[type="radio"]')[0].click();
+    boton(modo, 'Guardar')?.click();
+    backend
+      .expectOne(`${api}/publicaciones/p-1/modo-aceptacion`)
+      .flush({ idPublicacion: 'p-1', modoAceptacion: 'INMEDIATA', fechaActualizacion: null });
+    await fixture.whenStable();
+
+    backend.expectNone(url);
+    expect(elemento().querySelector('.datos')?.textContent).toContain('Reserva inmediata');
+
+    fixture.componentInstance.actualizarDatos({ tarifaLimpieza: 45000 });
+    await fixture.whenStable();
+    expect(elemento().querySelector('.datos')?.textContent).toContain('45.000');
+    backend.expectNone(url);
+  });
+
   it('confirma que se guardaron los cambios al volver de editar', async () => {
     crear('actualizada');
     backend.expectOne(url).flush(detalle({ imagenes: [] }));

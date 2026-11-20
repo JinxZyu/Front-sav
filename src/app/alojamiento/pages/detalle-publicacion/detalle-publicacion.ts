@@ -10,6 +10,7 @@ import { ModoAceptacionPublicacion } from '../../components/modo-aceptacion-publ
 import { PoliticaPublicacion } from '../../components/politica-publicacion/politica-publicacion';
 import { TarifasPublicacion } from '../../components/tarifas-publicacion/tarifas-publicacion';
 import {
+  DetallePublicacion as DatosPublicacion,
   estadoPublicacion,
   modoAceptacion,
   motivoSinEdicion,
@@ -86,6 +87,10 @@ export class DetallePublicacion {
   }
 
   actualizarEstado(estado: string): void {
-    this.consulta.update((actual) => (actual ? { ...actual, estado } : actual));
+    this.actualizarDatos({ estado });
+  }
+
+  actualizarDatos(cambios: Partial<DatosPublicacion>): void {
+    this.consulta.update((actual) => (actual ? { ...actual, ...cambios } : actual));
   }
 }

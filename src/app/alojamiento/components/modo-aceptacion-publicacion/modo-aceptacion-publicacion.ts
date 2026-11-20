@@ -11,7 +11,11 @@ import {
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
-import { MODOS_ACEPTACION, ModoAceptacion } from '../../models/alojamiento.models';
+import {
+  MODOS_ACEPTACION,
+  ModoAceptacion,
+  ModoAceptacionDePublicacion,
+} from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
 
 @Component({
@@ -25,7 +29,7 @@ export class ModoAceptacionPublicacion {
 
   readonly idPublicacion = input.required<string>();
   readonly editable = input(true);
-  readonly guardado = output();
+  readonly guardado = output<ModoAceptacionDePublicacion>();
 
   readonly modos = MODOS_ACEPTACION;
 
@@ -81,7 +85,7 @@ export class ModoAceptacionPublicacion {
           this.actual.set(respuesta);
           this.editando.set(false);
           this.aviso.set('Guardamos el modo de aceptación de reservas.');
-          this.guardado.emit();
+          this.guardado.emit(respuesta);
         },
         error: (error: unknown) =>
           this.error.set(mensajeDeError(error, 'No pudimos guardar el modo de aceptación.')),
