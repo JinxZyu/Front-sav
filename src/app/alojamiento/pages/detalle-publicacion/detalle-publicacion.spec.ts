@@ -64,6 +64,14 @@ describe('DetallePublicacion (HU-011)', () => {
   const elemento = () => fixture.nativeElement as HTMLElement;
 
   const RESPUESTAS_SECCIONES: Record<string, object> = {
+    '/configuracion-comercial': {
+      idPublicacion: 'p-1',
+      tarifaLimpieza: 30000,
+      serviciosAdicionales: [
+        { idAdicional: 'a-1', nombre: 'Desayuno', descripcion: null, costo: 20000, activo: true },
+      ],
+      fechaActualizacion: null,
+    },
     '/politica-cancelacion': {
       idPublicacion: 'p-1',
       idPolitica: 'pol-1',
@@ -152,6 +160,9 @@ describe('DetallePublicacion (HU-011)', () => {
     expect(condiciones?.querySelector('h2')?.textContent).toBe('Condiciones de reserva');
     expect(condiciones?.querySelector('app-politica-publicacion')?.textContent).toContain(
       'Flexible',
+    );
+    expect(condiciones?.querySelector('app-tarifas-publicacion')?.textContent).toContain(
+      'Desayuno',
     );
   });
 
