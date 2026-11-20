@@ -64,4 +64,24 @@ describe('PublicacionAlojamientoService', () => {
 
     expect(estado).toBe('BORRADOR');
   });
+
+  it('consulta mis publicaciones y el detalle de una de ellas', () => {
+    servicio.misPublicaciones().subscribe();
+    servicio.detalle('p 1').subscribe();
+    backend
+      .expectOne(`${api}/publicaciones/mis-publicaciones`)
+      .flush({ mensaje: 'ok', publicaciones: [] });
+    const detalle = backend.expectOne(`${api}/publicaciones/mis-publicaciones/p%201`);
+    expect(detalle.request.method).toBe('GET');
+    detalle.flush({});
+  });
+
+  it('descarga las imágenes como archivo desde el servidor', () => {
+    servicio.imagen('/imagenes/publicaciones/a.jpg').subscribe();
+    servicio.imagen('imagenes/publicaciones/b.jpg').subscribe();
+    const primera = backend.expectOne(`${api}/imagenes/publicaciones/a.jpg`);
+    expect(primera.request.responseType).toBe('blob');
+    primera.flush(new Blob(['a']));
+    backend.expectOne(`${api}/imagenes/publicaciones/b.jpg`).flush(new Blob(['b']));
+  });
 });

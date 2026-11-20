@@ -3,7 +3,11 @@
     <img src="/logo-sav.png" alt="SAV" width="86" height="36" />
   </a>
   <nav>
-    <a routerLink="/publicaciones" routerLinkActive="activo">Alojamientos</a>
+    @if (sesion.tieneRol('ANFITRION')) {
+      <a routerLink="/alojamientos" routerLinkActive="activo">Mis alojamientos</a>
+    } @else {
+      <a routerLink="/publicaciones" routerLinkActive="activo">Alojamientos</a>
+    }
     @if (sesion.autenticado()) {
       <app-menu-usuario />
     } @else {

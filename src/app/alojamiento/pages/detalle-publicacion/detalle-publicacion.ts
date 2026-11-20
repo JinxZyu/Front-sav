@@ -1,0 +1,61 @@
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, inject } from '@angular/core';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { map } from 'rxjs';
+import { mensajeDeError } from '../../../shared/utils/mensaje-error';
+import { ImagenPublicacion } from '../../components/imagen-publicacion/imagen-publicacion';
+import { estadoPublicacion, modoAceptacion } from '../../models/alojamiento.models';
+import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
+import { formatearFecha, formatearPesos } from '../../utils/formato';
+
+@Component({
+  selector: 'app-detalle-publicacion',
+  imports: [RouterLink, ImagenPublicacion],
+  templateUrl: './detalle-publicacion.html',
+  styleUrl: './detalle-publicacion.css',
+})
+export class DetallePublicacion {
+  private readonly servicio = inject(PublicacionAlojamientoService);
+
+  private readonly idPublicacion = toSignal(
+    inject(ActivatedRoute).paramMap.pipe(
+      map((parametros) => parametros.get('idPublicacion') ?? ''),
+    ),
+    { initialValue: '' },
+  );
+
+  protected readonly consulta = rxResource({
+    params: () => this.idPublicacion() || undefined,
+    stream: ({ params }) => this.servicio.detalle(params),
+  });
+
+  protected readonly publicacion = computed(() =>
+    this.consulta.hasValue() ? this.consulta.value() : null,
+  );
+
+  protected readonly imagenes = computed(() => {
+    const imagenes = [...(this.publicacion()?.imagenes ?? [])];
+    return imagenes.sort((a, b) => Number(b.esPortada) - Number(a.esPortada) || a.orden - b.orden);
+  });
+
+  protected readonly noEncontrada = computed(() => {
+    const error = this.consulta.status() === 'error' ? this.consulta.error() : null;
+    return error instanceof HttpErrorResponse && [400, 403, 404].includes(error.status);
+  });
+
+  protected readonly error = computed(() =>
+    this.consulta.status() === 'error' && !this.noEncontrada()
+      ? mensajeDeError(this.consulta.error(), 'No pudimos consultar la publicación.')
+      : null,
+  );
+
+  protected readonly estado = estadoPublicacion;
+  protected readonly modo = modoAceptacion;
+  protected readonly pesos = formatearPesos;
+  protected readonly fecha = formatearFecha;
+
+  reintentar(): void {
+    this.consulta.reload();
+  }
+}

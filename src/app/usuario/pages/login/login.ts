@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SesionService } from '../../../config/auth/sesion.service';
-import { INICIO_CON_SESION } from '../../../config/rutas';
+import { inicioSegunRol } from '../../../config/rutas';
 import { CampoContrasena } from '../../../shared/components/campo-contrasena/campo-contrasena';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { AutenticacionService } from '../../services/autenticacion.service';
@@ -114,7 +114,9 @@ export class Login {
 
   private destinoSeguro(): string {
     const destino = this.ruta.snapshot.queryParamMap.get('volverA');
-    return destino?.startsWith('/') && !destino.startsWith('//') ? destino : INICIO_CON_SESION;
+    return destino?.startsWith('/') && !destino.startsWith('//')
+      ? destino
+      : inicioSegunRol(this.sesion.rol());
   }
 
   private siguenIguales(usadas: { correo: string; contrasena: string }): boolean {

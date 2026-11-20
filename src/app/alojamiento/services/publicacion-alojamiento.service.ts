@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  DetallePublicacion,
+  MisPublicaciones,
   NuevaPublicacion,
   PoliticaCancelacion,
   PublicacionCreada,
@@ -42,5 +44,20 @@ export class PublicacionAlojamientoService {
       formulario.append('imagenes', imagen, imagen.name);
     }
     return this.http.post<PublicacionCreada>(`${this.api}/alojamientos`, formulario);
+  }
+
+  misPublicaciones(): Observable<MisPublicaciones> {
+    return this.http.get<MisPublicaciones>(`${this.api}/publicaciones/mis-publicaciones`);
+  }
+
+  detalle(idPublicacion: string): Observable<DetallePublicacion> {
+    return this.http.get<DetallePublicacion>(
+      `${this.api}/publicaciones/mis-publicaciones/${encodeURIComponent(idPublicacion)}`,
+    );
+  }
+
+  imagen(ruta: string): Observable<Blob> {
+    const separador = ruta.startsWith('/') ? '' : '/';
+    return this.http.get(`${this.api}${separador}${ruta}`, { responseType: 'blob' });
   }
 }

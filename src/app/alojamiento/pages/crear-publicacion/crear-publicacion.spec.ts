@@ -1,12 +1,15 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { crearToken } from '../../../config/auth/sesion.testing';
 import { environment } from '../../../../environments/environment';
 import { CrearPublicacion } from './crear-publicacion';
+import { simularUrlsDeObjeto } from '../../../shared/utils/url-objeto.testing';
 
 describe('CrearPublicacion (HU-010)', () => {
+  let restaurarUrls: () => void = () => undefined;
   let fixture: ComponentFixture<CrearPublicacion>;
   let componente: CrearPublicacion;
   let backend: HttpTestingController;
@@ -36,9 +39,9 @@ describe('CrearPublicacion (HU-010)', () => {
 
   const crear = async (responder = true) => {
     localStorage.clear();
-    vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:x', revokeObjectURL: vi.fn() });
+    restaurarUrls = simularUrlsDeObjeto(() => 'blob:x', vi.fn());
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     TestBed.inject(SesionService).iniciar(
       crearToken({
@@ -85,7 +88,7 @@ describe('CrearPublicacion (HU-010)', () => {
 
   afterEach(() => {
     backend.verify();
-    vi.unstubAllGlobals();
+    restaurarUrls();
   });
 
   it('criterio 1: muestra a nombre de quién se publica, los servicios y las políticas', async () => {
@@ -268,6 +271,7 @@ describe('CrearPublicacion (HU-010)', () => {
     backend.expectOne(`${api}/alojamientos`).flush({ titulo: 'x', estado: 'BORRADOR' });
     await fixture.whenStable();
 
+    expect(elemento().querySelector('.exito a')?.getAttribute('href')).toBe('/alojamientos');
     elemento().querySelector<HTMLButtonElement>('.exito button')?.click();
     await fixture.whenStable();
 

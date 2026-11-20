@@ -51,4 +51,44 @@ describe('App', () => {
     expect(elemento(fixture).querySelector('app-menu-usuario')).not.toBeNull();
     expect(elemento(fixture).textContent).not.toContain('Registrarse');
   });
+
+  it('al anfitrión la barra le lleva a sus alojamientos', async () => {
+    TestBed.inject(SesionService).iniciar(
+      crearToken({
+        sub: 'ana@correo.com',
+        role: 'ANFITRION',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne(() => true)
+      .flush({ nombre: 'Ana', apellido: 'Pérez' });
+    await fixture.whenStable();
+
+    const enlace = elemento(fixture).querySelector('nav > a') as HTMLAnchorElement;
+    expect(enlace.textContent?.trim()).toBe('Mis alojamientos');
+    expect(enlace.getAttribute('href')).toBe('/alojamientos');
+  });
+
+  it('al huésped la barra le lleva al listado general de alojamientos', async () => {
+    TestBed.inject(SesionService).iniciar(
+      crearToken({
+        sub: 'ana@correo.com',
+        role: 'HUESPED',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne(() => true)
+      .flush({ nombre: 'Ana', apellido: 'Pérez' });
+    await fixture.whenStable();
+
+    const enlace = elemento(fixture).querySelector('nav > a') as HTMLAnchorElement;
+    expect(enlace.textContent?.trim()).toBe('Alojamientos');
+    expect(enlace.getAttribute('href')).toBe('/publicaciones');
+  });
 });
