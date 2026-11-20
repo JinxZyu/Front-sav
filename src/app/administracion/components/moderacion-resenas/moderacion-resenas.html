@@ -1,0 +1,47 @@
+<h2 id="titulo-resenas-moderacion">Reseñas visibles</h2>
+
+@if (error(); as error) {
+  <div class="alerta" role="alert">
+    <p>{{ error }}</p>
+    <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+  </div>
+} @else if (lista(); as lista) {
+  @if (lista.length > 0) {
+    <ul class="resenas" aria-labelledby="titulo-resenas-moderacion">
+      @for (resena of lista; track resena.idResena) {
+        <li>
+          <div class="cabecera">
+            <app-estrellas [valor]="resena.calificacion" />
+            <span class="fecha">{{ fecha(resena.fechaPublicacion) }}</span>
+          </div>
+          <p class="comentario">{{ resena.comentario }}</p>
+          @if (ocultando() === resena.idResena) {
+            <app-formulario-motivo
+              etiqueta="Motivo para ocultarla"
+              accion="Ocultar reseña"
+              accionEnCurso="Ocultando…"
+              [maximo]="maximoMotivo"
+              [enviando]="enviando()"
+              [error]="errorAccion()"
+              (confirmar)="ocultar(resena.idResena, $event)"
+              (cancelar)="cerrar()"
+            />
+          } @else {
+            <button
+              type="button"
+              class="ocultar"
+              [disabled]="enviando()"
+              (click)="abrir(resena.idResena)"
+            >
+              Ocultar
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="vacio">Esta publicación no tiene reseñas visibles.</p>
+  }
+} @else {
+  <p class="cargando" aria-busy="true">Consultando reseñas…</p>
+}

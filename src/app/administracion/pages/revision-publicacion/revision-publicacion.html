@@ -109,6 +109,8 @@
         @if (bloqueada()) {
           <app-reservas-afectadas [idPublicacion]="datos.publicacion.idPublicacion" />
         }
+
+        <app-moderacion-resenas [idPublicacion]="datos.publicacion.idPublicacion" />
       </div>
 
       <div class="lateral">

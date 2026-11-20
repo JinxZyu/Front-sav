@@ -28,11 +28,24 @@ describe('RevisionPublicacion (HU-014)', () => {
     await harness.navigateByUrl(`/administracion/publicaciones/${idPublicacion}`);
   };
 
+  const resenasPublicas = `${environment.apiUrl}/publicaciones/p-1/resenas`;
+
   const responder = async (cuerpo: object, opciones?: { status: number; statusText: string }) => {
     backend.expectOne(`${api}/p-1`).flush(cuerpo, opciones);
     await new Promise((resolver) => setTimeout(resolver));
     harness.detectChanges();
     TestBed.tick();
+    for (const peticion of backend.match(resenasPublicas)) {
+      peticion.flush({
+        idPublicacion: 'p-1',
+        resenas: [],
+        totalResenas: 0,
+        calificacionPromedio: 0,
+        mensaje: null,
+      });
+    }
+    await new Promise((resolver) => setTimeout(resolver));
+    harness.detectChanges();
   };
 
   const elemento = () => harness.routeNativeElement as HTMLElement;
@@ -369,6 +382,15 @@ describe('RevisionPublicacion (HU-014)', () => {
     expect(moderacion().querySelector('form')).toBeNull();
   });
 
+  it('HU-042: muestra las reseñas visibles para moderarlas', async () => {
+    await abrir();
+    await responder(publicacionParaRevisar('ACTIVA'));
+
+    expect(elemento().querySelector('app-moderacion-resenas')?.textContent).toContain(
+      'Esta publicación no tiene reseñas visibles.',
+    );
+  });
+
   it('al cambiar de publicación descarta el envío pendiente de la anterior', async () => {
     await abrir();
     await responder(publicacionParaRevisar());
@@ -391,6 +413,16 @@ describe('RevisionPublicacion (HU-014)', () => {
       publicacion: { ...otra.publicacion, idPublicacion: 'p-2', titulo: 'Cabaña' },
     });
     await new Promise((resolver) => setTimeout(resolver));
+    refrescar();
+    backend
+      .expectOne(`${environment.apiUrl}/publicaciones/p-2/resenas`)
+      .flush({
+        idPublicacion: 'p-2',
+        resenas: [],
+        totalResenas: 0,
+        calificacionPromedio: 0,
+        mensaje: null,
+      });
     refrescar();
 
     expect(mostrar).not.toHaveBeenCalled();
