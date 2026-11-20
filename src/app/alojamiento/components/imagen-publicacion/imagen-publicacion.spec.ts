@@ -62,6 +62,28 @@ describe('ImagenPublicacion', () => {
     expect(revocar).toHaveBeenCalledWith('blob:2');
   });
 
+  it('avisa si la imagen llega pero no se puede mostrar y reintenta con otra ruta', async () => {
+    backend.expectOne(`${api}/imagenes/publicaciones/a.jpg`).flush(new Blob(['corrupta']));
+    await fixture.whenStable();
+    elemento().querySelector('img')?.dispatchEvent(new Event('error'));
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('img')).toBeNull();
+    expect(elemento().querySelector('.aviso')?.getAttribute('aria-label')).toBe(
+      'No se pudo cargar: Sala',
+    );
+    expect(revocar).not.toHaveBeenCalled();
+
+    fixture.componentRef.setInput('ruta', '/imagenes/publicaciones/b.jpg');
+    fixture.detectChanges();
+    TestBed.tick();
+    backend.expectOne(`${api}/imagenes/publicaciones/b.jpg`).flush(new Blob(['b']));
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('img')?.getAttribute('src')).toBe('blob:2');
+    expect(revocar).toHaveBeenCalledWith('blob:1');
+  });
+
   it('avisa si la imagen no se pudo cargar', async () => {
     backend
       .expectOne(`${api}/imagenes/publicaciones/a.jpg`)
