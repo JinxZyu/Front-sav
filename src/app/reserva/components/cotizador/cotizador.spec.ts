@@ -202,7 +202,7 @@ describe('Cotizador (HU-027 y HU-028)', () => {
     expect(elemento().textContent).toContain('Para reservar necesitas una cuenta de huésped.');
   });
 
-  it('HU-029 criterio 3: la reserva inmediata lleva al detalle para pagar', async () => {
+  it('HU-030: la reserva inmediata aparta las fechas antes de ir a pagar', async () => {
     await cotizado('HUESPED');
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     expect(reservar().textContent?.trim()).toBe('Reservar');
@@ -212,13 +212,16 @@ describe('Cotizador (HU-027 y HU-028)', () => {
     expect(solicitud.request.body).toEqual({ idCotizacion: 'c-1' });
     expect(solicitud.request.headers.get('Idempotency-Key')).toBeTruthy();
     solicitud.flush({ idReserva: 'r-1', estado: 'PENDIENTE_PAGO', modoAceptacion: 'INMEDIATA' });
+    backend
+      .expectOne(`${environment.apiUrl}/reservas/r-1/retencion`)
+      .flush({ idReserva: 'r-1', estadoReserva: 'PENDIENTE_PAGO' });
 
     expect(navegar).toHaveBeenCalledWith(['/reservas', 'r-1'], {
       queryParams: { aviso: 'nueva' },
     });
   });
 
-  it('HU-029 criterio 4: con aprobación envía la solicitud al anfitrión', async () => {
+  it('HU-029 criterio 4: con aprobación envía la solicitud sin apartar fechas', async () => {
     await cotizado('HUESPED', { ...datos.publicacion, modoAceptacion: 'APROBACION' });
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     expect(elemento().textContent).toContain('El anfitrión tiene 24 horas');
@@ -227,6 +230,7 @@ describe('Cotizador (HU-027 y HU-028)', () => {
     backend
       .expectOne(`${environment.apiUrl}/reservas`)
       .flush({ idReserva: 'r-2', estado: 'PENDIENTE_APROBACION', modoAceptacion: 'APROBACION' });
+    backend.expectNone(`${environment.apiUrl}/reservas/r-2/retencion`);
     expect(navegar).toHaveBeenCalledWith(['/reservas', 'r-2'], {
       queryParams: { aviso: 'nueva' },
     });

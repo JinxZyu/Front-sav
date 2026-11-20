@@ -1,11 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { map } from 'rxjs';
+import { Observable, finalize, map } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
+import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { EncabezadoReserva } from '../../components/encabezado-reserva/encabezado-reserva';
 import { ResumenReserva } from '../../components/resumen-reserva/resumen-reserva';
-import { AvisoReserva } from '../../models/reserva.models';
+import { AvisoReserva, retencionVigente } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
 import { estadoDeConsulta } from '../../utils/consulta-reserva';
 
@@ -36,6 +37,26 @@ export class DetalleReserva {
   protected readonly noEncontrada = this.estado.noEncontrada;
   protected readonly error = this.estado.error;
 
+  private readonly ahora = signal(Date.now());
+
+  private readonly pendienteDePago = computed(() => {
+    const reserva = this.reserva();
+    return reserva?.estado === 'PENDIENTE_PAGO' ? reserva : null;
+  });
+
+  protected readonly apartada = computed(() => {
+    const reserva = this.pendienteDePago();
+    return !!reserva && retencionVigente(reserva.retencionHasta, this.ahora());
+  });
+
+  protected readonly puedeApartar = computed(() => !!this.pendienteDePago() && !this.apartada());
+
+  protected readonly minutosRestantes = computed(() => {
+    const limite = this.pendienteDePago()?.retencionHasta;
+    const restante = limite ? new Date(limite).getTime() - this.ahora() : 0;
+    return Math.max(1, Math.ceil(restante / 60_000));
+  });
+
   private readonly resultado = signal<AvisoReserva | null>(null);
 
   protected readonly aviso = computed<AvisoReserva | null>(() => {
@@ -48,6 +69,42 @@ export class DetalleReserva {
       ? { tono: 'exito', texto: 'Enviamos tu solicitud al anfitrión.' }
       : { tono: 'exito', texto: 'Creamos tu reserva.' };
   });
+  protected readonly procesando = signal(false);
 
   protected readonly fechaHora = formatearFechaHora;
+
+  constructor() {
+    const reloj = setInterval(() => this.ahora.set(Date.now()), 15_000);
+    inject(DestroyRef).onDestroy(() => clearInterval(reloj));
+  }
+
+  protected apartar(): void {
+    this.ejecutar(this.servicio.retener(this.idReserva()), () =>
+      this.resultado.set({
+        tono: 'info',
+        texto: 'Apartamos de nuevo tus fechas. Ya puedes pagar.',
+      }),
+    );
+  }
+
+  private ejecutar<T>(operacion: Observable<T>, alTerminar: (respuesta: T) => void): void {
+    this.procesando.set(true);
+    this.nueva.set(false);
+    this.resultado.set(null);
+    operacion
+      .pipe(
+        finalize(() => {
+          this.procesando.set(false);
+          this.consulta.reload();
+        }),
+      )
+      .subscribe({
+        next: alTerminar,
+        error: (error: unknown) =>
+          this.resultado.set({
+            tono: 'error',
+            texto: mensajeDeError(error, 'No pudimos completar la operación.'),
+          }),
+      });
+  }
 }

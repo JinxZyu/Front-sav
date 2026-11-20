@@ -21,9 +21,6 @@
           El anfitrión está revisando tu solicitud y aún no se ha hecho ningún cobro.
         </p>
       }
-      @case ('PENDIENTE_PAGO') {
-        <p class="explicacion">Tu reserva está pendiente de pago.</p>
-      }
       @case ('CONFIRMADA') {
         <p class="explicacion">Tu reserva está pagada y confirmada. ¡Buen viaje!</p>
       }
@@ -42,6 +39,25 @@
       @case ('CANCELADA') {
         <p class="explicacion">Esta reserva fue cancelada.</p>
       }
+    }
+
+    @if (apartada()) {
+      <div class="accion">
+        <p class="explicacion">
+          Tus fechas están apartadas hasta el
+          <strong>{{ fechaHora(reserva.retencionHasta) }}</strong>; te quedan
+          {{ minutosRestantes() }} {{ minutosRestantes() === 1 ? 'minuto' : 'minutos' }} para pagar.
+        </p>
+      </div>
+    } @else if (puedeApartar()) {
+      <div class="accion">
+        <p class="explicacion">
+          Tus fechas ya no están apartadas. Apártalas de nuevo para poder pagar.
+        </p>
+        <button type="button" class="principal" [disabled]="procesando()" (click)="apartar()">
+          {{ procesando() ? 'Apartando…' : 'Apartar fechas' }}
+        </button>
+      </div>
     }
   } @else if (noEncontrada()) {
     <app-encabezado-reserva

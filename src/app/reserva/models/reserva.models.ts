@@ -42,6 +42,14 @@ export interface SolicitudReserva {
   retencionHasta: string | null;
 }
 
+export interface RetencionReserva {
+  idReserva: string;
+  estadoReserva: string;
+  monto: number;
+  retencionHasta: string | null;
+  mensaje: string;
+}
+
 export interface ReservaPropia {
   idReserva: string;
   idAlojamiento: string;
@@ -81,4 +89,8 @@ const ESTADOS_RESERVA: Record<string, EstadoReserva> = {
 
 export function estadoReserva(estado: string): EstadoReserva {
   return ESTADOS_RESERVA[estado] ?? { etiqueta: estado, tono: 'cerrada' };
+}
+
+export function retencionVigente(retencionHasta: string | null, ahora = Date.now()): boolean {
+  return !!retencionHasta && new Date(retencionHasta).getTime() > ahora;
 }

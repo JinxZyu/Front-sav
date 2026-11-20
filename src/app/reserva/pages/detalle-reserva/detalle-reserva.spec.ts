@@ -75,9 +75,31 @@ describe('DetalleReserva del huésped', () => {
     expect(aviso()).toBe('Creamos tu reserva.');
   });
 
+  it('HU-030: muestra el plazo restante mientras las fechas están apartadas', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+    expect(elemento().textContent).toContain('Tus fechas están apartadas hasta');
+    expect(elemento().textContent?.replace(/\s+/g, ' ')).toMatch(
+      /te quedan 1[01] minutos para pagar/,
+    );
+    expect(boton('Apartar fechas')).toBeUndefined();
+  });
+
   it('HU-034: informa cuando la reserva no existe', async () => {
     await abrir();
     await responder(consulta, { mensaje: 'La reserva no existe.' }, 404);
     expect(elemento().textContent).toContain('No encontramos esta reserva');
+  });
+
+  it('HU-030: aparta de nuevo las fechas cuando la retención venció', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ retencionHasta: null }));
+
+    boton('Apartar fechas')!.click();
+    await responder(`${api}/r-1/retencion`, { retencionHasta: enDiezMinutos() });
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+
+    expect(aviso()).toContain('Apartamos de nuevo tus fechas');
+    expect(boton('Apartar fechas')).toBeUndefined();
   });
 });

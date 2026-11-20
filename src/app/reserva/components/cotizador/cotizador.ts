@@ -11,7 +11,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription, finalize } from 'rxjs';
+import { Subscription, catchError, finalize, map, of, switchMap } from 'rxjs';
 import {
   DetallePublicacion,
   ServicioAdicional,
@@ -22,7 +22,7 @@ import { SesionService } from '../../../config/auth/sesion.service';
 import { INICIO_SIN_SESION } from '../../../config/rutas';
 import { desdeHoy, hoy, moverDias, rangoValido } from '../../../disponibilidad/utils/fechas';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
-import { Cotizacion } from '../../models/reserva.models';
+import { Cotizacion, SolicitudReserva } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
 
 const ENTERO = /^\d+$/;
@@ -171,7 +171,10 @@ export class Cotizador {
     this.error.set(null);
     this.servicio
       .solicitar(cotizacion.idCotizacion)
-      .pipe(finalize(() => this.reservando.set(false)))
+      .pipe(
+        switchMap((solicitud) => this.apartarSiCorresponde(solicitud)),
+        finalize(() => this.reservando.set(false)),
+      )
       .subscribe({
         next: (solicitud) =>
           void this.router.navigate(['/reservas', solicitud.idReserva], {
@@ -180,5 +183,15 @@ export class Cotizador {
         error: (error: unknown) =>
           this.error.set(mensajeDeError(error, 'No pudimos crear tu reserva.')),
       });
+  }
+
+  private apartarSiCorresponde(solicitud: SolicitudReserva) {
+    if (solicitud.estado !== 'PENDIENTE_PAGO') {
+      return of(solicitud);
+    }
+    return this.servicio.retener(solicitud.idReserva).pipe(
+      map(() => solicitud),
+      catchError(() => of(solicitud)),
+    );
   }
 }

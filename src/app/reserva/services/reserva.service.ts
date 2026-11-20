@@ -6,6 +6,7 @@ import {
   Cotizacion,
   MisReservas,
   ReservaPropia,
+  RetencionReserva,
   SolicitudCotizacion,
   SolicitudReserva,
 } from '../models/reserva.models';
@@ -27,6 +28,10 @@ export class ReservaService {
       .pipe(tap(() => this.clavesSolicitud.delete(idCotizacion)));
   }
 
+  retener(idReserva: string): Observable<RetencionReserva> {
+    return this.http.post<RetencionReserva>(`${this.ruta(idReserva)}/retencion`, null);
+  }
+
   misReservas(): Observable<MisReservas> {
     return this.http.get<MisReservas>(`${this.api}/mis-reservas`);
   }
@@ -35,6 +40,10 @@ export class ReservaService {
     return this.http.get<ReservaPropia>(
       `${this.api}/mis-reservas/${encodeURIComponent(idReserva)}`,
     );
+  }
+
+  private ruta(idReserva: string): string {
+    return `${this.api}/${encodeURIComponent(idReserva)}`;
   }
 
   private clave(claves: Map<string, string>, referencia: string): string {
