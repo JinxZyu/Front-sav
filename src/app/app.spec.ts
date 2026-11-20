@@ -44,7 +44,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
-      .expectOne(() => true)
+      .expectOne((peticion) => peticion.url.endsWith('/usuarios/mi_cuenta'))
       .flush({ nombre: 'Ana', apellido: 'Pérez' });
     await fixture.whenStable();
 
@@ -63,7 +63,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
-      .expectOne(() => true)
+      .expectOne((peticion) => peticion.url.endsWith('/usuarios/mi_cuenta'))
       .flush({ nombre: 'Ana', apellido: 'Pérez' });
     await fixture.whenStable();
 
@@ -86,7 +86,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
-      .expectOne(() => true)
+      .expectOne((peticion) => peticion.url.endsWith('/usuarios/mi_cuenta'))
       .flush({ nombre: 'Ana', apellido: 'Pérez' });
     await fixture.whenStable();
 
@@ -96,5 +96,47 @@ describe('App', () => {
     const reservas = elemento(fixture).querySelector('nav > a.opcional') as HTMLAnchorElement;
     expect(reservas.textContent?.trim()).toBe('Mis reservas');
     expect(reservas.getAttribute('href')).toBe('/reservas');
+  });
+
+  it('con sesión muestra la campana con las notificaciones nuevas', async () => {
+    TestBed.inject(SesionService).iniciar(
+      crearToken({
+        sub: 'ana@correo.com',
+        role: 'HUESPED',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const backend = TestBed.inject(HttpTestingController);
+    backend
+      .expectOne((peticion) => peticion.url.endsWith('/usuarios/mi_cuenta'))
+      .flush({ nombre: 'Ana', apellido: 'Pérez' });
+    await new Promise((resolver) => setTimeout(resolver));
+    backend
+      .expectOne((peticion) => peticion.url.endsWith('/notificaciones/mis-notificaciones'))
+      .flush([
+        {
+          idNotificacion: 'n-1',
+          idUsuario: 'u-1',
+          idReserva: 'r-1',
+          idPublicacion: null,
+          tipo: 'RESERVA_ESTADO_CAMBIADO',
+          mensaje: 'Tu reserva cambió de estado.',
+          fechaCreacion: new Date().toISOString(),
+          fechaLectura: null,
+        },
+      ]);
+    await fixture.whenStable();
+
+    const campana = elemento(fixture).querySelector('app-campana-notificaciones a') as HTMLElement;
+    expect(campana.getAttribute('href')).toBe('/notificaciones');
+    expect(campana.getAttribute('aria-label')).toBe('Notificaciones, 1 nueva');
+    expect(campana.querySelector('.contador')?.textContent?.trim()).toBe('1');
+  });
+
+  it('sin sesión no muestra la campana', async () => {
+    const fixture = await crear();
+    expect(elemento(fixture).querySelector('app-campana-notificaciones')).toBeNull();
   });
 });

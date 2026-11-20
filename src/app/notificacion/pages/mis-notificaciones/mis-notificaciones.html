@@ -1,0 +1,54 @@
+<section class="contenedor" aria-labelledby="titulo-notificaciones">
+  <header class="cabecera">
+    <h1 id="titulo-notificaciones">Notificaciones</h1>
+    <button
+      type="button"
+      class="actualizar"
+      [disabled]="consulta.isLoading()"
+      (click)="consulta.reload()"
+    >
+      {{ consulta.isLoading() ? 'Actualizando…' : 'Actualizar' }}
+    </button>
+  </header>
+
+  @if (error(); as error) {
+    <div class="alerta" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" class="enlace" (click)="consulta.reload()">Reintentar</button>
+    </div>
+  } @else if (notificaciones(); as notificaciones) {
+    @if (notificaciones.length === 0) {
+      <div class="vacio" role="status">
+        <h2>No tienes notificaciones</h2>
+        <p>Te avisaremos aquí cuando cambie el estado de tus reservas o publicaciones.</p>
+      </div>
+    } @else {
+      <ul class="lista">
+        @for (notificacion of notificaciones; track notificacion.idNotificacion) {
+          <li [class.nueva]="nueva(notificacion)">
+            <p class="mensaje">
+              @if (nueva(notificacion)) {
+                <span class="etiqueta">Nueva</span>
+              }
+              {{ mensaje(notificacion.mensaje) }}
+            </p>
+            <p class="pie">
+              <time [attr.datetime]="notificacion.fechaCreacion">
+                {{ fecha(notificacion.fechaCreacion) }}
+              </time>
+              @if (enlace(notificacion); as enlace) {
+                <a [routerLink]="enlace.ruta">{{ enlace.texto }}</a>
+              }
+            </p>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <ul class="lista" aria-busy="true" aria-label="Cargando notificaciones">
+      @for (indice of [1, 2, 3]; track indice) {
+        <li class="esqueleto"></li>
+      }
+    </ul>
+  }
+</section>

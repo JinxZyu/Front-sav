@@ -1,0 +1,53 @@
+:host {
+  display: inline-flex;
+}
+
+.campana {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  color: #334155;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.campana:hover,
+.campana.activo {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.campana:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.contador {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.05rem;
+  min-width: 1.1rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.1rem;
+  text-align: center;
+}
