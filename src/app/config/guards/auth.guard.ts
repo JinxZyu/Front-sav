@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateChildFn, CanMatchFn, Router, UrlSegment, UrlTree } from '@angular/router';
 import { Rol } from '../auth/sesion.models';
 import { SesionService } from '../auth/sesion.service';
-import { INICIO_SIN_SESION, inicioSegunRol } from '../rutas';
+import { INICIO_PUBLICO, INICIO_SIN_SESION, inicioSegunRol } from '../rutas';
 
 const irAlLogin = (router: Router, segmentos: UrlSegment[]): UrlTree => {
   const destino = router.currentNavigation()?.extractedUrl;
@@ -35,5 +35,5 @@ export const sinSesionGuard: CanActivateChildFn = () => {
 
 export const paginaInicial = (): string => {
   const sesion = inject(SesionService);
-  return sesion.autenticado() ? inicioSegunRol(sesion.rol()) : INICIO_SIN_SESION;
+  return sesion.autenticado() ? inicioSegunRol(sesion.rol()) : INICIO_PUBLICO;
 };

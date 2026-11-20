@@ -121,8 +121,8 @@ describe('guards de sesión', () => {
   });
 
   describe('paginaInicial', () => {
-    it('sin sesión es el inicio de sesión', () => {
-      expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/usuario/login');
+    it('sin sesión es el catálogo público', () => {
+      expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/publicaciones');
     });
 
     it('con sesión son los alojamientos', () => {

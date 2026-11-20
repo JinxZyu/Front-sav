@@ -1,0 +1,36 @@
+<a class="tarjeta" [routerLink]="enlace()" [queryParams]="parametros()">
+  @if (publicacion().imagenPortada; as portada) {
+    <app-imagen-publicacion
+      class="foto"
+      [ruta]="portada"
+      [descripcion]="'Portada de ' + publicacion().titulo"
+    />
+  } @else {
+    <span class="foto sin-foto">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 11 12 4l9 7" />
+        <path d="M5 10v10h14V10" />
+      </svg>
+      Sin foto
+    </span>
+  }
+  <span class="fila-titulo">
+    <span class="titulo">{{ publicacion().titulo }}</span>
+    @if (mostrarEstado()) {
+      <span class="estado" [class]="estado(publicacion().estado).tono">
+        {{ estado(publicacion().estado).etiqueta }}
+      </span>
+    }
+  </span>
+  <span class="meta">{{ publicacion().tipoAlojamiento }} en {{ publicacion().ciudad }}</span>
+  <span class="meta">
+    Hasta {{ publicacion().capacidad }}
+    {{ publicacion().capacidad === 1 ? 'huésped' : 'huéspedes' }}
+  </span>
+  <span class="pie">
+    <span class="precio">{{ pesos(publicacion().precioPorNoche) }} <small>/ noche</small></span>
+    @if (detalle(); as detalle) {
+      <span class="detalle">{{ detalle }}</span>
+    }
+  </span>
+</a>
