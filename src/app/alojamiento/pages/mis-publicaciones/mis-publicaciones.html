@@ -43,6 +43,17 @@
       @for (publicacion of publicaciones(); track publicacion.idPublicacion) {
         <li>
           <a class="tarjeta" [routerLink]="publicacion.idPublicacion">
+            @if (publicacion.imagenPortada) {
+              <app-imagen-publicacion
+                class="foto"
+                [ruta]="publicacion.imagenPortada"
+                [descripcion]="'Portada de ' + publicacion.titulo"
+              />
+            } @else {
+              <span class="foto sin-foto" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></svg>
+              </span>
+            }
             <span class="fila-titulo">
               <span class="titulo">{{ publicacion.titulo }}</span>
               <span class="estado" [class]="estado(publicacion.estado).tono">
