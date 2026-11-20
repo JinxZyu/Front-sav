@@ -90,6 +90,12 @@ describe('guards de sesión', () => {
       expect(router.serializeUrl(resultado)).toBe('/alojamientos');
     });
 
+    it('al administrador con un rol no permitido lo lleva a la administración', () => {
+      entrarComo('ADMINISTRADOR');
+      const resultado = ejecutar(rolGuard('HUESPED')) as UrlTree;
+      expect(router.serializeUrl(resultado)).toBe('/administracion');
+    });
+
     it('usa los segmentos cuando no hay navegación en curso', () => {
       const resultado = ejecutar(rolGuard('ADMINISTRADOR')) as UrlTree;
       expect(router.serializeUrl(resultado)).toBe('/usuario/login?volverA=%2Freservas%2Fmias');
@@ -133,6 +139,11 @@ describe('guards de sesión', () => {
     it('para un anfitrión son sus alojamientos', () => {
       entrarComo('ANFITRION');
       expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/alojamientos');
+    });
+
+    it('para un administrador es la administración', () => {
+      entrarComo('ADMINISTRADOR');
+      expect(TestBed.runInInjectionContext(paginaInicial)).toBe('/administracion');
     });
   });
 });

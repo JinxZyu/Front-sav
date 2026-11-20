@@ -194,6 +194,20 @@ describe('MenuUsuario (HU-004)', () => {
     expect(elemento().textContent).not.toContain('Publicar alojamiento');
   });
 
+  it('al Administrador le ofrece la administración', async () => {
+    await crear('ADMINISTRADOR');
+    await responderCuenta();
+    disparador()?.click();
+    await fixture.whenStable();
+
+    const enlaces = [...elemento().querySelectorAll<HTMLAnchorElement>('a.opcion')];
+    expect(enlaces.map((enlace) => enlace.getAttribute('href'))).toEqual([
+      '/usuario/mi-cuenta',
+      '/administracion',
+    ]);
+    expect(elemento().textContent).not.toContain('Mis reservas');
+  });
+
   it('cierra la sesión y lleva al inicio de sesión', async () => {
     await crear();
     await responderCuenta();

@@ -1,0 +1,54 @@
+.usuario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1rem 1.2rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.usuario.restringido {
+  border-color: #fecdd3;
+}
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.identidad h2 {
+  margin: 0;
+  color: #1e1b4b;
+  font-size: 1.05rem;
+}
+
+.correo {
+  margin: 0.15rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.motivo,
+.nota,
+.texto-confirmacion {
+  margin: 0;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
+.confirmacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
