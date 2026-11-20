@@ -196,6 +196,10 @@ dd {
   font-weight: 600;
 }
 
+.espacio {
+  display: block;
+}
+
 .precio {
   color: #1e1b4b;
   font-size: 1.3rem;

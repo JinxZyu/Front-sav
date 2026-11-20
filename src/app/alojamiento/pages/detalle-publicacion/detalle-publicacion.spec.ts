@@ -121,7 +121,9 @@ describe('DetallePublicacion (HU-011)', () => {
     expect(texto).toContain('250.000');
     expect(texto).toContain('30.000');
     expect(texto).toContain('4 huéspedes');
-    expect(texto.replaceAll('\u00a0', ' ')).toContain('2 habitaciones · 1 cama · 1 baño');
+    expect(
+      [...elemento().querySelectorAll('.datos .espacio')].map((linea) => linea.textContent?.trim()),
+    ).toEqual(['2 habitaciones', '1 cama', '1 baño']);
     expect(texto).toContain('Con mi aprobación');
     expect(texto).not.toContain('Última actualización');
   });

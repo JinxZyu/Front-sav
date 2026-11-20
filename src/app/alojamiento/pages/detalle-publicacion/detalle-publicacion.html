@@ -75,7 +75,11 @@
         </div>
         <div>
           <dt>Espacios</dt>
-          <dd>{{ espacios(publicacion) }}</dd>
+          <dd>
+            @for (espacio of espacios(publicacion); track $index) {
+              <span class="espacio">{{ espacio }}</span>
+            }
+          </dd>
         </div>
         <div>
           <dt>Aceptación de reservas</dt>
