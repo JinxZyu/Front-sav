@@ -33,6 +33,15 @@ export interface Cotizacion {
   total: number;
 }
 
+export interface SolicitudReserva {
+  idReserva: string;
+  idCotizacion: string;
+  modoAceptacion: string;
+  estado: string;
+  fechaSolicitud: string;
+  retencionHasta: string | null;
+}
+
 export interface ReservaPropia {
   idReserva: string;
   idAlojamiento: string;

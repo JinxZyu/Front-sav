@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
 import { EncabezadoReserva } from '../../components/encabezado-reserva/encabezado-reserva';
 import { ResumenReserva } from '../../components/resumen-reserva/resumen-reserva';
+import { AvisoReserva } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
 import { estadoDeConsulta } from '../../utils/consulta-reserva';
 
@@ -23,6 +24,8 @@ export class DetalleReserva {
     { initialValue: '' },
   );
 
+  private readonly nueva = signal(this.ruta.snapshot.queryParamMap.get('aviso') === 'nueva');
+
   protected readonly consulta = rxResource({
     params: () => this.idReserva() || undefined,
     stream: ({ params }) => this.servicio.miReserva(params),
@@ -32,6 +35,19 @@ export class DetalleReserva {
   protected readonly reserva = this.estado.valor;
   protected readonly noEncontrada = this.estado.noEncontrada;
   protected readonly error = this.estado.error;
+
+  private readonly resultado = signal<AvisoReserva | null>(null);
+
+  protected readonly aviso = computed<AvisoReserva | null>(() => {
+    const resultado = this.resultado();
+    const reserva = this.reserva();
+    if (resultado || !this.nueva() || !reserva) {
+      return resultado;
+    }
+    return reserva.estado === 'PENDIENTE_APROBACION'
+      ? { tono: 'exito', texto: 'Enviamos tu solicitud al anfitrión.' }
+      : { tono: 'exito', texto: 'Creamos tu reserva.' };
+  });
 
   protected readonly fechaHora = formatearFechaHora;
 }

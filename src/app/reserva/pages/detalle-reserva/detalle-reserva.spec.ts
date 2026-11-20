@@ -63,6 +63,18 @@ describe('DetalleReserva del huésped', () => {
     expect(boton('Pagar')).toBeUndefined();
   });
 
+  it('HU-029: avisa cuando la reserva se acaba de crear', async () => {
+    await abrir('/reservas/r-1?aviso=nueva');
+    await responder(consulta, reservaPropia({ estado: 'PENDIENTE_APROBACION' }));
+    expect(aviso()).toBe('Enviamos tu solicitud al anfitrión.');
+  });
+
+  it('HU-029: avisa la reserva inmediata recién creada', async () => {
+    await abrir('/reservas/r-1?aviso=nueva');
+    await responder(consulta, reservaPropia());
+    expect(aviso()).toBe('Creamos tu reserva.');
+  });
+
   it('HU-034: informa cuando la reserva no existe', async () => {
     await abrir();
     await responder(consulta, { mensaje: 'La reserva no existe.' }, 404);

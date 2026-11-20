@@ -1,6 +1,10 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
+import { Rol } from '../../../config/auth/sesion.models';
+import { SesionService } from '../../../config/auth/sesion.service';
+import { crearToken } from '../../../config/auth/sesion.testing';
 import { environment } from '../../../../environments/environment';
 import { moverDias, hoy } from '../../../disponibilidad/utils/fechas';
 import { publicacionPublica } from '../../../publicacion/models/catalogo.testing';
@@ -34,13 +38,31 @@ describe('Cotizador (HU-027 y HU-028)', () => {
     ...cambios,
   });
 
-  const crear = (entradas: Record<string, string> = {}) => {
+  const crear = (
+    entradas: Record<string, string> = {},
+    rol: Rol | null = null,
+    publicacion = datos.publicacion,
+  ) => {
+    localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([{ path: '**', children: [] }]),
+      ],
     });
+    if (rol) {
+      TestBed.inject(SesionService).iniciar(
+        crearToken({
+          sub: 'hugo@correo.com',
+          role: rol,
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        }),
+      );
+    }
     backend = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(Cotizador);
-    fixture.componentRef.setInput('publicacion', datos.publicacion);
+    fixture.componentRef.setInput('publicacion', publicacion);
     fixture.componentRef.setInput('adicionales', datos.serviciosAdicionales);
     for (const [nombre, valor] of Object.entries(entradas)) {
       fixture.componentRef.setInput(nombre, valor);
@@ -62,6 +84,7 @@ describe('Cotizador (HU-027 y HU-028)', () => {
   const responder = async (cuerpo: object, opciones?: { status: number; statusText: string }) => {
     const peticion = backend.expectOne(url);
     peticion.flush(cuerpo, opciones);
+    await fixture.whenStable();
     await fixture.whenStable();
     fixture.detectChanges();
     return peticion;
@@ -151,6 +174,77 @@ describe('Cotizador (HU-027 y HU-028)', () => {
     expect(elemento().querySelector('[role="alert"]')?.textContent).toContain(
       'no está disponible para las fechas indicadas',
     );
+  });
+
+  const cotizado = async (rol: Rol | null, publicacion = datos.publicacion) => {
+    crear({ llegada, salida }, rol, publicacion);
+    await responder(cotizacion());
+  };
+  const reservar = () => elemento().querySelector<HTMLButtonElement>('.desglose ~ button')!;
+
+  it('HU-029 criterio 1: sin sesión pide iniciar sesión y conserva las fechas', async () => {
+    await cotizado(null);
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    expect(reservar().textContent?.trim()).toBe('Inicia sesión para reservar');
+    reservar().click();
+
+    expect(navegar).toHaveBeenCalledWith(['/usuario/login'], {
+      queryParams: {
+        volverA: `/publicaciones/p-1?llegada=${llegada}&salida=${salida}&huespedes=1`,
+      },
+    });
+  });
+
+  it('HU-029 criterio 2: un anfitrión no puede reservar', async () => {
+    await cotizado('ANFITRION');
+    expect(reservar()).toBeNull();
+    expect(elemento().textContent).toContain('Para reservar necesitas una cuenta de huésped.');
+  });
+
+  it('HU-029 criterio 3: la reserva inmediata lleva al detalle para pagar', async () => {
+    await cotizado('HUESPED');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    expect(reservar().textContent?.trim()).toBe('Reservar');
+    reservar().click();
+
+    const solicitud = backend.expectOne(`${environment.apiUrl}/reservas`);
+    expect(solicitud.request.body).toEqual({ idCotizacion: 'c-1' });
+    expect(solicitud.request.headers.get('Idempotency-Key')).toBeTruthy();
+    solicitud.flush({ idReserva: 'r-1', estado: 'PENDIENTE_PAGO', modoAceptacion: 'INMEDIATA' });
+
+    expect(navegar).toHaveBeenCalledWith(['/reservas', 'r-1'], {
+      queryParams: { aviso: 'nueva' },
+    });
+  });
+
+  it('HU-029 criterio 4: con aprobación envía la solicitud al anfitrión', async () => {
+    await cotizado('HUESPED', { ...datos.publicacion, modoAceptacion: 'APROBACION' });
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    expect(elemento().textContent).toContain('El anfitrión tiene 24 horas');
+    reservar().click();
+
+    backend
+      .expectOne(`${environment.apiUrl}/reservas`)
+      .flush({ idReserva: 'r-2', estado: 'PENDIENTE_APROBACION', modoAceptacion: 'APROBACION' });
+    expect(navegar).toHaveBeenCalledWith(['/reservas', 'r-2'], {
+      queryParams: { aviso: 'nueva' },
+    });
+  });
+
+  it('HU-029 criterio 5: informa cuando las fechas ya no están disponibles', async () => {
+    await cotizado('HUESPED');
+    reservar().click();
+    backend
+      .expectOne(`${environment.apiUrl}/reservas`)
+      .flush(
+        { mensaje: 'El alojamiento no está disponible para las fechas indicadas.' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    await fixture.whenStable();
+
+    expect(elemento().querySelector('[role="alert"]')?.textContent).toContain('no está disponible');
+    expect(reservar().disabled).toBe(false);
   });
 
   it('no cotiza con un número de huéspedes que no es entero', () => {

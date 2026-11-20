@@ -1,21 +1,30 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Cotizacion,
   MisReservas,
   ReservaPropia,
   SolicitudCotizacion,
+  SolicitudReserva,
 } from '../models/reserva.models';
 
 @Injectable({ providedIn: 'root' })
 export class ReservaService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/reservas`;
+  private readonly clavesSolicitud = new Map<string, string>();
 
   cotizar(solicitud: SolicitudCotizacion): Observable<Cotizacion> {
     return this.http.post<Cotizacion>(`${environment.apiUrl}/cotizaciones`, solicitud);
+  }
+
+  solicitar(idCotizacion: string): Observable<SolicitudReserva> {
+    const clave = this.clave(this.clavesSolicitud, idCotizacion);
+    return this.http
+      .post<SolicitudReserva>(this.api, { idCotizacion }, { headers: idempotencia(clave) })
+      .pipe(tap(() => this.clavesSolicitud.delete(idCotizacion)));
   }
 
   misReservas(): Observable<MisReservas> {
@@ -27,4 +36,18 @@ export class ReservaService {
       `${this.api}/mis-reservas/${encodeURIComponent(idReserva)}`,
     );
   }
+
+  private clave(claves: Map<string, string>, referencia: string): string {
+    const existente = claves.get(referencia);
+    if (existente) {
+      return existente;
+    }
+    const nueva = crypto.randomUUID();
+    claves.set(referencia, nueva);
+    return nueva;
+  }
+}
+
+function idempotencia(clave: string): HttpHeaders {
+  return new HttpHeaders({ 'Idempotency-Key': clave });
 }
