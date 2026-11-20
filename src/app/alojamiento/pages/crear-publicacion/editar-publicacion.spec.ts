@@ -35,6 +35,9 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     ciudad: 'Guatavita',
     tipoAlojamiento: 'Cabaña',
     capacidad: 4,
+    habitaciones: 2,
+    camas: 3,
+    banos: 1,
     servicios: [{ idServicio: 's-2', nombre: 'Piscina', descripcion: null }],
     imagenes: [],
     ...cambios,
@@ -124,6 +127,9 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
       ciudad: 'Guatavita',
       tipoAlojamiento: 'Cabaña',
       capacidad: '4',
+      habitaciones: '2',
+      camas: '3',
+      banos: '1',
       precioPorNoche: '250000',
       tarifaLimpieza: '30000',
       modoAceptacion: 'APROBACION',
@@ -145,6 +151,8 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     expect(peticion.request.method).toBe('PUT');
     const cuerpo = peticion.request.body as FormData;
     expect(cuerpo.get('titulo')).toBe('Cabaña renovada');
+    expect(cuerpo.get('habitaciones')).toBe('2');
+    expect(cuerpo.get('camas')).toBe('3');
     expect(cuerpo.getAll('idsServicios')).toEqual(['s-2']);
     expect(cuerpo.getAll('imagenes')).toEqual([]);
     peticion.flush({

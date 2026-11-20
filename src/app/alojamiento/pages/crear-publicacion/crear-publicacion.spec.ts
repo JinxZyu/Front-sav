@@ -74,6 +74,9 @@ describe('CrearPublicacion (HU-010)', () => {
       ciudad: 'Guatavita',
       tipoAlojamiento: 'Cabaña',
       capacidad: '4',
+      habitaciones: '2',
+      camas: '3',
+      banos: '1',
       precioPorNoche: '250000',
       tarifaLimpieza: '30000',
       modoAceptacion: 'APROBACION',
@@ -112,6 +115,9 @@ describe('CrearPublicacion (HU-010)', () => {
     const cuerpo = peticion.request.body as FormData;
     expect(cuerpo.get('titulo')).toBe('Cabaña frente al lago');
     expect(cuerpo.get('capacidad')).toBe('4');
+    expect(cuerpo.get('habitaciones')).toBe('2');
+    expect(cuerpo.get('camas')).toBe('3');
+    expect(cuerpo.get('banos')).toBe('1');
     expect(cuerpo.get('precioPorNoche')).toBe('250000');
     expect(cuerpo.get('tarifaLimpieza')).toBe('30000');
     expect(cuerpo.get('modoAceptacion')).toBe('APROBACION');
@@ -210,6 +216,26 @@ describe('CrearPublicacion (HU-010)', () => {
     backend.expectNone(`${api}/alojamientos`);
   });
 
+  it('rechaza habitaciones, camas o baños fuera de 1 a 50 y enlaza el error', async () => {
+    await crear();
+    expect(componente.formulario.controls.habitaciones.value).toBe('1');
+    llenar();
+    componente.formulario.controls.habitaciones.setValue('0');
+    componente.formulario.controls.camas.setValue('51');
+    componente.formulario.controls.banos.setValue('1.5');
+    componente.publicar();
+    await fixture.whenStable();
+
+    backend.expectNone(`${api}/alojamientos`);
+    expect(resumen()).toContain('Habitaciones');
+    expect(resumen()).toContain('Camas');
+    expect(resumen()).toContain('Baños');
+    const habitaciones = elemento().querySelector('input[name="habitaciones"]');
+    expect(habitaciones?.getAttribute('aria-invalid')).toBe('true');
+    expect(habitaciones?.getAttribute('aria-describedby')).toBe('error-habitaciones');
+    expect(elemento().querySelector('#error-banos')?.textContent).toContain('entre 1 y 50');
+  });
+
   it('criterio 4: rechaza un precio por noche de cero', async () => {
     await crear();
     llenar();
@@ -278,6 +304,7 @@ describe('CrearPublicacion (HU-010)', () => {
     expect(elemento().querySelector('form')).not.toBeNull();
     expect(componente.formulario.controls.titulo.value).toBe('');
     expect(componente.formulario.controls.tarifaLimpieza.value).toBe('0');
+    expect(componente.formulario.controls.camas.value).toBe('1');
     expect(componente.imagenes()).toEqual([]);
     expect(elemento().querySelector('.resumen-errores')).toBeNull();
   });

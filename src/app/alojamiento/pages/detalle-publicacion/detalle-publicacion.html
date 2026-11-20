@@ -69,7 +69,13 @@
         </div>
         <div>
           <dt>Capacidad</dt>
-          <dd>{{ publicacion.capacidad }} {{ publicacion.capacidad === 1 ? 'huésped' : 'huéspedes' }}</dd>
+          <dd>
+            {{ publicacion.capacidad }} {{ publicacion.capacidad === 1 ? 'huésped' : 'huéspedes' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Espacios</dt>
+          <dd>{{ espacios(publicacion) }}</dd>
         </div>
         <div>
           <dt>Aceptación de reservas</dt>

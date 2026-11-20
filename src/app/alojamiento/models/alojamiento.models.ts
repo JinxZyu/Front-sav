@@ -45,6 +45,9 @@ export interface NuevaPublicacion {
   ciudad: string;
   tipoAlojamiento: string;
   capacidad: number;
+  habitaciones: number;
+  camas: number;
+  banos: number;
   precioPorNoche: number;
   tarifaLimpieza: number;
   modoAceptacion: ModoAceptacion;
@@ -103,6 +106,9 @@ export interface DetallePublicacion {
   ciudad: string;
   tipoAlojamiento: string;
   capacidad: number;
+  habitaciones: number;
+  camas: number;
+  banos: number;
   servicios: ServicioDisponible[];
   imagenes: ImagenPublicacion[];
 }

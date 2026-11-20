@@ -31,6 +31,9 @@ describe('DetallePublicacion (HU-011)', () => {
     ciudad: 'Guatavita',
     tipoAlojamiento: 'Cabaña',
     capacidad: 4,
+    habitaciones: 2,
+    camas: 1,
+    banos: 1,
     servicios: [{ idServicio: 's-1', nombre: 'Wifi', descripcion: null }],
     imagenes: [
       { idImagen: 'i-2', rutaImagen: '/imagenes/publicaciones/b.jpg', orden: 2, esPortada: false },
@@ -118,6 +121,7 @@ describe('DetallePublicacion (HU-011)', () => {
     expect(texto).toContain('250.000');
     expect(texto).toContain('30.000');
     expect(texto).toContain('4 huéspedes');
+    expect(texto.replaceAll('\u00a0', ' ')).toContain('2 habitaciones · 1 cama · 1 baño');
     expect(texto).toContain('Con mi aprobación');
     expect(texto).not.toContain('Última actualización');
   });

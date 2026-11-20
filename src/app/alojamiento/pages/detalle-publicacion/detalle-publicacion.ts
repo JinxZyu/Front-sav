@@ -11,7 +11,7 @@ import { PoliticaPublicacion } from '../../components/politica-publicacion/polit
 import { TarifasPublicacion } from '../../components/tarifas-publicacion/tarifas-publicacion';
 import { estadoPublicacion, modoAceptacion } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
-import { formatearFecha, formatearPesos } from '../../utils/formato';
+import { formatearEspacios, formatearFecha, formatearPesos } from '../../utils/formato';
 
 @Component({
   selector: 'app-detalle-publicacion',
@@ -70,6 +70,7 @@ export class DetallePublicacion {
   protected readonly modo = modoAceptacion;
   protected readonly pesos = formatearPesos;
   protected readonly fecha = formatearFecha;
+  protected readonly espacios = formatearEspacios;
 
   reintentar(): void {
     this.consulta.reload();

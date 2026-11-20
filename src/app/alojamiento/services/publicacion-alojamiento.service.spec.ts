@@ -39,6 +39,9 @@ describe('PublicacionAlojamientoService', () => {
         ciudad: 'Guatavita',
         tipoAlojamiento: 'Cabaña',
         capacidad: 4,
+        habitaciones: 2,
+        camas: 3,
+        banos: 2,
         precioPorNoche: 250000,
         tarifaLimpieza: 0,
         modoAceptacion: 'INMEDIATA',
@@ -53,6 +56,9 @@ describe('PublicacionAlojamientoService', () => {
     const cuerpo = peticion.request.body as FormData;
     expect(cuerpo.get('titulo')).toBe('Cabaña');
     expect(cuerpo.get('capacidad')).toBe('4');
+    expect(cuerpo.get('habitaciones')).toBe('2');
+    expect(cuerpo.get('camas')).toBe('3');
+    expect(cuerpo.get('banos')).toBe('2');
     expect(cuerpo.get('precioPorNoche')).toBe('250000');
     expect(cuerpo.get('tarifaLimpieza')).toBe('0');
     expect(cuerpo.getAll('idsServicios')).toEqual(['s-1', 's-2']);
@@ -95,6 +101,9 @@ describe('PublicacionAlojamientoService', () => {
         ciudad: 'Guatavita',
         tipoAlojamiento: 'Cabaña',
         capacidad: 4,
+        habitaciones: 2,
+        camas: 3,
+        banos: 2,
         precioPorNoche: 250000,
         tarifaLimpieza: 0,
         modoAceptacion: 'APROBACION',
