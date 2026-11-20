@@ -54,6 +54,7 @@ export interface NuevaPublicacion {
   idPolitica: string;
   idsServicios: string[];
   imagenes: File[];
+  mensajeCambios?: string;
 }
 
 export interface PublicacionCreada {
@@ -193,3 +194,7 @@ export interface ModoAceptacionDePublicacion {
   modoAceptacion: string;
   fechaActualizacion: string | null;
 }
+
+export const ESTADOS_CON_REVISION_DE_CAMBIOS = ['ACTIVA', 'PAUSADA'];
+
+export const MAXIMO_MENSAJE_CAMBIOS = 1000;

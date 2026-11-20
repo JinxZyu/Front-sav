@@ -1,4 +1,4 @@
-import { TitleCasePipe } from '@angular/common';
+import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -16,7 +16,11 @@ import {
   estadoPublicacion,
   formatearPorcentaje,
 } from '../../../alojamiento/models/alojamiento.models';
-import { formatearEspacios, formatearPesos } from '../../../alojamiento/utils/formato';
+import {
+  formatearEspacios,
+  formatearFechaHora,
+  formatearPesos,
+} from '../../../alojamiento/utils/formato';
 import { estadoDeConsulta } from '../../../reserva/utils/consulta-reserva';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
@@ -38,6 +42,7 @@ type Accion = 'rechazar' | 'bloquear' | 'desbloquear';
   imports: [
     RouterLink,
     TitleCasePipe,
+    LowerCasePipe,
     ImagenPublicacion,
     FormularioMotivo,
     ReservasAfectadas,
@@ -98,6 +103,7 @@ export class RevisionPublicacion {
   protected readonly maximoMotivo = MAXIMO_MOTIVO_PUBLICACION;
   protected readonly estado = estadoPublicacion;
   protected readonly pesos = formatearPesos;
+  protected readonly fechaHora = formatearFechaHora;
   protected readonly porcentaje = formatearPorcentaje;
   protected readonly espacios = formatearEspacios;
 

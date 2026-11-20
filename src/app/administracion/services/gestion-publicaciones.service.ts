@@ -2,10 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PublicacionPublica } from '../../publicacion/models/catalogo.models';
 import {
   DecisionPublicacion,
   ModeracionPublicacion,
+  PublicacionParaRevision,
   PublicacionAdministrada,
   ReservasAfectadas,
 } from '../models/publicacion-administrada.models';
@@ -19,8 +19,8 @@ export class GestionPublicacionesService {
     return this.http.get<PublicacionAdministrada[]>(this.api);
   }
 
-  detalle(idPublicacion: string): Observable<PublicacionPublica> {
-    return this.http.get<PublicacionPublica>(this.ruta(idPublicacion));
+  detalle(idPublicacion: string): Observable<PublicacionParaRevision> {
+    return this.http.get<PublicacionParaRevision>(this.ruta(idPublicacion));
   }
 
   aprobar(idPublicacion: string): Observable<DecisionPublicacion> {

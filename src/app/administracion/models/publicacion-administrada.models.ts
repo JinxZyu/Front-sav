@@ -1,3 +1,5 @@
+import { PublicacionPublica } from '../../publicacion/models/catalogo.models';
+
 export interface PublicacionAdministrada {
   idPublicacion: string;
   idAlojamiento: string;
@@ -44,6 +46,17 @@ export interface ReservaAfectada {
 export interface ReservasAfectadas {
   mensaje: string;
   reservas: ReservaAfectada[];
+}
+
+export interface SolicitudCambios {
+  mensaje: string;
+  campos: string[];
+  estadoAnterior: string;
+  fechaSolicitud: string;
+}
+
+export interface PublicacionParaRevision extends PublicacionPublica {
+  solicitudCambios: SolicitudCambios | null;
 }
 
 export const EN_REVISION = 'PENDIENTE_REVISION';

@@ -1,5 +1,8 @@
-import { PublicacionPublica } from '../../publicacion/models/catalogo.models';
-import { PublicacionAdministrada, ReservaAfectada } from './publicacion-administrada.models';
+import {
+  PublicacionAdministrada,
+  PublicacionParaRevision,
+  ReservaAfectada,
+} from './publicacion-administrada.models';
 
 export const publicacionAdministrada = (
   cambios: Partial<PublicacionAdministrada> = {},
@@ -13,7 +16,7 @@ export const publicacionAdministrada = (
   ...cambios,
 });
 
-export const publicacionParaRevisar = (estado = 'PENDIENTE_REVISION'): PublicacionPublica => ({
+export const publicacionParaRevisar = (estado = 'PENDIENTE_REVISION'): PublicacionParaRevision => ({
   publicacion: {
     idPublicacion: 'p-1',
     idAlojamiento: 'a-1',
@@ -52,6 +55,7 @@ export const publicacionParaRevisar = (estado = 'PENDIENTE_REVISION'): Publicaci
     porcentajeDevolucion: 100,
     activa: true,
   },
+  solicitudCambios: null,
 });
 
 export const reservaAfectada = (cambios: Partial<ReservaAfectada> = {}): ReservaAfectada => ({
