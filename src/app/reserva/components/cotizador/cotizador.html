@@ -55,6 +55,28 @@
     <p class="error-campo">Puedes reservar para 1 a {{ publicacion().capacidad }} huéspedes.</p>
   }
 
+  @if (adicionales().length > 0) {
+    <fieldset>
+      <legend>Agrega servicios adicionales</legend>
+      @for (adicional of adicionales(); track adicional.idAdicional) {
+        <label class="adicional">
+          <input
+            type="checkbox"
+            [checked]="marcado(adicional.idAdicional)"
+            (change)="alternar(adicional.idAdicional)"
+          />
+          <span class="nombre">
+            {{ adicional.nombre }}
+            @if (adicional.descripcion) {
+              <small>{{ adicional.descripcion }}</small>
+            }
+          </span>
+          <span>{{ pesos(adicional.costo) }}</span>
+        </label>
+      }
+    </fieldset>
+  }
+
   @if (!cotizacion()) {
     <button type="submit" class="principal" [disabled]="calculando()">
       {{ calculando() ? 'Calculando…' : 'Ver precio total' }}

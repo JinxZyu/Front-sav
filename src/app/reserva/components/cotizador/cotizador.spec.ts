@@ -6,7 +6,7 @@ import { moverDias, hoy } from '../../../disponibilidad/utils/fechas';
 import { publicacionPublica } from '../../../publicacion/models/catalogo.testing';
 import { Cotizador } from './cotizador';
 
-describe('Cotizador (HU-028)', () => {
+describe('Cotizador (HU-027 y HU-028)', () => {
   let fixture: ComponentFixture<Cotizador>;
   let backend: HttpTestingController;
   const url = `${environment.apiUrl}/cotizaciones`;
@@ -41,6 +41,7 @@ describe('Cotizador (HU-028)', () => {
     backend = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(Cotizador);
     fixture.componentRef.setInput('publicacion', datos.publicacion);
+    fixture.componentRef.setInput('adicionales', datos.serviciosAdicionales);
     for (const [nombre, valor] of Object.entries(entradas)) {
       fixture.componentRef.setInput(nombre, valor);
     }
@@ -88,6 +89,36 @@ describe('Cotizador (HU-028)', () => {
     expect(texto).toContain('Tarifa de limpieza');
     expect(texto).toContain('Tarifa de servicio (10 %)');
     expect(elemento().querySelector('.total')?.textContent).toContain('624.000');
+  });
+
+  it('criterio 2: incluye los servicios adicionales elegidos en el total', async () => {
+    crear({ llegada, salida });
+    backend.expectOne(url).flush(cotizacion());
+    await fixture.whenStable();
+
+    elemento().querySelector<HTMLInputElement>('.adicional input')!.click();
+    fixture.detectChanges();
+    expect(elemento().querySelector('.desglose')).toBeNull();
+    enviar();
+
+    const peticion = await responder(
+      cotizacion({
+        serviciosAdicionales: [
+          {
+            idAdicional: 'ad-1',
+            nombre: 'Desayuno',
+            cantidad: 1,
+            precioAplicado: 25000,
+            subtotal: 25000,
+          },
+        ],
+        costoAdicionalTotal: 25000,
+        total: 649000,
+      }),
+    );
+    expect(peticion.request.body.idsAdicionales).toEqual(['ad-1']);
+    expect(elemento().querySelector('.desglose')?.textContent).toContain('Desayuno');
+    expect(elemento().querySelector('.total')?.textContent).toContain('649.000');
   });
 
   it('criterio 3: calcula de una vez con las fechas de la búsqueda', async () => {

@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import {
   DetallePublicacion,
+  ServicioAdicional,
   formatearPorcentaje,
 } from '../../../alojamiento/models/alojamiento.models';
 import { formatearPesos } from '../../../alojamiento/utils/formato';
@@ -22,6 +23,7 @@ export class Cotizador implements OnInit {
   private readonly servicio = inject(ReservaService);
 
   readonly publicacion = input.required<DetallePublicacion>();
+  readonly adicionales = input<ServicioAdicional[]>([]);
   readonly llegada = input('');
   readonly salida = input('');
   readonly huespedes = input('');
@@ -36,6 +38,7 @@ export class Cotizador implements OnInit {
       llegada: ['', [Validators.required, desdeHoy]],
       salida: ['', [Validators.required]],
       huespedes: [1, [Validators.required, Validators.min(1)]],
+      adicionales: [[] as string[]],
     },
     { validators: rangoValido('llegada', 'salida') },
   );
@@ -59,10 +62,24 @@ export class Cotizador implements OnInit {
       llegada: this.llegada(),
       salida: this.salida(),
       huespedes: Number.isInteger(huespedes) && huespedes > 0 ? Math.min(huespedes, capacidad) : 1,
+      adicionales: [],
     });
     if (this.formulario.valid) {
       this.cotizar();
     }
+  }
+
+  protected marcado(idAdicional: string): boolean {
+    return this.formulario.controls.adicionales.value.includes(idAdicional);
+  }
+
+  protected alternar(idAdicional: string): void {
+    const control = this.formulario.controls.adicionales;
+    control.setValue(
+      this.marcado(idAdicional)
+        ? control.value.filter((actual) => actual !== idAdicional)
+        : [...control.value, idAdicional],
+    );
   }
 
   protected cotizar(): void {
@@ -79,7 +96,7 @@ export class Cotizador implements OnInit {
         fechaEntrada: valores.llegada,
         fechaSalida: valores.salida,
         cantidadHuespedes: valores.huespedes,
-        idsAdicionales: [],
+        idsAdicionales: valores.adicionales,
       })
       .pipe(finalize(() => this.calculando.set(false)))
       .subscribe({

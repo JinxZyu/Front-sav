@@ -52,6 +52,41 @@ button:focus-visible {
   font-size: 0.8rem;
 }
 
+fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  margin-bottom: 0.4rem;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.adicional {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.nombre {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.nombre small {
+  color: #64748b;
+  font-weight: 400;
+}
+
 .principal {
   padding: 0.75rem 1rem;
   border: 0;

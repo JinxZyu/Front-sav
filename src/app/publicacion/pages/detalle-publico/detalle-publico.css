@@ -149,28 +149,6 @@ h2 {
   font-weight: 500;
 }
 
-.pequeno {
-  margin: 0.4rem 0 0;
-  font-size: 0.95rem;
-}
-
-.adicionales {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  margin: 0;
-  padding: 0;
-  color: #475569;
-  font-size: 0.9rem;
-  list-style: none;
-}
-
-.adicionales li {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
 .vacio,
 .alerta {
   margin-top: 1.5rem;
