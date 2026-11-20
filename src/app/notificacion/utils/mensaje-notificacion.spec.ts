@@ -1,3 +1,4 @@
+import { formatearFechaHora } from '../../alojamiento/utils/formato';
 import { mensajeLegible } from './mensaje-notificacion';
 
 describe('mensajeLegible', () => {
@@ -16,11 +17,14 @@ describe('mensajeLegible', () => {
     );
   });
 
-  it('quita los identificadores y da formato a las fechas', () => {
+  it('quita los identificadores y da formato a las fechas en la zona del usuario', () => {
+    const limite = '2026-11-21T08:28:24.744354Z';
     const mensaje = mensajeLegible(
-      'La solicitud de reserva 6b6b588b-717e-4d0e-95b4-81273faf15b4 requiere tu decisión antes de 2026-11-21T08:28:24.744354Z.',
+      `La solicitud de reserva 6b6b588b-717e-4d0e-95b4-81273faf15b4 requiere tu decisión antes de ${limite}.`,
     );
-    expect(mensaje).toMatch(/^La solicitud de reserva requiere tu decisión antes de 21 de nov/);
+    expect(mensaje).toBe(
+      `La solicitud de reserva requiere tu decisión antes de ${formatearFechaHora(limite)}.`,
+    );
     expect(mensaje).not.toContain('2026-11-21T');
   });
 

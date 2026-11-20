@@ -41,8 +41,9 @@ export class MisNotificaciones {
 
   constructor() {
     effect(() => {
-      if (this.notificaciones()) {
-        untracked(() => this.servicio.marcarVistas());
+      const notificaciones = this.notificaciones();
+      if (notificaciones) {
+        untracked(() => this.servicio.marcarVistas(notificaciones));
       }
     });
   }

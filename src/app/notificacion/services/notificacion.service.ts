@@ -7,57 +7,86 @@ import { Notificacion } from '../models/notificacion.models';
 
 const PREFIJO_VISTAS = 'marketplace.notificaciones.vistas.';
 
+interface Recibidas {
+  usuario: string;
+  notificaciones: Notificacion[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class NotificacionService {
   private readonly http = inject(HttpClient);
   private readonly sesion = inject(SesionService);
   private readonly url = `${environment.apiUrl}/notificaciones/mis-notificaciones`;
 
-  private readonly recibidas = signal<Notificacion[]>([]);
-  private readonly vistasHasta = signal<number>(0);
+  private readonly recibidas = signal<Recibidas | null>(null);
+  private readonly vistas = signal<Record<string, number>>({});
 
-  readonly nuevas = computed(
-    () =>
-      this.recibidas().filter(
-        (notificacion) => new Date(notificacion.fechaCreacion).getTime() > this.vistasHasta(),
-      ).length,
-  );
+  readonly nuevas = computed(() => {
+    const usuario = this.usuario();
+    const recibidas = this.recibidas();
+    if (!recibidas || recibidas.usuario !== usuario) {
+      return 0;
+    }
+    const vistasHasta = this.vistas()[usuario] ?? 0;
+    return recibidas.notificaciones.filter((notificacion) => esNueva(notificacion, vistasHasta))
+      .length;
+  });
 
   misNotificaciones(): Observable<Notificacion[]> {
+    const usuario = this.usuario();
     return this.http.get<Notificacion[]>(this.url).pipe(
       tap((notificaciones) => {
-        this.vistasHasta.set(leerVistas(this.clave()));
-        this.recibidas.set(notificaciones);
+        this.recordar(usuario, leerGuardadas(usuario));
+        this.recibidas.set({ usuario, notificaciones });
       }),
     );
   }
 
   esNueva(notificacion: Notificacion, vistasHasta: number): boolean {
-    return new Date(notificacion.fechaCreacion).getTime() > vistasHasta;
+    return esNueva(notificacion, vistasHasta);
   }
 
   ultimaVista(): number {
-    return leerVistas(this.clave());
+    const usuario = this.usuario();
+    return Math.max(this.vistas()[usuario] ?? 0, leerGuardadas(usuario));
   }
 
-  marcarVistas(): void {
-    const ahora = Date.now();
-    this.vistasHasta.set(ahora);
+  marcarVistas(notificaciones: Notificacion[]): void {
+    const usuario = this.usuario();
+    const masReciente = Math.max(0, ...notificaciones.map(instante));
+    const vistasHasta = Math.max(this.ultimaVista(), masReciente);
+    this.recordar(usuario, vistasHasta);
     try {
-      localStorage.setItem(this.clave(), String(ahora));
+      localStorage.setItem(PREFIJO_VISTAS + usuario, String(vistasHasta));
     } catch {
       return;
     }
   }
 
-  private clave(): string {
-    return PREFIJO_VISTAS + (this.sesion.correo() ?? '');
+  private recordar(usuario: string, vistasHasta: number): void {
+    this.vistas.update((vistas) => ({
+      ...vistas,
+      [usuario]: Math.max(vistas[usuario] ?? 0, vistasHasta),
+    }));
+  }
+
+  private usuario(): string {
+    return this.sesion.correo() ?? '';
   }
 }
 
-function leerVistas(clave: string): number {
+function instante(notificacion: Notificacion): number {
+  const valor = new Date(notificacion.fechaCreacion).getTime();
+  return Number.isNaN(valor) ? 0 : valor;
+}
+
+function esNueva(notificacion: Notificacion, vistasHasta: number): boolean {
+  return instante(notificacion) > vistasHasta;
+}
+
+function leerGuardadas(usuario: string): number {
   try {
-    const valor = Number(localStorage.getItem(clave));
+    const valor = Number(localStorage.getItem(PREFIJO_VISTAS + usuario));
     return Number.isFinite(valor) ? valor : 0;
   } catch {
     return 0;
