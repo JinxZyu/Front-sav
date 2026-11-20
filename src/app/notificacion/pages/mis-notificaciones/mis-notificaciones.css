@@ -58,10 +58,24 @@ h1 {
   background: #fff;
 }
 
+.lista li.nueva {
+  border-left-color: #6366f1;
+}
+
 .mensaje {
   margin: 0;
   color: #1e293b;
   line-height: 1.5;
+}
+
+.etiqueta {
+  margin-right: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .pie {

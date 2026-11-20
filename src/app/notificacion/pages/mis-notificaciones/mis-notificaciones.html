@@ -25,8 +25,11 @@
     } @else {
       <ul class="lista">
         @for (notificacion of notificaciones; track notificacion.idNotificacion) {
-          <li>
+          <li [class.nueva]="nueva(notificacion)">
             <p class="mensaje">
+              @if (nueva(notificacion)) {
+                <span class="etiqueta">Nueva</span>
+              }
               {{ mensaje(notificacion.mensaje) }}
             </p>
             <p class="pie">

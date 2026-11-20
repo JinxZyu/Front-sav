@@ -7,6 +7,7 @@ import { Rol } from '../../../config/auth/sesion.models';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { crearToken } from '../../../config/auth/sesion.testing';
 import { notificacion } from '../../models/notificacion.testing';
+import { NotificacionService } from '../../services/notificacion.service';
 import { MisNotificaciones } from './mis-notificaciones';
 
 describe('MisNotificaciones (HU-039)', () => {
@@ -14,8 +15,14 @@ describe('MisNotificaciones (HU-039)', () => {
   let backend: HttpTestingController;
   const url = `${environment.apiUrl}/notificaciones/mis-notificaciones`;
 
-  const crear = (rol: Rol = 'HUESPED') => {
+  const crear = (rol: Rol = 'HUESPED', vistasHasta?: string) => {
     localStorage.clear();
+    if (vistasHasta) {
+      localStorage.setItem(
+        'marketplace.notificaciones.vistas.hugo@correo.com',
+        String(new Date(vistasHasta).getTime()),
+      );
+    }
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
@@ -88,6 +95,19 @@ describe('MisNotificaciones (HU-039)', () => {
     await responder([notificacion({ idNotificacion: 'n-2' }), notificacion()]);
 
     expect(items().length).toBe(2);
+  });
+
+  it('marca como nuevas las que llegaron desde la última visita y las da por vistas', async () => {
+    crear('HUESPED', '2026-11-18T09:00:00Z');
+    await responder([
+      notificacion(),
+      notificacion({ idNotificacion: 'n-2', fechaCreacion: '2026-11-18T08:00:00Z' }),
+    ]);
+
+    expect(items()[0].querySelector('.etiqueta')?.textContent).toBe('Nueva');
+    expect(items()[1].querySelector('.etiqueta')).toBeNull();
+    TestBed.tick();
+    expect(TestBed.inject(NotificacionService).nuevas()).toBe(0);
   });
 
   it('permite reintentar cuando falla la consulta', async () => {

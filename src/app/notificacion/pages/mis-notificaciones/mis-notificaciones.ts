@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
@@ -22,6 +22,7 @@ interface Enlace {
 export class MisNotificaciones {
   private readonly servicio = inject(NotificacionService);
   private readonly anfitrion = inject(SesionService).tieneRol('ANFITRION');
+  private readonly vistasAntes = this.servicio.ultimaVista();
 
   protected readonly consulta = rxResource({ stream: () => this.servicio.misNotificaciones() });
 
@@ -37,6 +38,18 @@ export class MisNotificaciones {
 
   protected readonly mensaje = mensajeLegible;
   protected readonly fecha = formatearFechaHora;
+
+  constructor() {
+    effect(() => {
+      if (this.notificaciones()) {
+        untracked(() => this.servicio.marcarVistas());
+      }
+    });
+  }
+
+  protected nueva(notificacion: Notificacion): boolean {
+    return this.servicio.esNueva(notificacion, this.vistasAntes);
+  }
 
   protected enlace(notificacion: Notificacion): Enlace | null {
     if (notificacion.idReserva) {

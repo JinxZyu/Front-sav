@@ -13,6 +13,7 @@
       <a routerLink="/reservas" routerLinkActive="activo" class="opcional">Mis reservas</a>
     }
     @if (sesion.autenticado()) {
+      <app-campana-notificaciones />
       <app-menu-usuario />
     } @else {
       <a routerLink="/usuario/login" routerLinkActive="activo" class="opcional">Iniciar sesión</a>
