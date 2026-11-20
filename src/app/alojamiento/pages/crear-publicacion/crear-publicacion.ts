@@ -80,7 +80,7 @@ const ETIQUETAS = {
   tarifaLimpieza: 'Tarifa de limpieza',
   modoAceptacion: 'Cómo aceptas las reservas',
   idPolitica: 'Política de cancelación',
-  idsServicios: 'Servicios',
+  idsServicios: 'Servicios incluidos',
 } as const;
 
 type Campo = keyof typeof ETIQUETAS;
