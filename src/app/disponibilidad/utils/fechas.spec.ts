@@ -1,5 +1,15 @@
 import { FormControl, FormGroup } from '@angular/forms';
-import { comoDia, comoFecha, desdeHoy, formatearDia, hoy, noches, rangoValido } from './fechas';
+import {
+  comoDia,
+  comoFecha,
+  desdeHoy,
+  formatearDia,
+  hoy,
+  moverDias,
+  noches,
+  rangoValido,
+  unAnioDespues,
+} from './fechas';
 
 describe('utilidades de fechas', () => {
   it('convierte entre texto y fecha local sin correrse de día', () => {
@@ -33,5 +43,14 @@ describe('utilidades de fechas', () => {
     expect(desdeHoy(new FormControl('2000-01-01'))).toEqual({ pasado: true });
     expect(desdeHoy(new FormControl(hoy()))).toBeNull();
     expect(desdeHoy(new FormControl(''))).toBeNull();
+  });
+
+  it('mueve días y suma un año aunque cambie de mes o de año', () => {
+    expect(moverDias('2026-11-30', 1)).toBe('2026-12-01');
+    expect(moverDias('2027-01-01', -1)).toBe('2026-12-31');
+    expect(unAnioDespues('2026-12-04')).toBe('2027-12-04');
+    expect(unAnioDespues('2028-02-29')).toBe('2029-03-01');
+    expect(moverDias('no es fecha', 1)).toBe('no es fecha');
+    expect(unAnioDespues('no es fecha')).toBe('no es fecha');
   });
 });

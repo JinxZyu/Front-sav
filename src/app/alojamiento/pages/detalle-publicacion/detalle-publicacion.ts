@@ -9,7 +9,14 @@ import { ImagenPublicacion } from '../../components/imagen-publicacion/imagen-pu
 import { ModoAceptacionPublicacion } from '../../components/modo-aceptacion-publicacion/modo-aceptacion-publicacion';
 import { PoliticaPublicacion } from '../../components/politica-publicacion/politica-publicacion';
 import { TarifasPublicacion } from '../../components/tarifas-publicacion/tarifas-publicacion';
-import { estadoPublicacion, modoAceptacion } from '../../models/alojamiento.models';
+import {
+  ConfiguracionComercial,
+  DetallePublicacion as DatosPublicacion,
+  ModoAceptacionDePublicacion,
+  estadoPublicacion,
+  modoAceptacion,
+  motivoSinEdicion,
+} from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
 import { formatearEspacios, formatearFecha, formatearPesos } from '../../utils/formato';
 
@@ -66,6 +73,11 @@ export class DetallePublicacion {
       : null,
   );
 
+  protected readonly editable = computed(() => {
+    const publicacion = this.publicacion();
+    return !!publicacion && motivoSinEdicion(publicacion.estado) === null;
+  });
+
   protected readonly estado = estadoPublicacion;
   protected readonly modo = modoAceptacion;
   protected readonly pesos = formatearPesos;
@@ -77,6 +89,28 @@ export class DetallePublicacion {
   }
 
   actualizarEstado(estado: string): void {
-    this.consulta.update((actual) => (actual ? { ...actual, estado } : actual));
+    this.actualizarDatos({ estado });
   }
+
+  alGuardarTarifas(configuracion: ConfiguracionComercial): void {
+    this.actualizarDatos({
+      tarifaLimpieza: configuracion.tarifaLimpieza,
+      ...conFecha(configuracion.fechaActualizacion),
+    });
+  }
+
+  alGuardarModo(respuesta: ModoAceptacionDePublicacion): void {
+    this.actualizarDatos({
+      modoAceptacion: respuesta.modoAceptacion,
+      ...conFecha(respuesta.fechaActualizacion),
+    });
+  }
+
+  actualizarDatos(cambios: Partial<DatosPublicacion>): void {
+    this.consulta.update((actual) => (actual ? { ...actual, ...cambios } : actual));
+  }
+}
+
+function conFecha(fechaActualizacion: string | null): Partial<DatosPublicacion> {
+  return fechaActualizacion ? { fechaActualizacion } : {};
 }

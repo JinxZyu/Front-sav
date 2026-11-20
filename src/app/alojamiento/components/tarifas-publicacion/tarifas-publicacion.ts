@@ -21,7 +21,7 @@ import {
 import { finalize } from 'rxjs';
 import { PATRON_CON_TEXTO } from '../../../shared/utils/validadores';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
-import { ServicioAdicional } from '../../models/alojamiento.models';
+import { ConfiguracionComercial, ServicioAdicional } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
 import { formatearPesos } from '../../utils/formato';
 
@@ -61,7 +61,7 @@ export class TarifasPublicacion {
 
   readonly idPublicacion = input.required<string>();
   readonly editable = input(true);
-  readonly guardado = output();
+  readonly guardado = output<ConfiguracionComercial>();
 
   readonly actual = rxResource({
     params: () => this.idPublicacion(),
@@ -164,7 +164,7 @@ export class TarifasPublicacion {
           this.actual.set(configuracion);
           this.editando.set(false);
           this.aviso.set('Guardamos la tarifa de limpieza y los servicios adicionales.');
-          this.guardado.emit();
+          this.guardado.emit(configuracion);
         },
         error: (error: unknown) =>
           this.error.set(mensajeDeError(error, 'No pudimos guardar las tarifas.')),

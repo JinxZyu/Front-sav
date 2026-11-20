@@ -1,8 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, finalize, map } from 'rxjs';
 import { PublicacionAlojamientoService } from '../../../alojamiento/services/publicacion-alojamiento.service';
@@ -11,7 +19,15 @@ import { CalendarioDisponibilidad } from '../../components/calendario-disponibil
 import { ConsultaFechas } from '../../components/consulta-fechas/consulta-fechas';
 import { NuevoPeriodo, PeriodoDisponible } from '../../models/disponibilidad.models';
 import { DisponibilidadService } from '../../services/disponibilidad.service';
-import { desdeHoy, formatearDia, hoy, noches, rangoValido } from '../../utils/fechas';
+import {
+  desdeHoy,
+  formatearDia,
+  hoy,
+  moverDias,
+  noches,
+  rangoValido,
+  unAnioDespues,
+} from '../../utils/fechas';
 
 @Component({
   selector: 'app-disponibilidad-alojamiento',
@@ -80,6 +96,26 @@ export class DisponibilidadAlojamiento {
     { validators: rangoValido('fechaInicio', 'fechaFin') },
   );
 
+  readonly sinCierre = new FormControl(false, { nonNullable: true });
+
+  private readonly valoresNuevo = toSignal(
+    this.nuevo.valueChanges.pipe(map(() => this.nuevo.getRawValue())),
+    { initialValue: this.nuevo.getRawValue() },
+  );
+
+  readonly resumenNuevo = computed(() => {
+    const { fechaInicio, fechaFin } = this.valoresNuevo();
+    if (!fechaInicio || !fechaFin || fechaFin <= fechaInicio) {
+      return null;
+    }
+    const cantidad = noches(fechaInicio, fechaFin);
+    const rango =
+      cantidad === 1
+        ? `1 noche: la del ${formatearDia(fechaInicio)}`
+        : `${cantidad} noches: del ${formatearDia(fechaInicio)} al ${formatearDia(moverDias(fechaFin, -1))}`;
+    return `Se habilitan ${rango}. El huésped sale a más tardar el ${formatearDia(fechaFin)}.`;
+  });
+
   readonly edicion = this.fb.group(
     {
       fechaInicio: ['', [Validators.required]],
@@ -101,6 +137,27 @@ export class DisponibilidadAlojamiento {
   readonly minimo = hoy();
   readonly dia = formatearDia;
   readonly noches = noches;
+
+  constructor() {
+    this.sinCierre.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.ajustarCierre());
+    this.nuevo.controls.fechaInicio.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.ajustarCierre());
+  }
+
+  private readonly botonAgregar = viewChild<ElementRef<HTMLButtonElement>>('botonAgregar');
+
+  usarSeleccion(periodo: NuevoPeriodo): void {
+    if (this.procesando()) {
+      return;
+    }
+    this.sinCierre.setValue(false);
+    this.nuevo.setValue(periodo);
+    this.nuevo.markAsDirty();
+    this.limpiarMensajes();
+    this.lugarMensaje.set('nuevo');
+    this.botonAgregar()?.nativeElement.focus();
+  }
 
   reintentar(): void {
     if (this.publicacion.status() === 'error') {
@@ -126,6 +183,7 @@ export class DisponibilidadAlojamiento {
       (periodo) => {
         this.periodos.update((lista) => [...(lista ?? []), periodo]);
         this.nuevo.reset();
+        this.sinCierre.setValue(false);
         this.intentoNuevo.set(false);
       },
     );
@@ -193,6 +251,19 @@ export class DisponibilidadAlojamiento {
 
   rangoInvalidoEdicion(): boolean {
     return this.intentoEdicion() && this.edicion.hasError('rango');
+  }
+
+  private ajustarCierre(): void {
+    const fin = this.nuevo.controls.fechaFin;
+    if (!this.sinCierre.value) {
+      if (fin.disabled) {
+        fin.enable();
+      }
+      return;
+    }
+    const inicio = this.nuevo.controls.fechaInicio.value;
+    fin.setValue(inicio ? unAnioDespues(inicio) : '');
+    fin.disable();
   }
 
   private ejecutar(

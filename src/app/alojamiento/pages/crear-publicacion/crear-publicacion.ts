@@ -22,6 +22,9 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, map } from 'rxjs';
+import { PAIS_POR_DEFECTO } from '../../../shared/models/ubicacion.models';
+import { AvisosService } from '../../../shared/services/avisos.service';
+import { UbicacionService } from '../../../shared/services/ubicacion.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { PATRON_CON_TEXTO } from '../../../shared/utils/validadores';
 import { CuentaService } from '../../../usuario/services/cuenta.service';
@@ -34,8 +37,8 @@ import {
   DetallePublicacion,
   MODOS_ACEPTACION,
   ModoAceptacion,
+  motivoSinEdicion,
   PoliticaCancelacion,
-  PublicacionCreada,
   TIPOS_ALOJAMIENTO,
 } from '../../models/alojamiento.models';
 import { PublicacionAlojamientoService } from '../../services/publicacion-alojamiento.service';
@@ -66,6 +69,7 @@ const ETIQUETAS = {
   tipoAlojamiento: 'Tipo de alojamiento',
   descripcion: 'Descripción',
   reglas: 'Reglas de la casa',
+  pais: 'País',
   ciudad: 'Ciudad',
   ubicacion: 'Dirección o ubicación',
   capacidad: 'Capacidad',
@@ -92,8 +96,9 @@ export class CrearPublicacion {
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly resumenErrores = viewChild<ElementRef<HTMLElement>>('resumenErrores');
-  private readonly tituloExito = viewChild<ElementRef<HTMLElement>>('tituloExito');
   private readonly router = inject(Router);
+  private readonly ubicacion = inject(UbicacionService);
+  private readonly avisos = inject(AvisosService);
 
   readonly idPublicacion = toSignal(
     inject(ActivatedRoute).paramMap.pipe(map((parametros) => parametros.get('idPublicacion'))),
@@ -109,6 +114,11 @@ export class CrearPublicacion {
   private readonly cargada = signal<string | null>(null);
   readonly listo = computed(() => !this.edicion() || this.cargada() === this.idPublicacion());
   readonly politicaInactiva = signal(false);
+  readonly sinEdicion = computed(() =>
+    this.edicion() && this.original.hasValue()
+      ? motivoSinEdicion(this.original.value().estado)
+      : null,
+  );
 
   readonly noEncontrada = computed(() => {
     const error = this.original.status() === 'error' ? this.original.error() : null;
@@ -128,7 +138,7 @@ export class CrearPublicacion {
 
   readonly espacios = [
     { campo: 'habitaciones', etiqueta: 'Habitaciones' },
-    { campo: 'camas', etiqueta: 'Camas' },
+    { campo: 'camas', etiqueta: 'Camas', ayuda: 'Total de camas en todo el alojamiento.' },
     { campo: 'banos', etiqueta: 'Baños' },
   ] as const;
 
@@ -151,7 +161,6 @@ export class CrearPublicacion {
   readonly intentoEnviar = signal(false);
   readonly faltantes = signal<string[]>([]);
   readonly error = signal<string | null>(null);
-  readonly creada = signal<PublicacionCreada | null>(null);
 
   readonly imagenesInvalidas = computed(
     () =>
@@ -164,6 +173,7 @@ export class CrearPublicacion {
     descripcion: ['', texto(2000)],
     reglas: ['', texto(1000)],
     ubicacion: ['', texto(255)],
+    pais: ['', [Validators.required]],
     ciudad: ['', texto(100)],
     tipoAlojamiento: ['', [Validators.required]],
     capacidad: ['', cantidadEspacio],
@@ -180,7 +190,54 @@ export class CrearPublicacion {
     idsServicios: [[] as string[], [cantidadServicios]],
   });
 
+  private readonly idPais = toSignal(this.formulario.controls.pais.valueChanges, {
+    initialValue: '',
+  });
+  private readonly ciudadGuardada = signal<string | null>(null);
+  readonly ciudadSinPais = signal<string | null>(null);
+
+  readonly paises = rxResource({ stream: () => this.ubicacion.paises() });
+  readonly ciudades = rxResource({
+    params: () => this.idPais() || undefined,
+    stream: ({ params }) => this.ubicacion.ciudades(params),
+  });
+
+  readonly listaPaises = computed(() => (this.paises.hasValue() ? this.paises.value() : []));
+  readonly opcionesCiudad = computed(() =>
+    this.ciudades.hasValue()
+      ? [...new Set(this.ciudades.value().map((ciudad) => ciudad.nombre))]
+      : [],
+  );
+
+  readonly errorPaises = computed(() =>
+    this.paises.status() === 'error'
+      ? mensajeDeError(this.paises.error(), 'No pudimos cargar los países.')
+      : null,
+  );
+  readonly errorCiudades = computed(() =>
+    this.ciudades.status() === 'error'
+      ? mensajeDeError(this.ciudades.error(), 'No pudimos cargar las ciudades.')
+      : null,
+  );
+
   constructor() {
+    effect(() => {
+      const paises = this.listaPaises();
+      untracked(() => {
+        const control = this.formulario.controls.pais;
+        const porDefecto = paises.find((pais) => pais.codigoIso2 === PAIS_POR_DEFECTO);
+        if (!control.value && porDefecto) {
+          control.setValue(porDefecto.idPais);
+        }
+      });
+    });
+    effect(() => {
+      const nombres = this.opcionesCiudad();
+      const guardada = this.ciudadGuardada();
+      if (guardada && this.ciudades.hasValue()) {
+        untracked(() => this.ubicarCiudadGuardada(guardada, nombres));
+      }
+    });
     this.formulario.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.actualizarFaltantes());
@@ -274,13 +331,15 @@ export class CrearPublicacion {
           if (idPublicacion) {
             void this.router.navigate(['/alojamientos', idPublicacion], {
               queryParams: { aviso: 'actualizada' },
+              replaceUrl: true,
             });
             return;
           }
-          this.creada.set(respuesta);
-          afterNextRender(() => this.tituloExito()?.nativeElement.focus(), {
-            injector: this.injector,
-          });
+          this.avisos.mostrar(
+            'Publicación creada',
+            `"${respuesta.titulo}" quedó en borrador. Envíala a revisión desde su detalle cuando esté lista.`,
+          );
+          void this.router.navigate(['/alojamientos'], { replaceUrl: true });
         },
         error: (error: unknown) =>
           this.error.set(
@@ -330,6 +389,7 @@ export class CrearPublicacion {
       descripcion: detalle.descripcion,
       reglas: detalle.reglas ?? '',
       ubicacion: detalle.ubicacion,
+      pais: this.formulario.controls.pais.value,
       ciudad: detalle.ciudad,
       tipoAlojamiento: detalle.tipoAlojamiento,
       capacidad: String(detalle.capacidad),
@@ -349,7 +409,27 @@ export class CrearPublicacion {
     this.faltantes.set([]);
     this.error.set(null);
     this.politicaInactiva.set(false);
+    this.ciudadSinPais.set(null);
+    this.ciudadGuardada.set(detalle.ciudad);
     this.cargada.set(detalle.idPublicacion);
+  }
+
+  private ubicarCiudadGuardada(guardada: string, nombres: string[]): void {
+    const ciudad = this.formulario.controls.ciudad;
+    const pais = this.formulario.controls.pais;
+    if (nombres.includes(guardada)) {
+      if (!ciudad.value) {
+        ciudad.setValue(guardada);
+      }
+      this.ciudadGuardada.set(null);
+      this.ciudadSinPais.set(null);
+      return;
+    }
+    if (!pais.dirty) {
+      pais.setValue('');
+      ciudad.setValue('');
+      this.ciudadSinPais.set(guardada);
+    }
   }
 
   private descartarPoliticaInactiva(politicas: PoliticaCancelacion[]): void {
@@ -360,12 +440,7 @@ export class CrearPublicacion {
     }
   }
 
-  crearOtra(): void {
-    this.formulario.reset();
-    this.imagenes.set([]);
-    this.intentoEnviar.set(false);
-    this.faltantes.set([]);
-    this.error.set(null);
-    this.creada.set(null);
+  alCambiarPais(): void {
+    this.formulario.controls.ciudad.setValue('');
   }
 }

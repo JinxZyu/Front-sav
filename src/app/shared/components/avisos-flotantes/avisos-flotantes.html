@@ -1,0 +1,23 @@
+<div class="pila" role="status" aria-live="polite">
+  @for (aviso of servicio.avisos(); track aviso.id) {
+    <div class="aviso">
+      <span class="icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7" /></svg>
+      </span>
+      <div class="texto">
+        <strong>{{ aviso.titulo }}</strong>
+        @if (aviso.detalle) {
+          <span>{{ aviso.detalle }}</span>
+        }
+      </div>
+      <button
+        type="button"
+        class="cerrar"
+        aria-label="Cerrar aviso"
+        (click)="servicio.cerrar(aviso.id)"
+      >
+        ×
+      </button>
+    </div>
+  }
+</div>

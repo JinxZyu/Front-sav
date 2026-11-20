@@ -26,14 +26,14 @@ export function formatearEspacios(espacios: {
   habitaciones: number;
   camas: number;
   banos: number;
-}): string {
+}): string[] {
   return [
     contar(espacios.habitaciones, 'habitación', 'habitaciones'),
     contar(espacios.camas, 'cama', 'camas'),
     contar(espacios.banos, 'baño', 'baños'),
-  ].join(' · ');
+  ];
 }
 
 function contar(cantidad: number, singular: string, plural: string): string {
-  return `${cantidad}\u00a0${cantidad === 1 ? singular : plural}`;
+  return `${cantidad} ${cantidad === 1 ? singular : plural}`;
 }

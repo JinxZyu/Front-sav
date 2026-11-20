@@ -1,5 +1,11 @@
+@if (!activa()) {
+  <p class="nota-inactiva">
+    La consulta usa la misma información que verán los huéspedes, así que funciona cuando la
+    publicación está publicada. Mientras tanto, revisa los días en el calendario.
+  </p>
+}
 <form [formGroup]="formulario" (ngSubmit)="consultar()" novalidate>
-  <fieldset [disabled]="consultando()">
+  <fieldset [disabled]="consultando() || !activa()">
     <label>
       Llegada
       <input

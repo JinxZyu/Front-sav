@@ -148,6 +148,49 @@ describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
     expect(elemento().querySelector('#error-salida')?.textContent).toContain('fecha de salida');
   });
 
+  it('resume las noches que se habilitan', async () => {
+    await crear([]);
+    escribir('form.tarjeta input[formControlName="fechaInicio"]', '2027-12-04');
+    escribir('form.tarjeta input[formControlName="fechaFin"]', '2027-12-05');
+    await fixture.whenStable();
+    const resumen = () => elemento().querySelector('.resumen')?.textContent ?? '';
+    expect(resumen()).toContain('Se habilitan 1 noche: la del 4');
+
+    escribir('form.tarjeta input[formControlName="fechaFin"]', '2027-12-07');
+    await fixture.whenStable();
+    expect(resumen()).toContain('Se habilitan 3 noches: del 4');
+    expect(resumen()).toContain('al 6');
+    expect(resumen()).toContain('sale a más tardar el 7');
+  });
+
+  it('permite agregar un periodo sin fecha de cierre por un año', async () => {
+    await crear([]);
+    escribir('form.tarjeta input[formControlName="fechaInicio"]', enDias(1));
+    const casilla = elemento().querySelector<HTMLInputElement>('.sin-cierre input');
+    casilla?.click();
+    await fixture.whenStable();
+
+    const salida = elemento().querySelector<HTMLInputElement>(
+      'form.tarjeta input[formControlName="fechaFin"]',
+    );
+    const unAnio = new Date();
+    unAnio.setDate(unAnio.getDate() + 1);
+    unAnio.setFullYear(unAnio.getFullYear() + 1);
+    expect(salida?.disabled).toBe(true);
+    expect(componente.nuevo.getRawValue().fechaFin).toBe(comoDia(unAnio));
+
+    botonPorTexto('Agregar periodo')?.click();
+    const peticion = backend.expectOne(urlPeriodos);
+    expect(peticion.request.body).toEqual({ fechaInicio: enDias(1), fechaFin: comoDia(unAnio) });
+    peticion.flush(
+      periodo({ idPeriodo: 'largo', fechaInicio: enDias(1), fechaFin: comoDia(unAnio) }),
+    );
+    await responderCalendario();
+
+    expect(componente.sinCierre.value).toBe(false);
+    expect(salida?.disabled).toBe(false);
+  });
+
   it('edita un periodo existente', async () => {
     await crear();
     botonPorTexto('Editar')?.click();
@@ -299,5 +342,43 @@ describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
 
     expect(elemento().querySelector('app-calendario-disponibilidad table')).not.toBeNull();
     expect(elemento().querySelector('app-consulta-fechas form')).not.toBeNull();
+    expect(elemento().querySelector('app-consulta-fechas .nota-inactiva')).not.toBeNull();
+  });
+
+  it('no cambia el formulario si se eligen días mientras se guarda otro periodo', async () => {
+    await crear([]);
+    escribir('form.tarjeta input[formControlName="fechaInicio"]', enDias(1));
+    escribir('form.tarjeta input[formControlName="fechaFin"]', enDias(3));
+    botonPorTexto('Agregar periodo')?.click();
+    const peticion = backend.expectOne(urlPeriodos);
+    fixture.detectChanges();
+
+    const calendario = fixture.debugElement.query(
+      (nodo) => nodo.name === 'app-calendario-disponibilidad',
+    );
+    expect(calendario.componentInstance.bloqueado()).toBe(true);
+    componente.usarSeleccion({ fechaInicio: enDias(5), fechaFin: enDias(7) });
+    expect(componente.nuevo.getRawValue()).toEqual({ fechaInicio: enDias(1), fechaFin: enDias(3) });
+
+    peticion.flush(periodo({ idPeriodo: 'nuevo', fechaInicio: enDias(1), fechaFin: enDias(3) }));
+    await responderCalendario();
+    expect(calendario.componentInstance.bloqueado()).toBe(false);
+  });
+
+  it('llena el formulario con los días elegidos en el calendario', async () => {
+    await crear();
+    componente.sinCierre.setValue(true);
+    const calendario = fixture.debugElement.query(
+      (nodo) => nodo.name === 'app-calendario-disponibilidad',
+    );
+    calendario.triggerEventHandler('seleccion', {
+      fechaInicio: enDias(2),
+      fechaFin: enDias(5),
+    });
+    await fixture.whenStable();
+
+    expect(componente.nuevo.getRawValue()).toEqual({ fechaInicio: enDias(2), fechaFin: enDias(5) });
+    expect(componente.sinCierre.value).toBe(false);
+    expect(document.activeElement?.textContent?.trim()).toBe('Agregar periodo');
   });
 });

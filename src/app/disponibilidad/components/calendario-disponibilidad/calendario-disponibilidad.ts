@@ -1,8 +1,9 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { DisponibilidadService } from '../../services/disponibilidad.service';
-import { comoDia, hoy } from '../../utils/fechas';
+import { NuevoPeriodo } from '../../models/disponibilidad.models';
+import { comoDia, hoy, moverDias } from '../../utils/fechas';
 
 export type EstadoDia = 'disponible' | 'ocupada' | 'sin-periodo' | 'pasada';
 
@@ -11,6 +12,7 @@ export interface DiaCalendario {
   numero: number;
   estado: EstadoDia;
   etiqueta: string;
+  seleccionable: boolean;
 }
 
 const NOMBRE_MES = new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' });
@@ -32,6 +34,17 @@ export class CalendarioDisponibilidad {
 
   readonly idAlojamiento = input.required<string>();
   readonly actualizacion = input(0);
+  readonly bloqueado = input(false);
+  readonly seleccion = output<NuevoPeriodo>();
+
+  readonly desde = linkedSignal<number, string | null>({
+    source: this.actualizacion,
+    computation: () => null,
+  });
+  readonly hasta = linkedSignal<number, string | null>({
+    source: this.actualizacion,
+    computation: () => null,
+  });
 
   readonly diasSemana = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
@@ -79,6 +92,7 @@ export class CalendarioDisponibilidad {
         numero,
         estado,
         etiqueta: `${NOMBRE_DIA.format(fecha)}: ${ETIQUETAS[estado]}`,
+        seleccionable: dia >= hoyTexto,
       });
     }
     while (celdas.length % 7 !== 0) {
@@ -90,6 +104,28 @@ export class CalendarioDisponibilidad {
     }
     return semanas;
   });
+
+  elegir(celda: DiaCalendario): void {
+    if (!celda.seleccionable || this.bloqueado()) {
+      return;
+    }
+    const desde = this.desde();
+    if (!desde || this.hasta() || celda.dia < desde) {
+      this.desde.set(celda.dia);
+      this.hasta.set(null);
+      return;
+    }
+    this.hasta.set(celda.dia);
+    this.seleccion.emit({ fechaInicio: desde, fechaFin: moverDias(celda.dia, 1) });
+  }
+
+  seleccionado(dia: string): boolean {
+    const desde = this.desde();
+    if (!desde) {
+      return false;
+    }
+    return dia === desde || (!!this.hasta() && dia > desde && dia <= (this.hasta() ?? ''));
+  }
 
   moverMes(cantidad: number): void {
     const actual = this.mes();

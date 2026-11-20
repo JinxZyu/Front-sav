@@ -127,6 +127,17 @@ const ESTADOS_PUBLICACION: Record<string, EstadoPublicacion> = {
   BLOQUEADA: { etiqueta: 'Bloqueada', tono: 'rechazo' },
 };
 
+const ESTADOS_SIN_EDICION: Record<string, string> = {
+  PENDIENTE_REVISION:
+    'Un administrador está revisando esta publicación. Podrás editarla cuando termine la revisión.',
+  BLOQUEADA:
+    'Un administrador bloqueó esta publicación. Mientras siga bloqueada no puedes editarla.',
+};
+
+export function motivoSinEdicion(estado: string): string | null {
+  return ESTADOS_SIN_EDICION[estado] ?? null;
+}
+
 export function estadoPublicacion(estado: string): EstadoPublicacion {
   const conocido = ESTADOS_PUBLICACION[estado];
   if (conocido) {

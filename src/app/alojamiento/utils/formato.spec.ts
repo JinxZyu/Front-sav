@@ -11,12 +11,16 @@ describe('formato', () => {
     expect(formatearFecha('no es fecha')).toBe('');
   });
 
-  it('describe los espacios en singular o plural', () => {
-    expect(formatearEspacios({ habitaciones: 1, camas: 1, banos: 1 })).toBe(
-      '1\u00a0habitación · 1\u00a0cama · 1\u00a0baño',
-    );
-    expect(formatearEspacios({ habitaciones: 3, camas: 4, banos: 2 })).toBe(
-      '3\u00a0habitaciones · 4\u00a0camas · 2\u00a0baños',
-    );
+  it('describe cada espacio en singular o plural', () => {
+    expect(formatearEspacios({ habitaciones: 1, camas: 1, banos: 1 })).toEqual([
+      '1 habitación',
+      '1 cama',
+      '1 baño',
+    ]);
+    expect(formatearEspacios({ habitaciones: 3, camas: 4, banos: 2 })).toEqual([
+      '3 habitaciones',
+      '4 camas',
+      '2 baños',
+    ]);
   });
 });
