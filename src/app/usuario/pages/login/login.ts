@@ -121,8 +121,8 @@ export class Login {
     if (!destino?.startsWith('/') || destino.startsWith('//')) {
       return inicio;
     }
-    const ruta = destino.split(/[?#]/)[0];
-    const esCatalogo = ruta === '/publicaciones' || ruta.startsWith('/publicaciones/');
+    const primerSegmento = this.router.parseUrl(destino).root.children['primary']?.segments[0];
+    const esCatalogo = primerSegmento?.path === 'publicaciones';
     return esCatalogo && !this.sesion.tieneRol('HUESPED') ? inicio : destino;
   }
 
