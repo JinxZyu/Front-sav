@@ -64,7 +64,7 @@ export class DetallePublicacion {
   constructor() {
     effect(() => {
       const aviso = this.aviso();
-      const contenido = aviso ? AVISOS[aviso] : undefined;
+      const contenido = aviso && Object.hasOwn(AVISOS, aviso) ? AVISOS[aviso] : undefined;
       if (!aviso) {
         return;
       }

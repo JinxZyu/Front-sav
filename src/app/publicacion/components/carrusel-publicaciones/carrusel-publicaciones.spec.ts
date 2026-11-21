@@ -69,4 +69,43 @@ describe('CarruselPublicaciones', () => {
     expect(anterior?.hasAttribute('disabled')).toBe(false);
     expect(siguiente?.hasAttribute('disabled')).toBe(true);
   });
+
+  it('recalcula las flechas cuando cambia el ancho de la pista', async () => {
+    let avisar: () => void = () => undefined;
+    const observar = vi.fn();
+    const desconectar = vi.fn();
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(llamada: () => void) {
+          avisar = llamada;
+        }
+        observe = observar;
+        disconnect = desconectar;
+      },
+    );
+    try {
+      crear();
+      await fixture.whenStable();
+      const pista = elemento().querySelector('.pista') as HTMLElement;
+      expect(observar).toHaveBeenCalledWith(pista);
+
+      Object.defineProperty(pista, 'clientWidth', { value: 500, configurable: true });
+      Object.defineProperty(pista, 'scrollWidth', { value: 1000 });
+      avisar();
+      fixture.detectChanges();
+      const siguiente = () => elemento().querySelector('button[aria-label="Ver siguientes"]');
+      expect(siguiente()?.hasAttribute('disabled')).toBe(false);
+
+      Object.defineProperty(pista, 'clientWidth', { value: 1000 });
+      avisar();
+      fixture.detectChanges();
+      expect(siguiente()?.hasAttribute('disabled')).toBe(true);
+
+      fixture.destroy();
+      expect(desconectar).toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });

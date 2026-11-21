@@ -280,6 +280,17 @@ describe('DetallePublicacion (HU-011)', () => {
     expect(TestBed.inject(AvisosService).avisos()[0].titulo).toBe('Cambios enviados a revisión');
   });
 
+  it('ignora un aviso desconocido y limpia la dirección', async () => {
+    const reemplazar = vi.spyOn(Location.prototype, 'replaceState');
+    crear('toString');
+    backend.expectOne(url).flush(detalle({ imagenes: [] }));
+    await responderSecciones();
+
+    expect(TestBed.inject(AvisosService).avisos()).toEqual([]);
+    expect(reemplazar).toHaveBeenCalledWith(expect.not.stringContaining('aviso'));
+    reemplazar.mockRestore();
+  });
+
   it('pone la portada de primera en la galería', async () => {
     crear();
     backend.expectOne(url).flush(detalle());

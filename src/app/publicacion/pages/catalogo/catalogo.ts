@@ -15,7 +15,6 @@ import { CatalogoService } from '../../services/catalogo.service';
 
 const PATRON_ENTERO = /^\d*$/;
 const MAXIMO_CIUDADES = 4;
-const MAXIMO_PAISES = 3;
 const MAXIMO_POR_CARRUSEL = 12;
 
 export interface GrupoCiudad {
@@ -187,34 +186,38 @@ export class Catalogo {
       (a, b) => Number(sinTildes(b.ciudad) === propia) - Number(sinTildes(a.ciudad) === propia),
     );
 
+    const recientes: SeccionCatalogo = {
+      titulo: 'Publicados recientemente',
+      publicaciones: locales.slice(0, MAXIMO_POR_CARRUSEL),
+      verTodos: null,
+    };
+    const porCiudad = ciudades.slice(0, MAXIMO_CIUDADES).map((grupo) => {
+      const cercana = propia !== '' && sinTildes(grupo.ciudad) === propia;
+      return {
+        cercana,
+        seccion: {
+          titulo: `${cercana ? 'Cerca de ti en' : 'Alojamientos en'} ${grupo.ciudad}`,
+          publicaciones: grupo.publicaciones.slice(0, MAXIMO_POR_CARRUSEL),
+          verTodos: { ciudad: grupo.ciudad },
+        },
+      };
+    });
+    const porPais = [...contarPorPais(otras).entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([codigo]) => {
+        const delPais = otras.filter((publicacion) => publicacion.codigoPais === codigo);
+        return {
+          titulo: `Alojamientos en ${nombrePais(codigo, delPais[0]?.pais)}`,
+          publicaciones: delPais.slice(0, MAXIMO_POR_CARRUSEL),
+          verTodos: null,
+        };
+      });
     const secciones: SeccionCatalogo[] = [
-      {
-        titulo: 'Publicados recientemente',
-        publicaciones: locales.slice(0, MAXIMO_POR_CARRUSEL),
-        verTodos: null,
-      },
+      ...porCiudad.filter(({ cercana }) => cercana).map(({ seccion }) => seccion),
+      recientes,
+      ...porCiudad.filter(({ cercana }) => !cercana).map(({ seccion }) => seccion),
+      ...porPais,
     ];
-    for (const grupo of ciudades.slice(0, MAXIMO_CIUDADES)) {
-      secciones.push({
-        titulo:
-          propia && sinTildes(grupo.ciudad) === propia
-            ? `Cerca de ti en ${grupo.ciudad}`
-            : `Alojamientos en ${grupo.ciudad}`,
-        publicaciones: grupo.publicaciones.slice(0, MAXIMO_POR_CARRUSEL),
-        verTodos: { ciudad: grupo.ciudad },
-      });
-    }
-    const paises = [...contarPorPais(otras).entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, MAXIMO_PAISES);
-    for (const [codigo] of paises) {
-      const delPais = otras.filter((publicacion) => publicacion.codigoPais === codigo);
-      secciones.push({
-        titulo: `Alojamientos en ${nombrePais(codigo, delPais[0]?.pais)}`,
-        publicaciones: delPais.slice(0, MAXIMO_POR_CARRUSEL),
-        verTodos: null,
-      });
-    }
     return secciones.filter((seccion) => seccion.publicaciones.length > 0);
   });
 

@@ -1,4 +1,13 @@
-import { Component, ElementRef, input, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TarjetaPublicacion } from '../../../alojamiento/components/tarjeta-publicacion/tarjeta-publicacion';
 import { ResumenPublicacion } from '../../../alojamiento/models/alojamiento.models';
@@ -21,6 +30,18 @@ export class CarruselPublicaciones {
   protected readonly alFinal = signal(false);
 
   private readonly pista = viewChild.required<ElementRef<HTMLElement>>('pista');
+
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      if (typeof ResizeObserver === 'undefined') {
+        return;
+      }
+      const observador = new ResizeObserver(() => this.actualizarBordes());
+      observador.observe(this.pista().nativeElement);
+      destroyRef.onDestroy(() => observador.disconnect());
+    });
+  }
 
   protected desplazar(sentido: 1 | -1): void {
     const pista = this.pista().nativeElement;

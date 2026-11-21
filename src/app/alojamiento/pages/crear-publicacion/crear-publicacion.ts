@@ -249,6 +249,7 @@ export class CrearPublicacion {
     initialValue: '',
   });
   private readonly ciudadGuardada = signal<string | null>(null);
+  private readonly codigoPaisGuardado = signal<string | null>(null);
   readonly ciudadSinPais = signal<string | null>(null);
 
   readonly paises = rxResource({ stream: () => this.ubicacion.paises() });
@@ -278,11 +279,14 @@ export class CrearPublicacion {
   constructor() {
     effect(() => {
       const paises = this.listaPaises();
+      const guardado = this.codigoPaisGuardado();
       untracked(() => {
         const control = this.formulario.controls.pais;
-        const porDefecto = paises.find((pais) => pais.codigoIso2 === PAIS_POR_DEFECTO);
-        if (!control.value && porDefecto) {
-          control.setValue(porDefecto.idPais);
+        const preferido = paises.find((pais) => pais.codigoIso2 === (guardado ?? PAIS_POR_DEFECTO));
+        if (preferido && !control.dirty && control.value !== preferido.idPais) {
+          if (!control.value || guardado) {
+            control.setValue(preferido.idPais);
+          }
         }
       });
     });
@@ -357,7 +361,11 @@ export class CrearPublicacion {
 
     const valores = this.formulario.getRawValue();
     const idPublicacion = this.idPublicacion();
-    const pais = this.listaPaises().find((opcion) => opcion.idPais === valores.pais);
+    const enviarPais =
+      !idPublicacion || this.formulario.controls.pais.dirty || !this.codigoPaisGuardado();
+    const pais = enviarPais
+      ? this.listaPaises().find((opcion) => opcion.idPais === valores.pais)
+      : undefined;
     const datos = {
       titulo: valores.titulo.trim(),
       descripcion: valores.descripcion.trim(),
@@ -472,7 +480,9 @@ export class CrearPublicacion {
       descripcion: detalle.descripcion,
       reglas: detalle.reglas ?? '',
       ubicacion: detalle.ubicacion,
-      pais: this.formulario.controls.pais.value,
+      pais:
+        this.listaPaises().find((opcion) => opcion.codigoIso2 === detalle.codigoPais)?.idPais ??
+        this.formulario.controls.pais.value,
       ciudad: detalle.ciudad,
       tipoAlojamiento: detalle.tipoAlojamiento,
       capacidad: String(detalle.capacidad),
@@ -496,6 +506,7 @@ export class CrearPublicacion {
     this.politicaInactiva.set(false);
     this.ciudadSinPais.set(null);
     this.ciudadGuardada.set(detalle.ciudad);
+    this.codigoPaisGuardado.set(detalle.codigoPais ?? null);
     this.cargada.set(detalle.idPublicacion);
   }
 

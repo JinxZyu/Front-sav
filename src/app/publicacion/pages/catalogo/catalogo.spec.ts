@@ -348,14 +348,14 @@ describe('Catalogo (HU-024)', () => {
     await refrescar();
 
     expect(titulosCarruseles()).toEqual([
-      'Publicados recientemente',
       'Cerca de ti en Lima',
+      'Publicados recientemente',
       'Alojamientos en Cusco',
       'Alojamientos en Colombia',
     ]);
     const carruseles = elemento().querySelectorAll('app-carrusel-publicaciones');
-    expect(carruseles[0].querySelectorAll('a.tarjeta')).toHaveLength(3);
-    expect(carruseles[1].querySelectorAll('a.tarjeta')).toHaveLength(2);
+    expect(carruseles[0].querySelectorAll('a.tarjeta')).toHaveLength(2);
+    expect(carruseles[1].querySelectorAll('a.tarjeta')).toHaveLength(3);
     expect(carruseles[3].querySelectorAll('a.tarjeta')).toHaveLength(2);
     expect(carruseles[3].querySelector('h2 a')).toBeNull();
   });
@@ -389,6 +389,33 @@ describe('Catalogo (HU-024)', () => {
         'Alojamientos en Lima',
         'Alojamientos en Cusco',
         'Alojamientos en Colombia',
+      ]);
+    } finally {
+      idiomas.mockRestore();
+    }
+  });
+
+  it('muestra un carrusel por cada uno de los demás países', async () => {
+    const idiomas = vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['es-CO']);
+    try {
+      await abrir('/publicaciones', {
+        catalogo: [
+          resumen('p-1', 'Loft en Chapinero', 'Bogotá', 'CO'),
+          resumen('p-2', 'Depa en Miraflores', 'Lima', 'PE'),
+          resumen('p-3', 'Loft en la Condesa', 'Ciudad de México', 'MX'),
+          resumen('p-4', 'Casa en Palermo', 'Buenos Aires', 'AR'),
+          resumen('p-5', 'Cabaña en Pucón', 'Pucón', 'CL'),
+        ],
+      });
+      await refrescar();
+
+      expect(titulosCarruseles()).toEqual([
+        'Publicados recientemente',
+        'Alojamientos en Bogotá',
+        'Alojamientos en Argentina',
+        'Alojamientos en Chile',
+        'Alojamientos en México',
+        'Alojamientos en Perú',
       ]);
     } finally {
       idiomas.mockRestore();

@@ -116,6 +116,8 @@ export interface DetallePublicacion {
   camas: number;
   banos: number;
   propietarioInmueble?: string | null;
+  pais?: string | null;
+  codigoPais?: string | null;
   servicios: ServicioDisponible[];
   imagenes: ImagenPublicacion[];
 }
