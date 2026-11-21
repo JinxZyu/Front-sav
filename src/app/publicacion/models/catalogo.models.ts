@@ -28,6 +28,12 @@ export interface FiltrosBusqueda {
   pagina: number;
 }
 
+export interface DestinoSugerido {
+  ciudad: string;
+  pais: string | null;
+  total: number;
+}
+
 export interface PublicacionPublica {
   publicacion: DetallePublicacion;
   serviciosAdicionales: ServicioAdicional[];

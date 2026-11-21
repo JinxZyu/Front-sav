@@ -1,5 +1,8 @@
 <section class="contenedor" aria-labelledby="titulo-reservas">
-  <h1 id="titulo-reservas">{{ anfitrion ? 'Reservas de mis alojamientos' : 'Mis reservas' }}</h1>
+  <div class="banda">
+    <h1 id="titulo-reservas">{{ anfitrion ? 'Reservas de mis alojamientos' : 'Mis reservas' }}</h1>
+    <p>{{ resumen() }}</p>
+  </div>
 
   @if (anfitrion && todas()?.length) {
     <div class="filtros" role="group" aria-label="Filtrar reservas">

@@ -1,20 +1,22 @@
-import { Component, ResourceRef, input, model, output } from '@angular/core';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, ResourceRef, computed, input, model, output } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import {
   ServicioDisponible,
   TIPOS_ALOJAMIENTO,
 } from '../../../alojamiento/models/alojamiento.models';
 import { hoy } from '../../../disponibilidad/utils/fechas';
+import { DestinoSugerido } from '../../models/catalogo.models';
+import { SelectorDestino } from '../selector-destino/selector-destino';
 
 @Component({
   selector: 'app-buscador-catalogo',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SelectorDestino],
   templateUrl: './buscador-catalogo.html',
   styleUrl: './buscador-catalogo.css',
 })
 export class BuscadorCatalogo {
   readonly formulario = input.required<FormGroup>();
-  readonly sugerencias = input<readonly string[]>([]);
+  readonly destinos = input<readonly DestinoSugerido[]>([]);
   readonly servicios = input.required<ResourceRef<ServicioDisponible[] | undefined>>();
   readonly filtrosAvanzados = input(0);
   readonly mostrarLimpiar = input(false);
@@ -23,6 +25,9 @@ export class BuscadorCatalogo {
   readonly buscar = output<void>();
   readonly limpiar = output<void>();
 
+  protected readonly ciudad = computed(
+    () => this.formulario().controls['ciudad'] as FormControl<string>,
+  );
   protected readonly tipos = TIPOS_ALOJAMIENTO;
   protected readonly minimo = hoy();
 

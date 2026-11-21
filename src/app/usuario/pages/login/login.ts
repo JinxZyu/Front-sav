@@ -118,7 +118,12 @@ export class Login {
       return inicio;
     }
     const destino = this.ruta.snapshot.queryParamMap.get('volverA');
-    return destino?.startsWith('/') && !destino.startsWith('//') ? destino : inicio;
+    if (!destino?.startsWith('/') || destino.startsWith('//')) {
+      return inicio;
+    }
+    const primerSegmento = this.router.parseUrl(destino).root.children['primary']?.segments[0];
+    const esCatalogo = primerSegmento?.path === 'publicaciones';
+    return esCatalogo && !this.sesion.tieneRol('HUESPED') ? inicio : destino;
   }
 
   private siguenIguales(usadas: { correo: string; contrasena: string }): boolean {

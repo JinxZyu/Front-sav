@@ -1,12 +1,28 @@
-<div class="tarjeta">
-  @if (modo() === 'login' || modo() === 'registro') {
-    <nav class="pestanas" [class.en-registro]="modo() === 'registro'" aria-label="Acceso">
-      <span class="indicador"></span>
-      <a routerLink="/usuario/login" class="pestana-login" [class.activa]="modo() === 'login'">Iniciar sesión</a>
-      <a routerLink="/usuario/registro" class="pestana-registro" [class.activa]="modo() === 'registro'">Crear cuenta</a>
-    </nav>
-  }
-  <div class="contenido">
-    <router-outlet />
+<aside class="foto">
+  <div class="lema">
+    <p class="etiqueta">Alojamientos en Latinoamérica</p>
+    <h2>Tu próximo viaje empieza aquí</h2>
+    <p>Casas, cabañas y fincas para descansar, trabajar o celebrar.</p>
+  </div>
+</aside>
+<div class="lado-formulario">
+  <div class="tarjeta">
+    @if (modo() === 'login' || modo() === 'registro') {
+      <nav class="pestanas" [class.en-registro]="modo() === 'registro'" aria-label="Acceso">
+        <span class="indicador"></span>
+        <a routerLink="/usuario/login" class="pestana-login" [class.activa]="modo() === 'login'"
+          >Iniciar sesión</a
+        >
+        <a
+          routerLink="/usuario/registro"
+          class="pestana-registro"
+          [class.activa]="modo() === 'registro'"
+          >Crear cuenta</a
+        >
+      </nav>
+    }
+    <div class="contenido">
+      <router-outlet />
+    </div>
   </div>
 </div>

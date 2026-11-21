@@ -61,6 +61,65 @@ describe('ListaReservas del huésped (HU-034)', () => {
     expect(tarjetas[1].textContent).toContain('Esperando aprobación');
     expect(tarjetas[2].textContent).toContain('Vencida');
     expect(tarjetas[2].textContent).toContain('1 noche');
+    expect(elemento().querySelector('.banda p')?.textContent).toBe(
+      'Tienes 2 solicitudes en proceso.',
+    );
+  });
+
+  it('resume los viajes próximos sin contar los que ya pasaron', async () => {
+    crear();
+    await responder({
+      reservas: [
+        reservaPropia({
+          estado: 'CONFIRMADA',
+          fechaEntrada: '2099-01-10',
+          fechaSalida: '2099-01-12',
+        }),
+        reservaPropia({
+          idReserva: 'r-2',
+          estado: 'CONFIRMADA',
+          fechaEntrada: '2020-01-10',
+          fechaSalida: '2020-01-12',
+        }),
+        reservaPropia({ idReserva: 'r-3', estado: 'PENDIENTE_APROBACION' }),
+      ],
+      totalResultados: 3,
+      mensaje: null,
+    });
+
+    expect(elemento().querySelector('.banda p')?.textContent).toBe(
+      'Tienes 1 viaje próximo y 1 solicitud en proceso.',
+    );
+  });
+
+  it('el resumen se actualiza cuando cambia el día', async () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+    try {
+      vi.setSystemTime(new Date(2026, 10, 21, 22, 0));
+      crear();
+      await responder({
+        reservas: [
+          reservaPropia({
+            estado: 'CONFIRMADA',
+            fechaEntrada: '2026-11-21',
+            fechaSalida: '2026-11-23',
+          }),
+        ],
+        totalResultados: 1,
+        mensaje: null,
+      });
+      expect(elemento().querySelector('.banda p')?.textContent).toBe('Tienes 1 viaje próximo.');
+
+      vi.setSystemTime(new Date(2026, 10, 22, 0, 5));
+      vi.advanceTimersByTime(60_000);
+      await fixture.whenStable();
+
+      expect(elemento().querySelector('.banda p')?.textContent).toBe(
+        'Aquí verás todos tus viajes.',
+      );
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('criterio 2: invita a buscar cuando aún no hay reservas', async () => {
@@ -68,6 +127,7 @@ describe('ListaReservas del huésped (HU-034)', () => {
     await responder({ reservas: [], totalResultados: 0, mensaje: 'No tienes reservas.' });
 
     expect(elemento().textContent).toContain('Aún no tienes reservas');
+    expect(elemento().querySelector('.banda p')?.textContent).toBe('Aquí verás todos tus viajes.');
     expect(elemento().querySelector('a.boton')?.getAttribute('href')).toBe('/publicaciones');
   });
 
@@ -124,6 +184,9 @@ describe('ListaReservas del anfitrión (HU-031)', () => {
     });
 
     expect(elemento().querySelector('h1')?.textContent).toContain('Reservas de mis alojamientos');
+    expect(elemento().querySelector('.banda p')?.textContent).toBe(
+      'Tienes 1 solicitud por responder.',
+    );
     expect(tarjetas().map((tarjeta) => tarjeta.getAttribute('href'))).toEqual([
       '/reservas/alojamientos/r-1',
       '/reservas/alojamientos/r-2',

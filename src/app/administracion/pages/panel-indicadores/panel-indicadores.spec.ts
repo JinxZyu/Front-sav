@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { environment } from '../../../../environments/environment';
+import { crearToken } from '../../../config/auth/sesion.testing';
 import { indicadores } from '../../models/indicadores.testing';
 import { PanelIndicadores } from './panel-indicadores';
 
@@ -39,7 +40,12 @@ describe('PanelIndicadores (HU-043)', () => {
         `${fila.querySelector('.etiqueta')?.textContent}: ${fila.querySelector('.valor')?.textContent}`,
     );
 
-  afterEach(() => backend.verify());
+  beforeEach(() => localStorage.clear());
+
+  afterEach(() => {
+    backend.verify();
+    localStorage.clear();
+  });
 
   it('muestra un esqueleto mientras consulta', async () => {
     crear();
@@ -132,5 +138,22 @@ describe('PanelIndicadores (HU-043)', () => {
     fixture.detectChanges();
     await responder(indicadores());
     expect(elemento().querySelector('.cifras')).not.toBeNull();
+  });
+
+  it('saluda por su nombre a quien inició sesión', async () => {
+    localStorage.setItem(
+      'marketplace.token',
+      crearToken({
+        sub: 'olga@correo.com',
+        role: 'AUDITOR_OPERACION',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    crear();
+    backend.expectOne(`${environment.apiUrl}/usuarios/mi_cuenta`).flush({ nombre: 'Olga' });
+    await responder(indicadores());
+
+    expect(texto(elemento().querySelector('.saludo'))).toMatch(/^Hola, Olga · \S/);
+    expect(texto(elemento().querySelector('h1'))).toBe('Indicadores');
   });
 });
