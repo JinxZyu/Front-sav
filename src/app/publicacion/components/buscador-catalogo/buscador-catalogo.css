@@ -3,7 +3,6 @@
 }
 
 .buscador {
-  position: relative;
   max-width: 62rem;
   margin: 0 auto;
 }
@@ -86,15 +85,7 @@
   display: none;
 }
 
-.buscador > .error-campo {
-  display: table;
-  margin: 0.6rem auto 0;
-  padding: 0.3rem 0.8rem;
-  border-radius: 999px;
-  background: #fff1f2;
-}
-
-.opciones {
+.buscador > .opciones {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -143,26 +134,6 @@
   font-size: 0.9rem;
 }
 
-.avanzada {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.9rem 1rem;
-  position: absolute;
-  z-index: 15;
-  top: calc(100% + 0.6rem);
-  left: 0;
-  right: 0;
-  padding: 1.3rem;
-  border: 1px solid #e0e7ff;
-  border-radius: 1.2rem;
-  background: #fff;
-  box-shadow: 0 24px 50px rgb(30 27 75 / 18%);
-}
-
-.ancha {
-  grid-column: 1 / -1;
-}
-
 label {
   display: flex;
   flex-direction: column;
@@ -185,71 +156,10 @@ select {
   font-weight: 400;
 }
 
-input[aria-invalid='true'] {
-  border-color: #fb7185;
-}
-
-.aviso-servicios {
-  margin: 0;
-  color: #be123c;
-  font-size: 0.85rem;
-}
-
 .error-campo {
   color: #e11d48;
   font-size: 0.8rem;
   font-weight: 500;
-}
-
-.servicios {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.servicios legend {
-  margin-bottom: 0.5rem;
-  color: #334155;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.servicio {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.8rem;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 999px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.servicio.marcado {
-  border-color: #818cf8;
-  background: #eef2ff;
-  color: #3730a3;
-}
-
-.acciones {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.principal {
-  padding: 0.65rem 1.3rem;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #2563eb, #7c3aed);
-  color: #fff;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 button:focus-visible,
@@ -257,17 +167,6 @@ input:focus-visible,
 select:focus-visible {
   outline: 2px solid #6366f1;
   outline-offset: 2px;
-}
-
-.enlace {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-weight: 700;
-  text-decoration: underline;
-  cursor: pointer;
 }
 
 @media (width < 56rem) {
@@ -300,15 +199,21 @@ select:focus-visible {
   .texto-lupa {
     display: inline;
   }
-
-  .avanzada {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (width < 30rem) {
-  .barra,
-  .avanzada {
+  .barra {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.enlace {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }

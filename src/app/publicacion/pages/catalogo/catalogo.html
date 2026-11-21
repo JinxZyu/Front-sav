@@ -6,7 +6,6 @@
     <app-buscador-catalogo
       [formulario]="formulario"
       [destinos]="destinos()"
-      [servicios]="servicios"
       [filtrosAvanzados]="filtrosAvanzados()"
       [mostrarLimpiar]="hayFiltros() || hayEscrito()"
       [(avanzada)]="avanzada"
@@ -14,6 +13,15 @@
       (limpiar)="limpiar()"
     />
   </div>
+
+  @if (avanzada()) {
+    <app-filtros-avanzados
+      [formulario]="formulario"
+      [servicios]="servicios"
+      (aplicar)="buscar()"
+      (cerrar)="avanzada.set(false)"
+    />
+  }
 
   @if (!hayFiltros()) {
     @if (errorCatalogo(); as error) {

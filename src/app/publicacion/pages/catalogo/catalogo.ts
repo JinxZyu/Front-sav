@@ -9,6 +9,7 @@ import { rangoValido } from '../../../disponibilidad/utils/fechas';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { BuscadorCatalogo } from '../../components/buscador-catalogo/buscador-catalogo';
 import { CarruselPublicaciones } from '../../components/carrusel-publicaciones/carrusel-publicaciones';
+import { FiltrosAvanzados } from '../../components/filtros-avanzados/filtros-avanzados';
 import { DestinoSugerido, FiltrosBusqueda } from '../../models/catalogo.models';
 import { CuentaService } from '../../../usuario/services/cuenta.service';
 import { CatalogoService } from '../../services/catalogo.service';
@@ -115,7 +116,7 @@ function leerFiltros(parametros: ParamMap): FiltrosBusqueda {
 
 @Component({
   selector: 'app-catalogo',
-  imports: [TarjetaPublicacion, CarruselPublicaciones, BuscadorCatalogo],
+  imports: [TarjetaPublicacion, CarruselPublicaciones, BuscadorCatalogo, FiltrosAvanzados],
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css',
 })
