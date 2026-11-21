@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, map } from 'rxjs';
@@ -10,6 +10,7 @@ import { ReservaDeAlojamiento, ReservaPropia } from '../../models/reserva.models
 import { ReservaService } from '../../services/reserva.service';
 
 const EN_PROCESO = ['PENDIENTE_APROBACION', 'PENDIENTE_PAGO'];
+const REVISAR_FECHA_CADA = 60_000;
 
 const contar = (cantidad: number, singular: string, plural: string) =>
   `${cantidad} ${cantidad === 1 ? singular : plural}`;
@@ -35,6 +36,12 @@ export class ListaReservas {
 
   protected readonly anfitrion = inject(ActivatedRoute).snapshot.data['vista'] === 'anfitrion';
   protected readonly soloPendientes = signal(false);
+  private readonly fechaHoy = signal(hoy());
+
+  constructor() {
+    const reloj = setInterval(() => this.fechaHoy.set(hoy()), REVISAR_FECHA_CADA);
+    inject(DestroyRef).onDestroy(() => clearInterval(reloj));
+  }
 
   protected readonly consulta = rxResource({
     stream: () => (this.anfitrion ? this.deMisAlojamientos() : this.propias()),
@@ -56,7 +63,7 @@ export class ListaReservas {
         ? `Tienes ${contar(pendientes, 'solicitud', 'solicitudes')} por responder.`
         : 'Aquí verás las reservas de tus alojamientos.';
     }
-    const fechaHoy = hoy();
+    const fechaHoy = this.fechaHoy();
     const proximos =
       todas?.filter(
         (reserva) => reserva.estado === 'CONFIRMADA' && reserva.fechaEntrada >= fechaHoy,

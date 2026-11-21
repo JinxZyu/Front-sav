@@ -155,6 +155,25 @@ describe('Login (HU-002)', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith(inicio);
   });
 
+  it.each(['/publicaciones?ciudad=Medellin', '/publicaciones#resultados'])(
+    'un administrador que venía de %s entra a su inicio',
+    async (volverA) => {
+      await crear(volverA);
+      llenar();
+      componente.iniciarSesion();
+      backend.expectOne(urlLogin).flush({
+        token: crearToken({
+          sub: 'admin@correo.com',
+          role: 'ADMINISTRADOR',
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        }),
+        tipo: 'Bearer',
+      });
+
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/administracion');
+    },
+  );
+
   it('un administrador vuelve a su página si se le venció la sesión', async () => {
     await crear('/administracion/usuarios');
     llenar();

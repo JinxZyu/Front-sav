@@ -92,6 +92,36 @@ describe('ListaReservas del huésped (HU-034)', () => {
     );
   });
 
+  it('el resumen se actualiza cuando cambia el día', async () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+    try {
+      vi.setSystemTime(new Date(2026, 10, 21, 22, 0));
+      crear();
+      await responder({
+        reservas: [
+          reservaPropia({
+            estado: 'CONFIRMADA',
+            fechaEntrada: '2026-11-21',
+            fechaSalida: '2026-11-23',
+          }),
+        ],
+        totalResultados: 1,
+        mensaje: null,
+      });
+      expect(elemento().querySelector('.banda p')?.textContent).toBe('Tienes 1 viaje próximo.');
+
+      vi.setSystemTime(new Date(2026, 10, 22, 0, 5));
+      vi.advanceTimersByTime(60_000);
+      await fixture.whenStable();
+
+      expect(elemento().querySelector('.banda p')?.textContent).toBe(
+        'Aquí verás todos tus viajes.',
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('criterio 2: invita a buscar cuando aún no hay reservas', async () => {
     crear();
     await responder({ reservas: [], totalResultados: 0, mensaje: 'No tienes reservas.' });

@@ -137,4 +137,41 @@ describe('SelectorDestino', () => {
     expect(control.value).toBe('Lima');
     expect(elemento().querySelector('[role="listbox"]')).toBeNull();
   });
+
+  it('si el formulario cambia el destino por fuera, filtra con el valor nuevo', async () => {
+    await crear('Medellín');
+    entrada().dispatchEvent(new Event('focus'));
+    await refrescar();
+    expect(opciones()).toEqual(['Medellín']);
+
+    control.setValue('Lima');
+    await refrescar();
+
+    expect(opciones()).toEqual(['Lima']);
+  });
+
+  it('con la lista cerrada, las flechas usan las opciones que se van a mostrar', async () => {
+    await crear();
+    control.setValue('Lima');
+    await refrescar();
+
+    await tecla('ArrowUp');
+    expect(entrada().getAttribute('aria-activedescendant')).toBe('destino-opcion-0');
+    await tecla('Enter');
+
+    expect(control.value).toBe('Lima');
+    expect(elemento().querySelector('[role="listbox"]')).toBeNull();
+  });
+
+  it('Enter sobre una opción también la elige', async () => {
+    await crear();
+    entrada().dispatchEvent(new Event('focus'));
+    await refrescar();
+    elemento()
+      .querySelectorAll('[role="option"]')[1]
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await refrescar();
+
+    expect(control.value).toBe('Medellín');
+  });
 });

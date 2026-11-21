@@ -12,7 +12,7 @@
   [attr.aria-activedescendant]="visible() && activo() >= 0 ? idOpcion(activo()) : null"
   (focus)="abrir()"
   (click)="abrir()"
-  (input)="alEscribir($event)"
+  (input)="alEscribir()"
   (keydown)="alTeclear($event)"
   (blur)="cerrar()"
 />
@@ -26,6 +26,7 @@
         [class.activa]="indice === activo()"
         (mousedown)="$event.preventDefault()"
         (click)="elegir(destino)"
+        (keydown.enter)="elegir(destino)"
       >
         <span class="icono" aria-hidden="true">
           <svg viewBox="0 0 24 24">

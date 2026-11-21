@@ -1,4 +1,4 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { DestinoSugerido } from '../../models/catalogo.models';
 
@@ -31,9 +31,20 @@ export class SelectorDestino {
   });
   protected readonly visible = computed(() => this.abierto() && this.opciones().length > 0);
 
+  constructor() {
+    effect((alLimpiar) => {
+      const control = this.control();
+      this.texto.set(control.value ?? '');
+      const suscripcion = control.valueChanges.subscribe((valor) => {
+        this.texto.set(valor ?? '');
+        this.activo.set(-1);
+      });
+      alLimpiar(() => suscripcion.unsubscribe());
+    });
+  }
+
   protected abrir(): void {
     if (!this.abierto()) {
-      this.texto.set(this.control().value ?? '');
       this.activo.set(-1);
       this.abierto.set(true);
     }
@@ -44,17 +55,16 @@ export class SelectorDestino {
     this.activo.set(-1);
   }
 
-  protected alEscribir(evento: Event): void {
-    this.texto.set((evento.target as HTMLInputElement).value);
+  protected alEscribir(): void {
     this.activo.set(-1);
     this.abierto.set(true);
   }
 
   protected alTeclear(evento: KeyboardEvent): void {
-    const total = this.opciones().length;
     if (evento.key === 'ArrowDown' || evento.key === 'ArrowUp') {
       evento.preventDefault();
       this.abrir();
+      const total = this.opciones().length;
       if (total > 0) {
         const paso = evento.key === 'ArrowDown' ? 1 : -1;
         this.activo.update((actual) => (actual + paso + total) % total);
@@ -71,7 +81,6 @@ export class SelectorDestino {
   protected elegir(destino: DestinoSugerido): void {
     this.control().setValue(destino.ciudad);
     this.control().markAsDirty();
-    this.texto.set(destino.ciudad);
     this.cerrar();
   }
 

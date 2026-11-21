@@ -173,7 +173,9 @@ export class Catalogo {
         const codigo = grupo.publicaciones[0].codigoPais;
         return {
           ciudad: grupo.ciudad,
-          pais: codigo ? nombrePais(codigo, grupo.publicaciones[0].pais) : null,
+          pais: codigo
+            ? nombrePais(codigo, grupo.publicaciones[0].pais)
+            : (grupo.publicaciones[0].pais ?? null),
           total: grupo.publicaciones.length,
           local: !referencia || !codigo || codigo === referencia,
         };

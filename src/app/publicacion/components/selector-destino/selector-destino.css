@@ -15,7 +15,9 @@ input {
 }
 
 input:focus-visible {
-  outline: none;
+  border-radius: 0.3rem;
+  outline: 2px solid #6366f1;
+  outline-offset: 4px;
 }
 
 .lista {

@@ -431,4 +431,17 @@ describe('Catalogo (HU-024)', () => {
       idiomas.mockRestore();
     }
   });
+
+  it('muestra el país guardado aunque falte su código', async () => {
+    await abrir('/publicaciones', {
+      catalogo: [{ ...resumen('p-1', 'Loft en Chapinero'), pais: 'Colombia' }],
+    });
+    await refrescar();
+    campo<HTMLInputElement>('#destino-busqueda').dispatchEvent(new Event('focus'));
+    await refrescar();
+
+    expect(elemento().querySelector('[role="option"] .detalle')?.textContent?.trim()).toBe(
+      'Colombia · 1 alojamiento',
+    );
+  });
 });

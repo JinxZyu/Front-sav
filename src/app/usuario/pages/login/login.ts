@@ -121,7 +121,8 @@ export class Login {
     if (!destino?.startsWith('/') || destino.startsWith('//')) {
       return inicio;
     }
-    const esCatalogo = destino === '/publicaciones' || destino.startsWith('/publicaciones/');
+    const ruta = destino.split(/[?#]/)[0];
+    const esCatalogo = ruta === '/publicaciones' || ruta.startsWith('/publicaciones/');
     return esCatalogo && !this.sesion.tieneRol('HUESPED') ? inicio : destino;
   }
 
