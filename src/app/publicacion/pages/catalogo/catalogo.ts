@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, linkedSignal, untracked } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, convertToParamMap } from '@angular/router';
@@ -9,6 +9,7 @@ import { rangoValido } from '../../../disponibilidad/utils/fechas';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { BuscadorCatalogo } from '../../components/buscador-catalogo/buscador-catalogo';
 import { CarruselPublicaciones } from '../../components/carrusel-publicaciones/carrusel-publicaciones';
+import { FiltrosAvanzados } from '../../components/filtros-avanzados/filtros-avanzados';
 import { DestinoSugerido, FiltrosBusqueda } from '../../models/catalogo.models';
 import { CuentaService } from '../../../usuario/services/cuenta.service';
 import { CatalogoService } from '../../services/catalogo.service';
@@ -115,13 +116,14 @@ function leerFiltros(parametros: ParamMap): FiltrosBusqueda {
 
 @Component({
   selector: 'app-catalogo',
-  imports: [TarjetaPublicacion, CarruselPublicaciones, BuscadorCatalogo],
+  imports: [TarjetaPublicacion, CarruselPublicaciones, BuscadorCatalogo, FiltrosAvanzados],
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css',
 })
 export class Catalogo {
   private readonly servicio = inject(CatalogoService);
   private readonly router = inject(Router);
+  private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   readonly filtros = toSignal(inject(ActivatedRoute).queryParamMap.pipe(map(leerFiltros)), {
     initialValue: leerFiltros(convertToParamMap({})),
@@ -137,7 +139,7 @@ export class Catalogo {
     return [tipo, precioMinimo, precioMaximo].filter(Boolean).length + servicios.length;
   });
 
-  readonly avanzada = linkedSignal(() => this.filtrosAvanzados() > 0);
+  readonly avanzada = signal(false);
 
   readonly resultados = rxResource({
     params: () => (this.hayFiltros() ? this.filtros() : undefined),
@@ -298,9 +300,14 @@ export class Catalogo {
   buscar(): void {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
+      const { precioMinimo, precioMaximo } = this.formulario.controls;
+      if (this.formulario.hasError('precios') || precioMinimo.invalid || precioMaximo.invalid) {
+        this.avanzada.set(true);
+      }
       return;
     }
     const valores = this.formulario.getRawValue();
+    this.avanzada.set(false);
     void this.router.navigate([], {
       queryParams: {
         ciudad: comoParametro(valores.ciudad),
@@ -313,6 +320,17 @@ export class Catalogo {
         servicios: comoParametro(valores.servicios.join(',')),
       },
     });
+  }
+
+  cerrarAvanzada(evento: Event): void {
+    if (!this.avanzada() || evento.defaultPrevented) {
+      return;
+    }
+    const desdePanel = (evento.target as Element | null)?.closest('#busqueda-avanzada');
+    this.avanzada.set(false);
+    if (desdePanel) {
+      this.elemento.querySelector<HTMLButtonElement>('button.alternar')?.focus();
+    }
   }
 
   limpiar(): void {

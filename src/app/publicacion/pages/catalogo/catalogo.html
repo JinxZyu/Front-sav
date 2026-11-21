@@ -1,4 +1,8 @@
-<section class="contenedor" aria-labelledby="titulo-catalogo">
+<section
+  class="contenedor"
+  aria-labelledby="titulo-catalogo"
+  (keydown.escape)="cerrarAvanzada($event)"
+>
   <div class="portada">
     <h1 id="titulo-catalogo">Encuentra tu alojamiento</h1>
     <p class="lema">Casas, cabañas, fincas y más lugares para tu próximo viaje.</p>
@@ -6,7 +10,6 @@
     <app-buscador-catalogo
       [formulario]="formulario"
       [destinos]="destinos()"
-      [servicios]="servicios"
       [filtrosAvanzados]="filtrosAvanzados()"
       [mostrarLimpiar]="hayFiltros() || hayEscrito()"
       [(avanzada)]="avanzada"
@@ -14,6 +17,10 @@
       (limpiar)="limpiar()"
     />
   </div>
+
+  @if (avanzada()) {
+    <app-filtros-avanzados [formulario]="formulario" [servicios]="servicios" (aplicar)="buscar()" />
+  }
 
   @if (!hayFiltros()) {
     @if (errorCatalogo(); as error) {

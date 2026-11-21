@@ -13,11 +13,8 @@
 }
 
 .foto {
-  position: sticky;
-  top: 0;
   display: flex;
   align-items: flex-end;
-  height: calc(100vh - 4.5rem);
   padding: 3rem;
   background:
     linear-gradient(180deg, rgb(30 27 75 / 40%), rgb(30 27 75 / 78%)),
@@ -128,8 +125,6 @@
   }
 
   .foto {
-    position: static;
-    height: auto;
     min-height: 13rem;
     padding: 1.6rem 1.25rem;
   }

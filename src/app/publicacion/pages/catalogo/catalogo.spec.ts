@@ -193,8 +193,9 @@ describe('Catalogo (HU-024)', () => {
     expect(elemento().textContent).toContain('1 alojamiento disponible');
     expect(elemento().querySelector('app-carrusel-publicaciones')).toBeNull();
     expect(campo<HTMLInputElement>('#destino-busqueda').value).toBe('Bogotá');
-    expect(campo('button.alternar').getAttribute('aria-expanded')).toBe('true');
+    expect(campo('button.alternar').getAttribute('aria-expanded')).toBe('false');
     expect(campo('.contador').textContent?.trim()).toBe('2');
+    await abrirAvanzada();
     expect(elemento().querySelectorAll('.servicio.marcado').length).toBe(2);
     expect(campo<HTMLAnchorElement>('a.tarjeta').getAttribute('href')).toBe(
       '/publicaciones/p-1?llegada=2026-12-04&salida=2026-12-06&huespedes=2',
@@ -216,6 +217,7 @@ describe('Catalogo (HU-024)', () => {
     expect(TestBed.inject(Router).url).toBe(
       '/publicaciones?ciudad=Medell%C3%ADn&tipo=Casa&max=300000&servicios=s-1',
     );
+    expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
     const params = esperarBusqueda().request.params;
     expect(params.get('ciudad')).toBe('Medellín');
     expect(params.get('tipoAlojamiento')).toBe('Casa');
@@ -443,5 +445,51 @@ describe('Catalogo (HU-024)', () => {
     expect(elemento().querySelector('[role="option"] .detalle')?.textContent?.trim()).toBe(
       'Colombia · 1 alojamiento',
     );
+  });
+
+  it('la búsqueda avanzada se cierra con Escape', async () => {
+    await abrir();
+    await refrescar();
+    await abrirAvanzada();
+
+    campo('#busqueda-avanzada select').dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    );
+    await refrescar();
+
+    expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
+    expect(campo('button.alternar').getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(campo('button.alternar'));
+  });
+
+  it('Escape cierra la búsqueda avanzada aunque el foco siga en su botón', async () => {
+    await abrir();
+    await refrescar();
+    await abrirAvanzada();
+    const destino = campo<HTMLInputElement>('#destino-busqueda');
+    destino.focus();
+
+    campo('button.alternar').dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    );
+    await refrescar();
+
+    expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
+    expect(document.activeElement).toBe(destino);
+  });
+
+  it('abre la búsqueda avanzada cuando sus filtros impiden buscar', async () => {
+    await abrir('/publicaciones?min=500000&max=100000');
+    esperarBusqueda().flush(pagina());
+    await refrescar();
+    expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
+
+    escribir('#destino-busqueda', 'Lima');
+    boton('Buscar').click();
+    await refrescar();
+
+    expect(elemento().querySelector('#busqueda-avanzada')).not.toBeNull();
+    expect(elemento().textContent).toContain('Debe ser mayor o igual al mínimo.');
+    expect(TestBed.inject(Router).url).toBe('/publicaciones?min=500000&max=100000');
   });
 });
