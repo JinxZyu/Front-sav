@@ -20,8 +20,8 @@
   height: calc(100vh - 4.5rem);
   padding: 3rem;
   background:
-    linear-gradient(180deg, rgb(30 27 75 / 10%), rgb(30 27 75 / 72%)),
-    url('/fondo-acceso.jpg') 60% center / cover no-repeat,
+    linear-gradient(180deg, rgb(30 27 75 / 40%), rgb(30 27 75 / 78%)),
+    url('/fondo-login.jpg') 30% center / cover no-repeat,
     #312e81;
   color: #fff;
 }
