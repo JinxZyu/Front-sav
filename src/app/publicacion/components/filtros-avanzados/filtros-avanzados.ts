@@ -16,7 +16,6 @@ export class FiltrosAvanzados {
   readonly servicios = input.required<ResourceRef<ServicioDisponible[] | undefined>>();
 
   readonly aplicar = output<void>();
-  readonly cerrar = output<void>();
 
   protected readonly tipos = TIPOS_ALOJAMIENTO;
 

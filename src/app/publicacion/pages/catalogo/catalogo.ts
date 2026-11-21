@@ -299,6 +299,10 @@ export class Catalogo {
   buscar(): void {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
+      const { precioMinimo, precioMaximo } = this.formulario.controls;
+      if (this.formulario.hasError('precios') || precioMinimo.invalid || precioMaximo.invalid) {
+        this.avanzada.set(true);
+      }
       return;
     }
     const valores = this.formulario.getRawValue();
@@ -315,6 +319,12 @@ export class Catalogo {
         servicios: comoParametro(valores.servicios.join(',')),
       },
     });
+  }
+
+  cerrarAvanzada(evento: Event): void {
+    if (this.avanzada() && !evento.defaultPrevented) {
+      this.avanzada.set(false);
+    }
   }
 
   limpiar(): void {

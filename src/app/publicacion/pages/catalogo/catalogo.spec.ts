@@ -460,4 +460,32 @@ describe('Catalogo (HU-024)', () => {
     expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
     expect(campo('button.alternar').getAttribute('aria-expanded')).toBe('false');
   });
+
+  it('Escape cierra la búsqueda avanzada aunque el foco siga en su botón', async () => {
+    await abrir();
+    await refrescar();
+    await abrirAvanzada();
+
+    campo('button.alternar').dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    );
+    await refrescar();
+
+    expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
+  });
+
+  it('abre la búsqueda avanzada cuando sus filtros impiden buscar', async () => {
+    await abrir('/publicaciones?min=500000&max=100000');
+    esperarBusqueda().flush(pagina());
+    await refrescar();
+    expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
+
+    escribir('#destino-busqueda', 'Lima');
+    boton('Buscar').click();
+    await refrescar();
+
+    expect(elemento().querySelector('#busqueda-avanzada')).not.toBeNull();
+    expect(elemento().textContent).toContain('Debe ser mayor o igual al mínimo.');
+    expect(TestBed.inject(Router).url).toBe('/publicaciones?min=500000&max=100000');
+  });
 });
