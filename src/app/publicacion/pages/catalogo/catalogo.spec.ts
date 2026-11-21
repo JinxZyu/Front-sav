@@ -113,6 +113,11 @@ describe('Catalogo (HU-024)', () => {
     await refrescar();
   };
 
+  const destinosSugeridos = () =>
+    [...elemento().querySelectorAll('[role="option"] .ciudad')].map((ciudad) =>
+      ciudad.textContent?.trim(),
+    );
+
   const titulosCarruseles = () =>
     [...elemento().querySelectorAll('app-carrusel-publicaciones h2')].map((h2) =>
       h2.textContent?.trim(),
@@ -145,11 +150,9 @@ describe('Catalogo (HU-024)', () => {
       '/publicaciones?ciudad=Bogot%C3%A1',
     );
     expect(campo<HTMLAnchorElement>('a.tarjeta').getAttribute('href')).toBe('/publicaciones/p-1');
-    expect(
-      [...elemento().querySelectorAll('#ciudades-sugeridas option')].map((opcion) =>
-        opcion.getAttribute('value'),
-      ),
-    ).toEqual(['Bogotá', 'Cartagena', 'Medellín']);
+    campo<HTMLInputElement>('#destino-busqueda').dispatchEvent(new Event('focus'));
+    await refrescar();
+    expect(destinosSugeridos()).toEqual(['Bogotá', 'Cartagena', 'Medellín']);
     expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
   });
 
@@ -189,7 +192,7 @@ describe('Catalogo (HU-024)', () => {
 
     expect(elemento().textContent).toContain('1 alojamiento disponible');
     expect(elemento().querySelector('app-carrusel-publicaciones')).toBeNull();
-    expect(campo<HTMLInputElement>('input[formcontrolname="ciudad"]').value).toBe('Bogotá');
+    expect(campo<HTMLInputElement>('#destino-busqueda').value).toBe('Bogotá');
     expect(campo('button.alternar').getAttribute('aria-expanded')).toBe('true');
     expect(campo('.contador').textContent?.trim()).toBe('2');
     expect(elemento().querySelectorAll('.servicio.marcado').length).toBe(2);
@@ -202,7 +205,7 @@ describe('Catalogo (HU-024)', () => {
     await abrir();
     await refrescar();
 
-    escribir('input[formcontrolname="ciudad"]', '  Medellín ');
+    escribir('#destino-busqueda', '  Medellín ');
     await abrirAvanzada();
     escribir('select[formcontrolname="tipo"]', 'Casa');
     escribir('input[formcontrolname="precioMaximo"]', '300000');
@@ -248,7 +251,7 @@ describe('Catalogo (HU-024)', () => {
 
     expect(TestBed.inject(Router).url).toBe('/publicaciones');
     backend.expectNone((peticion) => peticion.url === busqueda);
-    expect(campo<HTMLInputElement>('input[formcontrolname="ciudad"]').value).toBe('');
+    expect(campo<HTMLInputElement>('#destino-busqueda').value).toBe('');
     expect(elemento().querySelectorAll('app-carrusel-publicaciones').length).toBe(4);
   });
 
@@ -303,14 +306,14 @@ describe('Catalogo (HU-024)', () => {
     await refrescar();
     expect(boton('Limpiar filtros')).toBeUndefined();
 
-    escribir('input[formcontrolname="ciudad"]', 'Cali');
+    escribir('#destino-busqueda', 'Cali');
     await abrirAvanzada();
     campo<HTMLInputElement>('.servicio input').click();
     await refrescar();
     boton('Limpiar filtros').click();
     await refrescar();
 
-    expect(campo<HTMLInputElement>('input[formcontrolname="ciudad"]').value).toBe('');
+    expect(campo<HTMLInputElement>('#destino-busqueda').value).toBe('');
     expect(elemento().querySelectorAll('.servicio.marcado').length).toBe(0);
     expect(TestBed.inject(Router).url).toBe('/publicaciones');
   });
@@ -358,6 +361,13 @@ describe('Catalogo (HU-024)', () => {
     expect(carruseles[1].querySelectorAll('a.tarjeta')).toHaveLength(3);
     expect(carruseles[3].querySelectorAll('a.tarjeta')).toHaveLength(2);
     expect(carruseles[3].querySelector('h2 a')).toBeNull();
+
+    campo<HTMLInputElement>('#destino-busqueda').dispatchEvent(new Event('focus'));
+    await refrescar();
+    expect(destinosSugeridos()).toEqual(['Lima', 'Cusco', 'Bogotá', 'Medellín']);
+    expect(elemento().querySelector('[role="option"] .detalle')?.textContent?.trim()).toBe(
+      'Perú · 2 alojamientos',
+    );
   });
 
   it('sin sesión toma el país del idioma del navegador', async () => {

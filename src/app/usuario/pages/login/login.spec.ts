@@ -118,6 +118,59 @@ describe('Login (HU-002)', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/reservas');
   });
 
+  it('un huésped vuelve al alojamiento que estaba cotizando', async () => {
+    await crear('/publicaciones/p-1?llegada=2026-12-10&salida=2026-12-12&huespedes=2');
+    llenar();
+    componente.iniciarSesion();
+    backend.expectOne(urlLogin).flush({
+      token: crearToken({
+        sub: 'ana@correo.com',
+        role: 'HUESPED',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+      tipo: 'Bearer',
+    });
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith(
+      '/publicaciones/p-1?llegada=2026-12-10&salida=2026-12-12&huespedes=2',
+    );
+  });
+
+  it.each([
+    ['AUDITOR_OPERACION', '/auditoria'],
+    ['ADMINISTRADOR', '/administracion'],
+  ])('un %s que venía de cotizar entra a su inicio', async (rol, inicio) => {
+    await crear('/publicaciones/p-1?llegada=2026-12-10&salida=2026-12-12&huespedes=2');
+    llenar();
+    componente.iniciarSesion();
+    backend.expectOne(urlLogin).flush({
+      token: crearToken({
+        sub: 'equipo@correo.com',
+        role: rol,
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+      tipo: 'Bearer',
+    });
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith(inicio);
+  });
+
+  it('un administrador vuelve a su página si se le venció la sesión', async () => {
+    await crear('/administracion/usuarios');
+    llenar();
+    componente.iniciarSesion();
+    backend.expectOne(urlLogin).flush({
+      token: crearToken({
+        sub: 'admin@correo.com',
+        role: 'ADMINISTRADOR',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+      tipo: 'Bearer',
+    });
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/administracion/usuarios');
+  });
+
   it('un anfitrión siempre entra a sus alojamientos aunque viniera de otra página', async () => {
     await crear('/disponibilidad/p-1');
     llenar();

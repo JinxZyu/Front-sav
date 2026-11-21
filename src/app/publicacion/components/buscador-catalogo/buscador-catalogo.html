@@ -1,21 +1,13 @@
 <form class="buscador" [formGroup]="formulario()" (ngSubmit)="buscar.emit()" novalidate>
   <div class="barra">
-    <label class="campo donde">
-      <span class="nombre">Dónde</span>
-      <input
-        type="text"
-        formControlName="ciudad"
-        placeholder="Explora destinos"
-        maxlength="100"
-        autocomplete="off"
-        list="ciudades-sugeridas"
+    <div class="campo donde">
+      <label class="nombre" for="destino-busqueda">Dónde</label>
+      <app-selector-destino
+        idEntrada="destino-busqueda"
+        [control]="ciudad()"
+        [destinos]="destinos()"
       />
-      <datalist id="ciudades-sugeridas">
-        @for (ciudad of sugerencias(); track ciudad) {
-          <option [value]="ciudad"></option>
-        }
-      </datalist>
-    </label>
+    </div>
     <label class="campo">
       <span class="nombre">Llegada</span>
       <input type="date" formControlName="llegada" [min]="minimo" />

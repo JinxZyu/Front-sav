@@ -1,0 +1,43 @@
+<input
+  type="text"
+  role="combobox"
+  aria-autocomplete="list"
+  autocomplete="off"
+  maxlength="100"
+  placeholder="Explora destinos"
+  [id]="idEntrada()"
+  [formControl]="control()"
+  [attr.aria-expanded]="visible()"
+  [attr.aria-controls]="idLista()"
+  [attr.aria-activedescendant]="visible() && activo() >= 0 ? idOpcion(activo()) : null"
+  (focus)="abrir()"
+  (click)="abrir()"
+  (input)="alEscribir($event)"
+  (keydown)="alTeclear($event)"
+  (blur)="cerrar()"
+/>
+@if (visible()) {
+  <ul class="lista" role="listbox" aria-label="Destinos con alojamientos" [id]="idLista()">
+    @for (destino of opciones(); track destino.ciudad; let indice = $index) {
+      <li
+        role="option"
+        [id]="idOpcion(indice)"
+        [attr.aria-selected]="indice === activo()"
+        [class.activa]="indice === activo()"
+        (mousedown)="$event.preventDefault()"
+        (click)="elegir(destino)"
+      >
+        <span class="icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
+            <circle cx="12" cy="10" r="2.4" />
+          </svg>
+        </span>
+        <span class="textos">
+          <span class="ciudad">{{ destino.ciudad }}</span>
+          <span class="detalle">{{ detalle(destino) }}</span>
+        </span>
+      </li>
+    }
+  </ul>
+}

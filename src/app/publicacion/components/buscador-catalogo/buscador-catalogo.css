@@ -19,6 +19,8 @@
 }
 
 .campo {
+  display: flex;
+  flex-direction: column;
   gap: 0.1rem;
   padding: 0.35rem 1.1rem;
   border-right: 1px solid #e2e8f0;
@@ -84,8 +86,11 @@
 }
 
 .buscador > .error-campo {
-  display: block;
-  margin: 0.5rem 1.2rem 0;
+  display: table;
+  margin: 0.6rem auto 0;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  background: #fff1f2;
 }
 
 .opciones {
@@ -130,6 +135,9 @@
 }
 
 .opciones .limpiar {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: #fff;
   color: #4f46e5;
   font-size: 0.9rem;
 }

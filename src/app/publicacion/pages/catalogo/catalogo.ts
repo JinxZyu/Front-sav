@@ -9,7 +9,7 @@ import { rangoValido } from '../../../disponibilidad/utils/fechas';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { BuscadorCatalogo } from '../../components/buscador-catalogo/buscador-catalogo';
 import { CarruselPublicaciones } from '../../components/carrusel-publicaciones/carrusel-publicaciones';
-import { FiltrosBusqueda } from '../../models/catalogo.models';
+import { DestinoSugerido, FiltrosBusqueda } from '../../models/catalogo.models';
 import { CuentaService } from '../../../usuario/services/cuenta.service';
 import { CatalogoService } from '../../services/catalogo.service';
 
@@ -146,12 +146,6 @@ export class Catalogo {
 
   readonly catalogo = rxResource({ stream: () => this.servicio.catalogo() });
 
-  readonly grupos = computed(() =>
-    agruparPorCiudad(this.catalogo.hasValue() ? this.catalogo.value() : []),
-  );
-
-  readonly sugerencias = computed(() => this.grupos().map((grupo) => grupo.ciudad));
-
   private readonly cuenta = inject(CuentaService).actual;
 
   private readonly datosCuenta = computed(() =>
@@ -162,17 +156,38 @@ export class Catalogo {
     () => this.datosCuenta()?.codigoPais?.toUpperCase() || regionDelNavegador(),
   );
 
+  private readonly todas = computed(() => (this.catalogo.hasValue() ? this.catalogo.value() : []));
+
+  private readonly paisReferencia = computed(() => {
+    const conteo = contarPorPais(this.todas());
+    const visitante = this.paisVisitante();
+    return visitante && conteo.has(visitante)
+      ? visitante
+      : ([...conteo.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null);
+  });
+
+  readonly destinos = computed<DestinoSugerido[]>(() => {
+    const referencia = this.paisReferencia();
+    return agruparPorCiudad(this.todas())
+      .map((grupo) => {
+        const codigo = grupo.publicaciones[0].codigoPais;
+        return {
+          ciudad: grupo.ciudad,
+          pais: codigo ? nombrePais(codigo, grupo.publicaciones[0].pais) : null,
+          total: grupo.publicaciones.length,
+          local: !referencia || !codigo || codigo === referencia,
+        };
+      })
+      .sort((a, b) => Number(b.local) - Number(a.local))
+      .map(({ ciudad, pais, total }) => ({ ciudad, pais, total }));
+  });
+
   readonly secciones = computed<SeccionCatalogo[]>(() => {
-    const todas = this.catalogo.hasValue() ? this.catalogo.value() : [];
+    const todas = this.todas();
     if (todas.length === 0) {
       return [];
     }
-    const conteo = contarPorPais(todas);
-    const visitante = this.paisVisitante();
-    const referencia =
-      visitante && conteo.has(visitante)
-        ? visitante
-        : ([...conteo.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null);
+    const referencia = this.paisReferencia();
     const locales = todas.filter(
       (publicacion) =>
         !referencia || !publicacion.codigoPais || publicacion.codigoPais === referencia,
