@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, linkedSignal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, convertToParamMap } from '@angular/router';
@@ -137,7 +137,7 @@ export class Catalogo {
     return [tipo, precioMinimo, precioMaximo].filter(Boolean).length + servicios.length;
   });
 
-  readonly avanzada = linkedSignal(() => this.filtrosAvanzados() > 0);
+  readonly avanzada = signal(false);
 
   readonly resultados = rxResource({
     params: () => (this.hayFiltros() ? this.filtros() : undefined),
@@ -301,6 +301,7 @@ export class Catalogo {
       return;
     }
     const valores = this.formulario.getRawValue();
+    this.avanzada.set(false);
     void this.router.navigate([], {
       queryParams: {
         ciudad: comoParametro(valores.ciudad),

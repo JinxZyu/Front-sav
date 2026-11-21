@@ -3,6 +3,7 @@
 }
 
 .buscador {
+  position: relative;
   max-width: 62rem;
   margin: 0 auto;
 }
@@ -146,12 +147,16 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem 1rem;
-  margin-top: 1rem;
+  position: absolute;
+  z-index: 15;
+  top: calc(100% + 0.6rem);
+  left: 0;
+  right: 0;
   padding: 1.3rem;
   border: 1px solid #e0e7ff;
   border-radius: 1.2rem;
   background: #fff;
-  box-shadow: 0 14px 30px rgb(30 27 75 / 7%);
+  box-shadow: 0 24px 50px rgb(30 27 75 / 18%);
 }
 
 .ancha {
@@ -238,21 +243,13 @@ input[aria-invalid='true'] {
 
 .principal {
   padding: 0.65rem 1.3rem;
+  border: 0;
   border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #fff;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
-}
-
-.principal {
-  border: 0;
-  background: linear-gradient(90deg, #2563eb, #7c3aed);
-  color: #fff;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 button:focus-visible,

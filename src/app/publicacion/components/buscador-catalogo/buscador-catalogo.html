@@ -71,7 +71,7 @@
   </div>
 
   @if (avanzada()) {
-    <div class="avanzada" id="busqueda-avanzada">
+    <div class="avanzada" id="busqueda-avanzada" (keydown.escape)="avanzada.set(false)">
       <label>
         Tipo
         <select formControlName="tipo">

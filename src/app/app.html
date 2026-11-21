@@ -2,7 +2,7 @@
   <a routerLink="/" class="marca" aria-label="SAV, ir al inicio">
     <img src="/logo-sav.png" alt="SAV" width="98" height="36" />
   </a>
-  <nav>
+  <nav aria-label="Secciones">
     @if (sesion.tieneRol('ANFITRION')) {
       <a routerLink="/alojamientos" routerLinkActive="activo">Mis alojamientos</a>
       <a routerLink="/reservas/alojamientos" routerLinkActive="activo" class="opcional">Reservas</a>
@@ -16,6 +16,8 @@
     @if (sesion.tieneRol('HUESPED')) {
       <a routerLink="/reservas" routerLinkActive="activo" class="opcional">Mis reservas</a>
     }
+  </nav>
+  <div class="cuenta">
     @if (sesion.autenticado()) {
       <app-campana-notificaciones />
       <app-menu-usuario />
@@ -23,7 +25,7 @@
       <a routerLink="/usuario/login" routerLinkActive="activo" class="opcional">Iniciar sesión</a>
       <a routerLink="/usuario/registro" class="destacado">Registrarse</a>
     }
-  </nav>
+  </div>
 </header>
 
 <main>

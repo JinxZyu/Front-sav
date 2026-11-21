@@ -8,6 +8,7 @@
 
 .secciones {
   display: flex;
+  justify-content: safe center;
   gap: 0.4rem;
   max-width: 76rem;
   margin: 0 auto;
