@@ -459,12 +459,15 @@ describe('Catalogo (HU-024)', () => {
 
     expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
     expect(campo('button.alternar').getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(campo('button.alternar'));
   });
 
   it('Escape cierra la búsqueda avanzada aunque el foco siga en su botón', async () => {
     await abrir();
     await refrescar();
     await abrirAvanzada();
+    const destino = campo<HTMLInputElement>('#destino-busqueda');
+    destino.focus();
 
     campo('button.alternar').dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
@@ -472,6 +475,7 @@ describe('Catalogo (HU-024)', () => {
     await refrescar();
 
     expect(elemento().querySelector('#busqueda-avanzada')).toBeNull();
+    expect(document.activeElement).toBe(destino);
   });
 
   it('abre la búsqueda avanzada cuando sus filtros impiden buscar', async () => {

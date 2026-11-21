@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, convertToParamMap } from '@angular/router';
@@ -123,6 +123,7 @@ function leerFiltros(parametros: ParamMap): FiltrosBusqueda {
 export class Catalogo {
   private readonly servicio = inject(CatalogoService);
   private readonly router = inject(Router);
+  private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   readonly filtros = toSignal(inject(ActivatedRoute).queryParamMap.pipe(map(leerFiltros)), {
     initialValue: leerFiltros(convertToParamMap({})),
@@ -322,8 +323,13 @@ export class Catalogo {
   }
 
   cerrarAvanzada(evento: Event): void {
-    if (this.avanzada() && !evento.defaultPrevented) {
-      this.avanzada.set(false);
+    if (!this.avanzada() || evento.defaultPrevented) {
+      return;
+    }
+    const desdePanel = (evento.target as Element | null)?.closest('#busqueda-avanzada');
+    this.avanzada.set(false);
+    if (desdePanel) {
+      this.elemento.querySelector<HTMLButtonElement>('button.alternar')?.focus();
     }
   }
 
