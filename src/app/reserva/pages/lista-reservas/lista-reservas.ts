@@ -3,10 +3,16 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, map } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
+import { hoy } from '../../../disponibilidad/utils/fechas';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { TarjetaReserva } from '../../components/tarjeta-reserva/tarjeta-reserva';
 import { ReservaDeAlojamiento, ReservaPropia } from '../../models/reserva.models';
 import { ReservaService } from '../../services/reserva.service';
+
+const EN_PROCESO = ['PENDIENTE_APROBACION', 'PENDIENTE_PAGO'];
+
+const contar = (cantidad: number, singular: string, plural: string) =>
+  `${cantidad} ${cantidad === 1 ? singular : plural}`;
 
 interface FilaReserva {
   idReserva: string;
@@ -41,6 +47,27 @@ export class ListaReservas {
   protected readonly pendientes = computed(
     () => this.todas()?.filter((reserva) => reserva.estado === 'PENDIENTE_APROBACION').length ?? 0,
   );
+
+  protected readonly resumen = computed(() => {
+    const todas = this.todas();
+    if (this.anfitrion) {
+      const pendientes = this.pendientes();
+      return pendientes > 0
+        ? `Tienes ${contar(pendientes, 'solicitud', 'solicitudes')} por responder.`
+        : 'Aquí verás las reservas de tus alojamientos.';
+    }
+    const fechaHoy = hoy();
+    const proximos =
+      todas?.filter(
+        (reserva) => reserva.estado === 'CONFIRMADA' && reserva.fechaEntrada >= fechaHoy,
+      ).length ?? 0;
+    const enProceso = todas?.filter((reserva) => EN_PROCESO.includes(reserva.estado)).length ?? 0;
+    const partes = [
+      proximos > 0 ? contar(proximos, 'viaje próximo', 'viajes próximos') : '',
+      enProceso > 0 ? contar(enProceso, 'solicitud en proceso', 'solicitudes en proceso') : '',
+    ].filter(Boolean);
+    return partes.length > 0 ? `Tienes ${partes.join(' y ')}.` : 'Aquí verás todos tus viajes.';
+  });
 
   protected readonly reservas = computed(() => {
     const todas = this.todas();

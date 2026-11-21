@@ -5,9 +5,11 @@ import { estadoReserva } from '../../../reserva/models/reserva.models';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { BarrasIndicador } from '../../components/barras-indicador/barras-indicador';
 import { BarraIndicador, ORDEN_ESTADOS_RESERVA } from '../../models/indicadores.models';
+import { CuentaService } from '../../../usuario/services/cuenta.service';
 import { IndicadoresService } from '../../services/indicadores.service';
 
 const NUMERO = new Intl.NumberFormat('es-CO');
+const DIA = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
 
 @Component({
   selector: 'app-panel-indicadores',
@@ -18,7 +20,16 @@ const NUMERO = new Intl.NumberFormat('es-CO');
 export class PanelIndicadores {
   private readonly servicio = inject(IndicadoresService);
 
+  private readonly cuenta = inject(CuentaService).actual;
+
   protected readonly consulta = rxResource({ stream: () => this.servicio.consultar() });
+
+  protected readonly saludo = computed(() => {
+    const nombre = this.cuenta.hasValue() ? this.cuenta.value()?.nombre : null;
+    const dia = DIA.format(new Date());
+    const fecha = dia.charAt(0).toUpperCase() + dia.slice(1);
+    return nombre ? `Hola, ${nombre} · ${fecha}` : fecha;
+  });
 
   protected readonly datos = computed(() =>
     this.consulta.hasValue() ? this.consulta.value() : null,

@@ -6,34 +6,61 @@
 
 :host {
   box-sizing: border-box;
-  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: calc(100vh - 4.5rem);
+  background: #fff;
+}
+
+.foto {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: flex-end;
+  height: calc(100vh - 4.5rem);
+  padding: 3rem;
+  background:
+    linear-gradient(180deg, rgb(30 27 75 / 10%), rgb(30 27 75 / 72%)),
+    url('/fondo-acceso.jpg') 60% center / cover no-repeat,
+    #312e81;
+  color: #fff;
+}
+
+.lema {
+  max-width: 28rem;
+}
+
+.lema .etiqueta {
+  color: #e0e7ff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lema h2 {
+  margin: 0.4rem 0;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.lema p {
+  margin: 0;
+  color: #eef2ff;
+  line-height: 1.6;
+}
+
+.lado-formulario {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 4.5rem);
   padding: 2.5rem 1rem;
 }
 
-:host::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(rgb(30 27 75 / 35%), rgb(30 27 75 / 35%)),
-    url('/fondo-acceso.jpg') center / cover no-repeat,
-    linear-gradient(135deg, #1e1b4b, #312e81 50%, #1e3a8a);
-}
-
 .tarjeta {
-  width: min(34rem, 100%);
-  overflow: hidden;
-  padding-top: 1.75rem;
-  border: 1px solid rgb(255 255 255 / 55%);
-  border-radius: 1.5rem;
-  background: rgb(255 255 255 / 62%);
-  box-shadow: 0 2rem 5rem rgb(15 23 42 / 40%);
-  backdrop-filter: blur(22px) saturate(140%);
+  width: min(32rem, 100%);
+  padding-top: 0.5rem;
   view-transition-name: tarjeta-acceso;
 }
 
@@ -49,7 +76,7 @@
   margin: 0 3rem;
   padding: 0.3rem;
   border-radius: 999px;
-  background: rgb(255 255 255 / 55%);
+  background: #f1f5f9;
 }
 
 .indicador {
@@ -93,6 +120,23 @@
 .pestanas a:focus-visible {
   outline: 2px solid #6366f1;
   outline-offset: 2px;
+}
+
+@media (width < 56rem) {
+  :host {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .foto {
+    position: static;
+    height: auto;
+    min-height: 13rem;
+    padding: 1.6rem 1.25rem;
+  }
+
+  .lema h2 {
+    font-size: 1.8rem;
+  }
 }
 
 @media (width < 30rem) {

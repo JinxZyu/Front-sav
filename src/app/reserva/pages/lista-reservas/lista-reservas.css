@@ -11,10 +11,25 @@
   margin: 0 auto;
 }
 
+.banda {
+  margin-bottom: 1.4rem;
+  padding: 2.4rem 2.2rem;
+  border-radius: 1.75rem;
+  background:
+    linear-gradient(rgb(30 27 75 / 62%), rgb(30 27 75 / 25%)),
+    url('/fondo-acceso.jpg') center 72% / cover no-repeat,
+    #312e81;
+  color: #fff;
+}
+
 h1 {
-  margin: 0 0 1.4rem;
-  color: #1e1b4b;
-  font-size: 1.8rem;
+  margin: 0;
+  font-size: 2rem;
+}
+
+.banda p {
+  margin: 0.3rem 0 0;
+  color: #eef2ff;
 }
 
 .lista {
