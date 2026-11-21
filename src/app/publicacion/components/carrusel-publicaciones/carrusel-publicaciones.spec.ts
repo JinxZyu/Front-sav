@@ -48,6 +48,9 @@ describe('CarruselPublicaciones', () => {
     const desplazar = vi.fn();
     pista.scrollBy = desplazar as unknown as typeof pista.scrollBy;
     Object.defineProperty(pista, 'clientWidth', { value: 500 });
+    Object.defineProperty(pista, 'scrollWidth', { value: 1000 });
+    pista.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
 
     expect(elemento().querySelector('h2 a')).toBeNull();
     (elemento().querySelector('button[aria-label="Ver siguientes"]') as HTMLButtonElement).click();
@@ -107,5 +110,28 @@ describe('CarruselPublicaciones', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it('recalcula las flechas cuando llegan más publicaciones', async () => {
+    crear();
+    await fixture.whenStable();
+    const pista = elemento().querySelector('.pista') as HTMLElement;
+    Object.defineProperty(pista, 'clientWidth', { value: 500 });
+    let ancho = 500;
+    Object.defineProperty(pista, 'scrollWidth', { get: () => ancho });
+    fixture.componentRef.setInput('publicaciones', [resumen('p-1')]);
+    await fixture.whenStable();
+    const siguiente = () => elemento().querySelector('button[aria-label="Ver siguientes"]');
+    expect(siguiente()?.hasAttribute('disabled')).toBe(true);
+
+    ancho = 1500;
+    fixture.componentRef.setInput('publicaciones', [
+      resumen('p-1'),
+      resumen('p-2'),
+      resumen('p-3'),
+    ]);
+    await fixture.whenStable();
+
+    expect(siguiente()?.hasAttribute('disabled')).toBe(false);
   });
 });

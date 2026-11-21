@@ -3,6 +3,7 @@ import {
   DestroyRef,
   ElementRef,
   afterNextRender,
+  afterRenderEffect,
   inject,
   input,
   signal,
@@ -33,6 +34,10 @@ export class CarruselPublicaciones {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    afterRenderEffect(() => {
+      this.publicaciones();
+      this.actualizarBordes();
+    });
     afterNextRender(() => {
       if (typeof ResizeObserver === 'undefined') {
         return;
