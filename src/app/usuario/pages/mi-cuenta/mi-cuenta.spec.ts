@@ -7,6 +7,7 @@ import { crearToken } from '../../../config/auth/sesion.testing';
 import { environment } from '../../../../environments/environment';
 import { Cuenta } from '../../models/usuario.models';
 import { MiCuenta } from './mi-cuenta';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 describe('MiCuenta (HU-006)', () => {
   let fixture: ComponentFixture<MiCuenta>;
@@ -44,7 +45,8 @@ describe('MiCuenta (HU-006)', () => {
     const filas = [...(fixture.nativeElement as HTMLElement).querySelectorAll('dl > div')];
     return filas
       .find((fila) => fila.querySelector('dt')?.textContent === etiqueta)
-      ?.querySelector('dd')?.textContent;
+      ?.querySelector('dd')
+      ?.textContent?.trim();
   };
 
   afterEach(() => backend.verify());
@@ -72,6 +74,17 @@ describe('MiCuenta (HU-006)', () => {
     expect(valor('Correo electrónico')).toBe('sophie@correo.com');
     expect(valor('Tipo de documento')).toBe('Cédula de ciudadanía');
     expect(valor('Número de documento')).toBe('1012345678');
+  });
+
+  it('muestra los datos aunque el documento no esté disponible', async () => {
+    crear();
+    backend.expectOne(url).flush({ ...cuenta, documentoIdentidad: null });
+    await fixture.whenStable();
+
+    expect(valor('Nombre')).toBe('Sophia');
+    expect(valor('Número de documento')).toBe(
+      'No disponible. Pide a un administrador que lo corrija.',
+    );
   });
 
   it('muestra el tipo de documento y el rol tal cual si no los conoce', async () => {
@@ -158,7 +171,12 @@ describe('MiCuenta (HU-006)', () => {
     await fixture.whenStable();
 
     expect(elemento.querySelector('app-editar-perfil')).toBeNull();
-    expect(elemento.querySelector('.aviso')?.textContent).toBe('Perfil actualizado correctamente.');
+    expect(TestBed.inject(AvisosService).avisos().at(-1)).toEqual(
+      expect.objectContaining({
+        titulo: 'Perfil actualizado',
+        detalle: 'Perfil actualizado correctamente.',
+      }),
+    );
     expect(valor('Nombre')).toBe('Sofía');
   });
 

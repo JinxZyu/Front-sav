@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { environment } from '../../../../environments/environment';
 import { ModoAceptacionPublicacion } from './modo-aceptacion-publicacion';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 describe('ModoAceptacionPublicacion (HU-021)', () => {
   let fixture: ComponentFixture<ModoAceptacionPublicacion>;
@@ -63,7 +64,7 @@ describe('ModoAceptacionPublicacion (HU-021)', () => {
     await fixture.whenStable();
 
     expect(elemento().querySelector('.valor')?.textContent).toBe('Con mi aprobación');
-    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Guardamos');
+    expect(TestBed.inject(AvisosService).avisos().at(-1)?.detalle).toContain('Guardamos');
     expect(guardados).toBe(1);
   });
 

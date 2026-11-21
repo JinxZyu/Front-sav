@@ -143,7 +143,8 @@ describe('CrearPublicacion (HU-010)', () => {
     const cuerpo = peticion.request.body as FormData;
     expect(cuerpo.get('titulo')).toBe('Cabaña frente al lago');
     expect(cuerpo.get('ciudad')).toBe('Guatavita');
-    expect(cuerpo.has('pais')).toBe(false);
+    expect(cuerpo.get('pais')).toBe('Colombia');
+    expect(cuerpo.get('codigoPais')).toBe('CO');
     expect(cuerpo.get('capacidad')).toBe('4');
     expect(cuerpo.get('habitaciones')).toBe('2');
     expect(cuerpo.get('camas')).toBe('3');

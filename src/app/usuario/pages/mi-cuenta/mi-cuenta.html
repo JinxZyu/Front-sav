@@ -18,10 +18,6 @@
       }
     </div>
 
-    @if (aviso()) {
-      <p class="aviso" role="status">{{ aviso() }}</p>
-    }
-
     @if (error(); as error) {
       <div class="alerta recarga" role="alert">
         <span>No pudimos actualizar tus datos: {{ error }}</span>
@@ -51,7 +47,13 @@
         </div>
         <div>
           <dt>Número de documento</dt>
-          <dd>{{ datos.documentoIdentidad }}</dd>
+          <dd>
+            @if (datos.documentoIdentidad) {
+              {{ datos.documentoIdentidad }}
+            } @else {
+              <span class="no-disponible">No disponible. Pide a un administrador que lo corrija.</span>
+            }
+          </dd>
         </div>
       </dl>
     }

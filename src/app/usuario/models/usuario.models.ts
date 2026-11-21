@@ -39,8 +39,11 @@ export interface Cuenta {
   apellido: string;
   correo: string;
   tipoDocumento: string;
-  documentoIdentidad: string;
+  documentoIdentidad: string | null;
   rol: string;
+  ciudad?: string | null;
+  pais?: string | null;
+  codigoPais?: string | null;
 }
 
 export interface ActualizarPerfilRequest {

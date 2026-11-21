@@ -1,97 +1,40 @@
 <section class="contenedor" aria-labelledby="titulo-catalogo">
   <h1 id="titulo-catalogo">Encuentra tu alojamiento</h1>
-  <p class="subtitulo">Filtra por ciudad, fechas y lo que necesitas para tu viaje.</p>
 
-  <form class="filtros" [formGroup]="formulario" (ngSubmit)="buscar()" novalidate>
-    <label class="ancha">
-      Ciudad
-      <input type="text" formControlName="ciudad" placeholder="¿A dónde vas?" maxlength="100" />
-    </label>
-    <label>
-      Llegada
-      <input type="date" formControlName="llegada" [min]="minimo" />
-    </label>
-    <label>
-      Salida
-      <input
-        type="date"
-        formControlName="salida"
-        [min]="formulario.controls.llegada.value || minimo"
-        [attr.aria-invalid]="formulario.hasError('rango')"
-        [attr.aria-describedby]="formulario.hasError('rango') ? 'error-fechas' : null"
-      />
-      @if (formulario.hasError('rango')) {
-        <span class="error-campo" id="error-fechas"
-          >La salida debe ser posterior a la llegada.</span
-        >
+  <app-buscador-catalogo
+    [formulario]="formulario"
+    [sugerencias]="sugerencias()"
+    [servicios]="servicios"
+    [filtrosAvanzados]="filtrosAvanzados()"
+    [mostrarLimpiar]="hayFiltros() || hayEscrito()"
+    [(avanzada)]="avanzada"
+    (buscar)="buscar()"
+    (limpiar)="limpiar()"
+  />
+
+  @if (!hayFiltros()) {
+    @if (errorCatalogo(); as error) {
+      <div class="alerta" role="alert">
+        <p>{{ error }}</p>
+        <button type="button" class="enlace" (click)="catalogo.reload()">Reintentar</button>
+      </div>
+    } @else if (!catalogo.hasValue()) {
+      <p class="estado-busqueda" role="status">Cargando alojamientos…</p>
+    } @else if (secciones().length === 0) {
+      <div class="sin-resultados" role="status">
+        <h2>Todavía no hay alojamientos publicados</h2>
+        <p>Vuelve pronto para descubrir nuevos lugares.</p>
+      </div>
+    } @else {
+      @for (seccion of secciones(); track seccion.titulo) {
+        <app-carrusel-publicaciones
+          [titulo]="seccion.titulo"
+          [publicaciones]="seccion.publicaciones"
+          [verTodos]="seccion.verTodos"
+        />
       }
-    </label>
-    <label>
-      Huéspedes
-      <input
-        type="number"
-        formControlName="huespedes"
-        min="1"
-        step="1"
-        inputmode="numeric"
-        [attr.aria-invalid]="formulario.controls.huespedes.invalid"
-      />
-    </label>
-    <label>
-      Tipo
-      <select formControlName="tipo">
-        <option value="">Cualquiera</option>
-        @for (tipo of tipos; track tipo) {
-          <option [value]="tipo">{{ tipo }}</option>
-        }
-      </select>
-    </label>
-    <label>
-      Precio mínimo (COP)
-      <input type="number" formControlName="precioMinimo" min="0" step="1" inputmode="numeric" />
-    </label>
-    <label>
-      Precio máximo (COP)
-      <input
-        type="number"
-        formControlName="precioMaximo"
-        min="0"
-        step="1"
-        inputmode="numeric"
-        [attr.aria-invalid]="formulario.hasError('precios')"
-        [attr.aria-describedby]="formulario.hasError('precios') ? 'error-precios' : null"
-      />
-      @if (formulario.hasError('precios')) {
-        <span class="error-campo" id="error-precios">Debe ser mayor o igual al mínimo.</span>
-      }
-    </label>
-    @if (servicios.status() === 'error') {
-      <p class="ancha aviso-servicios" role="alert">
-        No pudimos cargar los servicios para filtrar.
-        <button type="button" class="enlace" (click)="servicios.reload()">Reintentar</button>
-      </p>
-    } @else if (servicios.hasValue() && servicios.value().length) {
-      <fieldset class="ancha servicios">
-        <legend>Servicios incluidos</legend>
-        @for (servicioDisponible of servicios.value(); track servicioDisponible.idServicio) {
-          <label class="servicio" [class.marcado]="marcado(servicioDisponible.idServicio)">
-            <input
-              type="checkbox"
-              [checked]="marcado(servicioDisponible.idServicio)"
-              (change)="alternarServicio(servicioDisponible.idServicio)"
-            />
-            {{ servicioDisponible.nombre }}
-          </label>
-        }
-      </fieldset>
     }
-    <div class="ancha acciones">
-      <button type="submit" class="principal">Buscar</button>
-      <button type="button" class="secundario" (click)="limpiar()">Limpiar filtros</button>
-    </div>
-  </form>
-
-  @if (error(); as error) {
+  } @else if (error(); as error) {
     <div class="alerta" role="alert">
       <p>{{ error }}</p>
       <button type="button" class="enlace" (click)="resultados.reload()">Reintentar</button>

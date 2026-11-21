@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { DetallePublicacion } from '../../models/alojamiento.models';
 import { AccionesEstado } from './acciones-estado';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 describe('AccionesEstado (HU-013 y HU-015)', () => {
   let fixture: ComponentFixture<AccionesEstado>;
@@ -50,8 +51,8 @@ describe('AccionesEstado (HU-013 y HU-015)', () => {
     await fixture.whenStable();
 
     expect(cambios).toEqual(['PENDIENTE_REVISION']);
-    expect(elemento().querySelector('[role="status"]')?.textContent).toContain(
-      'Enviamos tu publicación',
+    expect(TestBed.inject(AvisosService).avisos().at(-1)?.titulo).toContain(
+      'Publicación enviada a revisión',
     );
     expect(elemento().textContent).toContain('Un administrador está revisando');
     expect(boton()).toBeNull();
@@ -126,7 +127,7 @@ describe('AccionesEstado (HU-013 y HU-015)', () => {
     await fixture.whenStable();
 
     expect(cambios).toEqual(['PAUSADA']);
-    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Pausamos');
+    expect(TestBed.inject(AvisosService).avisos().at(-1)?.titulo).toBe('Publicación pausada');
     expect(boton()?.textContent?.trim()).toBe('Reactivar publicación');
   });
 
@@ -141,7 +142,7 @@ describe('AccionesEstado (HU-013 y HU-015)', () => {
     await fixture.whenStable();
 
     expect(cambios).toEqual(['ACTIVA']);
-    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Reactivamos');
+    expect(TestBed.inject(AvisosService).avisos().at(-1)?.titulo).toBe('Publicación reactivada');
   });
 
   it('HU-015 criterio 4: muestra el rechazo del servidor al pausar sin ser dueño', async () => {

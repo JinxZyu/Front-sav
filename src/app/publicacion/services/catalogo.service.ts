@@ -2,7 +2,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ServicioDisponible } from '../../alojamiento/models/alojamiento.models';
+import {
+  ResumenPublicacion,
+  ServicioDisponible,
+} from '../../alojamiento/models/alojamiento.models';
 import {
   FiltrosBusqueda,
   PaginaPublicaciones,
@@ -37,6 +40,10 @@ export class CatalogoService {
       params = params.append('servicios', servicio);
     }
     return this.http.get<PaginaPublicaciones>(`${this.api}/publicaciones/busqueda`, { params });
+  }
+
+  catalogo(): Observable<ResumenPublicacion[]> {
+    return this.http.get<ResumenPublicacion[]>(`${this.api}/publicaciones/catalogo`);
   }
 
   detalle(idPublicacion: string): Observable<PublicacionPublica> {

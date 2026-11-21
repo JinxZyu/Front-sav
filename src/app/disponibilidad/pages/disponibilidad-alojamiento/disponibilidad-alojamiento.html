@@ -107,9 +107,6 @@
     </form>
 
     <ng-template #mensajes>
-      @if (aviso(); as aviso) {
-        <p class="mensaje exito" role="status">{{ aviso }}</p>
-      }
       @if (error(); as error) {
         <p class="mensaje falla" role="alert">{{ error }}</p>
       }

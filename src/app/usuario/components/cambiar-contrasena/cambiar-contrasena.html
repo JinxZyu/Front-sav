@@ -1,7 +1,3 @@
-@if (aviso()) {
-  <p class="alerta exito" role="status">{{ aviso() }}</p>
-}
-
 @if (abierto()) {
   <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
     <label>

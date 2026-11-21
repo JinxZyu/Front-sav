@@ -49,6 +49,8 @@ export interface NuevaPublicacion {
   camas: number;
   banos: number;
   propietarioInmueble: string;
+  pais?: string;
+  codigoPais?: string;
   precioPorNoche: number;
   tarifaLimpieza: number;
   modoAceptacion: ModoAceptacion;
@@ -77,6 +79,8 @@ export interface ResumenPublicacion {
   estado: string;
   fechaCreacion: string;
   imagenPortada?: string | null;
+  pais?: string | null;
+  codigoPais?: string | null;
 }
 
 export interface MisPublicaciones {
@@ -112,6 +116,8 @@ export interface DetallePublicacion {
   camas: number;
   banos: number;
   propietarioInmueble?: string | null;
+  pais?: string | null;
+  codigoPais?: string | null;
   servicios: ServicioDisponible[];
   imagenes: ImagenPublicacion[];
 }

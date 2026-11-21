@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { environment } from '../../../../environments/environment';
 import { PoliticaPublicacion } from './politica-publicacion';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 describe('PoliticaPublicacion (HU-019)', () => {
   let fixture: ComponentFixture<PoliticaPublicacion>;
@@ -112,7 +113,7 @@ describe('PoliticaPublicacion (HU-019)', () => {
     await fixture.whenStable();
 
     expect(elemento().querySelector('.valor')?.textContent).toBe('Moderada');
-    expect(elemento().querySelector('[role="status"]')?.textContent).toContain('Guardamos');
+    expect(TestBed.inject(AvisosService).avisos().at(-1)?.detalle).toContain('Guardamos');
     expect(guardados).toBe(1);
   });
 

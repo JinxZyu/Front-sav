@@ -17,7 +17,7 @@
 
 .tarjeta {
   width: 100%;
-  max-width: 40rem;
+  max-width: 52rem;
   align-self: flex-start;
   padding: 2rem;
   border: 1px solid rgb(226 232 240 / 90%);
@@ -273,4 +273,9 @@ dd {
   h1 {
     font-size: 1.3rem;
   }
+}
+
+.no-disponible {
+  color: #64748b;
+  font-style: italic;
 }

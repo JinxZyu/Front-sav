@@ -1,0 +1,45 @@
+<section class="carrusel" [attr.aria-labelledby]="id">
+  <div class="cabecera">
+    <h2 [id]="id">
+      @if (verTodos(); as parametros) {
+        <a routerLink="/publicaciones" [queryParams]="parametros">
+          {{ titulo() }}
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h14" />
+            <path d="m13 6 6 6-6 6" />
+          </svg>
+        </a>
+      } @else {
+        {{ titulo() }}
+      }
+    </h2>
+    <div class="flechas">
+      <button
+        type="button"
+        aria-label="Ver anteriores"
+        [disabled]="alInicio()"
+        (click)="desplazar(-1)"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+      </button>
+      <button
+        type="button"
+        aria-label="Ver siguientes"
+        [disabled]="alFinal()"
+        (click)="desplazar(1)"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+    </div>
+  </div>
+  <ul #pista class="pista" (scroll)="actualizarBordes()">
+    @for (publicacion of publicaciones(); track publicacion.idPublicacion) {
+      <li>
+        <app-tarjeta-publicacion
+          [publicacion]="publicacion"
+          [enlace]="['/publicaciones', publicacion.idPublicacion]"
+        />
+      </li>
+    }
+  </ul>
+</section>

@@ -179,6 +179,8 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
     expect(cuerpo.get('camas')).toBe('3');
     expect(cuerpo.getAll('idsServicios')).toEqual(['s-2']);
     expect(cuerpo.getAll('imagenes')).toEqual([]);
+    expect(cuerpo.get('pais')).toBe('Colombia');
+    expect(cuerpo.get('codigoPais')).toBe('CO');
     peticion.flush({
       idPublicacion: 'p-9',
       titulo: 'Cabaña renovada',
@@ -437,6 +439,49 @@ describe('CrearPublicacion en modo edición (HU-012)', () => {
 
     expect(componente.formulario.controls.ciudad.value).toBe('Lima');
     expect(elemento().querySelector('#error-pais')).toBeNull();
+  });
+
+  const cargarDePeru = async () => {
+    await crear(null);
+    backend
+      .expectOne(urlDetalle)
+      .flush(detalle({ ciudad: 'Lima', pais: 'Perú', codigoPais: 'PE', estado: 'BORRADOR' }));
+    await estabilizar(false);
+    backend.expectOne(`${urlPaises}/pa-pe/ciudades`).flush([{ idCiudad: 'c-3', nombre: 'Lima' }]);
+    await fixture.whenStable();
+  };
+
+  it('muestra el país guardado y no lo envía si no se cambia', async () => {
+    await cargarDePeru();
+
+    expect(componente.formulario.controls.pais.value).toBe('pa-pe');
+    expect(componente.formulario.controls.ciudad.value).toBe('Lima');
+    expect(elemento().querySelector('#error-pais')).toBeNull();
+
+    componente.formulario.controls.titulo.setValue('Depa renovado');
+    componente.publicar();
+
+    const cuerpo = backend.expectOne(`${api}/publicaciones/p-9`).request.body as FormData;
+    expect(cuerpo.get('ciudad')).toBe('Lima');
+    expect(cuerpo.has('pais')).toBe(false);
+    expect(cuerpo.has('codigoPais')).toBe(false);
+  });
+
+  it('envía el país cuando el anfitrión lo cambia', async () => {
+    await cargarDePeru();
+    const pais = elemento().querySelector<HTMLSelectElement>('select[formControlName="pais"]')!;
+    pais.value = 'pa-co';
+    pais.dispatchEvent(new Event('change'));
+    await estabilizar(false);
+    backend.expectOne(`${urlPaises}/pa-co/ciudades`).flush([{ idCiudad: 'c-1', nombre: 'Bogotá' }]);
+    await fixture.whenStable();
+    componente.formulario.controls.ciudad.setValue('Bogotá');
+    componente.publicar();
+
+    const cuerpo = backend.expectOne(`${api}/publicaciones/p-9`).request.body as FormData;
+    expect(cuerpo.get('ciudad')).toBe('Bogotá');
+    expect(cuerpo.get('pais')).toBe('Colombia');
+    expect(cuerpo.get('codigoPais')).toBe('CO');
   });
 
   it('no deja editar una publicación en revisión', async () => {

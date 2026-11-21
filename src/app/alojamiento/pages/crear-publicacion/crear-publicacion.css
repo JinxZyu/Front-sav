@@ -13,7 +13,7 @@
 
 .tarjeta {
   width: 100%;
-  max-width: 52rem;
+  max-width: 64rem;
   align-self: flex-start;
   padding: 2rem;
   border: 1px solid rgb(226 232 240 / 90%);
@@ -166,7 +166,8 @@ textarea:focus {
 }
 
 .opcion:has(input:focus-visible),
-.servicio:has(input:focus-visible) {
+.servicio:has(input:focus-visible),
+.enlace-propietario:focus-visible {
   outline: 2px solid #6366f1;
   outline-offset: 2px;
 }
@@ -321,11 +322,6 @@ button {
   color: #e11d48;
 }
 
-.opcional {
-  color: #94a3b8;
-  font-weight: 400;
-}
-
 .enlace-propietario {
   align-self: flex-start;
   padding: 0;
@@ -333,13 +329,7 @@ button {
   background: none;
   color: #4f46e5;
   font: inherit;
-  font-size: 0.9rem;
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
-}
-
-.enlace-propietario:focus-visible {
-  outline: 2px solid #6366f1;
-  outline-offset: 2px;
 }

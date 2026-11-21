@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { environment } from '../../../../environments/environment';
+import { AvisosService } from '../../../shared/services/avisos.service';
 import { CambiarContrasena } from './cambiar-contrasena';
 
 describe('CambiarContrasena (HU-007)', () => {
@@ -56,9 +57,13 @@ describe('CambiarContrasena (HU-007)', () => {
     await fixture.whenStable();
 
     expect(componente.abierto()).toBe(false);
-    expect(elemento().querySelector('[role="status"]')?.textContent).toBe(
-      'La contraseña se actualizó correctamente.',
-    );
+    expect(elemento().querySelector('[role="status"]')).toBeNull();
+    expect(TestBed.inject(AvisosService).avisos()).toEqual([
+      expect.objectContaining({
+        titulo: 'Contraseña actualizada',
+        detalle: 'La contraseña se actualizó correctamente.',
+      }),
+    ]);
   });
 
   it('usa un aviso por defecto si el backend no manda texto', () => {
@@ -66,7 +71,9 @@ describe('CambiarContrasena (HU-007)', () => {
     llenar();
     componente.guardar();
     backend.expectOne(url).flush('');
-    expect(componente.aviso()).toBe('La contraseña se actualizó correctamente.');
+    expect(TestBed.inject(AvisosService).avisos()[0].detalle).toBe(
+      'La contraseña se actualizó correctamente.',
+    );
   });
 
   it('criterio 3: exige mínimo 8 caracteres y que la confirmación coincida', async () => {
