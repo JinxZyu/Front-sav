@@ -111,16 +111,14 @@ export class CalendarioDisponibilidad {
     if (!celda.seleccionable || this.bloqueado()) {
       return;
     }
-    // Volver a pulsar un día ya elegido desmarca la selección.
-    if (this.seleccionado(celda.dia)) {
-      const habiaRango = !!this.hasta();
+    // Con el periodo ya elegido, volver a pulsar uno de sus días lo desmarca.
+    if (this.hasta() && this.seleccionado(celda.dia)) {
       this.desde.set(null);
       this.hasta.set(null);
-      if (habiaRango) {
-        this.seleccionLimpia.emit();
-      }
+      this.seleccionLimpia.emit();
       return;
     }
+    // Pulsar otra vez el primer día lo deja como un periodo de una sola noche.
     const desde = this.desde();
     if (!desde || this.hasta() || celda.dia < desde) {
       this.desde.set(celda.dia);

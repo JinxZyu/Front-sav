@@ -157,21 +157,36 @@ describe('CalendarioDisponibilidad (HU-023)', () => {
     expect(dia(21)?.classList.contains('elegido')).toBe(false);
   });
 
-  it('volver a pulsar el primer día lo desmarca sin entregar ni limpiar nada', async () => {
+  it('pulsar dos veces el mismo día entrega un periodo de una sola noche', async () => {
+    await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    const elegidos: object[] = [];
+    fixture.componentInstance.seleccion.subscribe((periodo) => elegidos.push(periodo));
+
+    dia(21)?.click();
+    await fixture.whenStable();
+    expect(dia(21)?.getAttribute('aria-pressed')).toBe('true');
+    expect(elegidos).toEqual([]);
+
+    dia(21)?.click();
+    await fixture.whenStable();
+    expect(elegidos).toEqual([{ fechaInicio: '2026-11-21', fechaFin: '2026-11-22' }]);
+    expect(dia(21)?.classList.contains('elegido')).toBe(true);
+  });
+
+  it('el periodo de una noche también se puede desmarcar pulsando de nuevo ese día', async () => {
     await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
     const eventos: string[] = [];
     fixture.componentInstance.seleccion.subscribe(() => eventos.push('seleccion'));
     fixture.componentInstance.seleccionLimpia.subscribe(() => eventos.push('limpia'));
 
     dia(21)?.click();
-    await fixture.whenStable();
-    expect(dia(21)?.getAttribute('aria-pressed')).toBe('true');
-
+    dia(21)?.click();
     dia(21)?.click();
     await fixture.whenStable();
-    expect(dia(21)?.getAttribute('aria-pressed')).toBe('false');
+
+    expect(dia(21)?.classList.contains('elegido')).toBe(false);
     expect(fixture.componentInstance.desde()).toBeNull();
-    expect(eventos).toEqual([]);
+    expect(eventos).toEqual(['seleccion', 'limpia']);
   });
 
   it('pulsar un día del rango ya entregado lo desmarca y avisa para limpiar el formulario', async () => {

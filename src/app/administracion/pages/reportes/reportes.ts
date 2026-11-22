@@ -112,14 +112,19 @@ export class Reportes {
     this.destroyRef.onDestroy(() => this.descartarDescarga());
 
     // Cuando el reporte termina el sistema crea una notificación; se pide revisarla ya, sin esperar a la próxima consulta.
-    let estabaEnCurso = false;
+    // Vale también si el reporte ya llega terminado en la primera consulta; se hace una sola vez por reporte.
+    const yaAvisadas = new Set<string>();
     effect(() => {
-      const enCurso = this.enCurso();
-      if (estabaEnCurso && !enCurso && this.exportacion()) {
-        const espera = setTimeout(() => this.notificaciones.pedirActualizacion(), ESPERA_NOTIFICACION_MS);
-        this.destroyRef.onDestroy(() => clearTimeout(espera));
+      const exportacion = this.exportacion();
+      if (!exportacion || this.enCurso() || yaAvisadas.has(exportacion.idExportacion)) {
+        return;
       }
-      estabaEnCurso = enCurso;
+      yaAvisadas.add(exportacion.idExportacion);
+      const espera = setTimeout(
+        () => this.notificaciones.pedirActualizacion(),
+        ESPERA_NOTIFICACION_MS,
+      );
+      this.destroyRef.onDestroy(() => clearTimeout(espera));
     });
   }
 
