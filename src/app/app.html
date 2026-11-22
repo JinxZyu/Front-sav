@@ -6,6 +6,7 @@
     @if (sesion.tieneRol('ANFITRION')) {
       <a routerLink="/alojamientos" routerLinkActive="activo">Mis alojamientos</a>
       <a routerLink="/reservas/alojamientos" routerLinkActive="activo" class="opcional">Reservas</a>
+      <a routerLink="/ingresos" routerLinkActive="activo" class="opcional">Ingresos</a>
     } @else if (sesion.tieneRol('ADMINISTRADOR')) {
       <a routerLink="/administracion" routerLinkActive="activo">Administración</a>
     } @else if (sesion.tieneRol('AUDITOR_OPERACION')) {

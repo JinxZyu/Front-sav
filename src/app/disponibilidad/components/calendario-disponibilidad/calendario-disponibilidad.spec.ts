@@ -157,6 +157,68 @@ describe('CalendarioDisponibilidad (HU-023)', () => {
     expect(dia(21)?.classList.contains('elegido')).toBe(false);
   });
 
+  it('pulsar dos veces el mismo día entrega un periodo de una sola noche', async () => {
+    await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    const elegidos: object[] = [];
+    fixture.componentInstance.seleccion.subscribe((periodo) => elegidos.push(periodo));
+
+    dia(21)?.click();
+    await fixture.whenStable();
+    expect(dia(21)?.getAttribute('aria-pressed')).toBe('true');
+    expect(elegidos).toEqual([]);
+
+    dia(21)?.click();
+    await fixture.whenStable();
+    expect(elegidos).toEqual([{ fechaInicio: '2026-11-21', fechaFin: '2026-11-22' }]);
+    expect(dia(21)?.classList.contains('elegido')).toBe(true);
+  });
+
+  it('el periodo de una noche también se puede desmarcar pulsando de nuevo ese día', async () => {
+    await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    const eventos: string[] = [];
+    fixture.componentInstance.seleccion.subscribe(() => eventos.push('seleccion'));
+    fixture.componentInstance.seleccionLimpia.subscribe(() => eventos.push('limpia'));
+
+    dia(21)?.click();
+    dia(21)?.click();
+    dia(21)?.click();
+    await fixture.whenStable();
+
+    expect(dia(21)?.classList.contains('elegido')).toBe(false);
+    expect(fixture.componentInstance.desde()).toBeNull();
+    expect(eventos).toEqual(['seleccion', 'limpia']);
+  });
+
+  it('pulsar un día del rango ya entregado lo desmarca y avisa para limpiar el formulario', async () => {
+    await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    const eventos: string[] = [];
+    fixture.componentInstance.seleccion.subscribe(() => eventos.push('seleccion'));
+    fixture.componentInstance.seleccionLimpia.subscribe(() => eventos.push('limpia'));
+
+    dia(21)?.click();
+    dia(25)?.click();
+    await fixture.whenStable();
+    expect([21, 23, 25].map((numero) => dia(numero)?.classList.contains('elegido'))).toEqual([
+      true,
+      true,
+      true,
+    ]);
+
+    dia(23)?.click();
+    await fixture.whenStable();
+    expect([21, 23, 25].map((numero) => dia(numero)?.classList.contains('elegido'))).toEqual([
+      false,
+      false,
+      false,
+    ]);
+    expect(eventos).toEqual(['seleccion', 'limpia']);
+
+    // Después se puede empezar otra selección desde cero.
+    dia(27)?.click();
+    await fixture.whenStable();
+    expect(dia(27)?.getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('no deja elegir días pasados aunque estén ocupados ni elegir mientras está bloqueado', async () => {
     await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: ['2026-11-10'] });
     const elegidos: object[] = [];

@@ -140,6 +140,15 @@ export class SelectorFechas {
       return;
     }
     const llegada = this.llegada();
+    // Volver a pulsar una fecha ya elegida la desmarca.
+    if (celda.dia === llegada) {
+      this.elegir.emit({ llegada: '', salida: '' });
+      return;
+    }
+    if (celda.dia === this.salida()) {
+      this.elegir.emit({ llegada, salida: '' });
+      return;
+    }
     if (this.eligiendoSalida() && celda.dia > llegada && nochesLibres(llegada, celda.dia, libre)) {
       this.elegir.emit({ llegada, salida: celda.dia });
       return;
@@ -157,6 +166,10 @@ export class SelectorFechas {
       return false;
     }
     const llegada = this.llegada();
+    // Las fechas ya elegidas siempre se pueden pulsar, para poder desmarcarlas.
+    if (dia === llegada || dia === this.salida()) {
+      return true;
+    }
     if (this.eligiendoSalida() && dia > llegada) {
       return nochesLibres(llegada, dia, libre) || libre(dia);
     }

@@ -20,7 +20,35 @@ function etiqueta(codigo: string): string {
   return reserva === codigo ? codigo : reserva;
 }
 
+const CAMBIO_DE_RESERVA =
+  /^(Tu reserva|Una reserva de tu alojamiento) cambió de estado: ([A-Z_]+) → ([A-Z_]+)\.$/;
+
+/** Lo que le pasó a la reserva, dicho como una frase y no como "A → B". */
+const LO_QUE_PASO: Record<string, string> = {
+  PENDIENTE_APROBACION: 'quedó esperando aprobación',
+  PENDIENTE_PAGO: 'quedó pendiente de pago',
+  CONFIRMADA: 'fue confirmada',
+  COMPLETADA: 'fue completada',
+  CANCELADA: 'fue cancelada',
+  RECHAZADA: 'fue rechazada',
+  EXPIRADA: 'venció',
+};
+
+function cambioDeReserva(mensaje: string): string | null {
+  const coincidencia = CAMBIO_DE_RESERVA.exec(mensaje);
+  if (!coincidencia) {
+    return null;
+  }
+  const [, sujeto, , nuevo] = coincidencia;
+  const accion = LO_QUE_PASO[nuevo];
+  return accion ? `${sujeto} ${accion}.` : null;
+}
+
 export function mensajeLegible(mensaje: string): string {
+  const frase = cambioDeReserva(mensaje);
+  if (frase) {
+    return frase;
+  }
   return mensaje
     .replace(IDENTIFICADOR, '')
     .replace(FECHA_ISO, (fecha) => formatearFechaHora(fecha) || fecha)

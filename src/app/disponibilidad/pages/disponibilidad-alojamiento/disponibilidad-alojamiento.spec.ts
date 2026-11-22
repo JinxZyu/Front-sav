@@ -270,9 +270,11 @@ describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
     );
     await fixture.whenStable();
 
-    expect(elemento().querySelector('.periodos [role="alert"]')?.textContent).toContain(
-      'reservas vigentes',
-    );
+    const aviso = TestBed.inject(AvisosService).avisos().at(-1);
+    expect(aviso?.tipo).toBe('error');
+    expect(aviso?.titulo).toBe('No pudimos actualizar el periodo.');
+    expect(aviso?.detalle).toContain('reservas vigentes');
+    expect(elemento().querySelector('.periodos [role="alert"]')).toBeNull();
     expect(elemento().querySelector('.periodos form')).not.toBeNull();
   });
 
@@ -381,5 +383,24 @@ describe('DisponibilidadAlojamiento (HU-022 y HU-023)', () => {
     expect(componente.nuevo.getRawValue()).toEqual({ fechaInicio: enDias(2), fechaFin: enDias(5) });
     expect(componente.sinCierre.value).toBe(false);
     expect(document.activeElement?.textContent?.trim()).toBe('Agregar periodo');
+  });
+
+  it('al desmarcar el rango en el calendario se vacía el formulario que había llenado', async () => {
+    await crear();
+    const calendario = fixture.debugElement.query(
+      (nodo) => nodo.name === 'app-calendario-disponibilidad',
+    );
+    calendario.triggerEventHandler('seleccion', {
+      fechaInicio: enDias(2),
+      fechaFin: enDias(5),
+    });
+    await fixture.whenStable();
+    expect(componente.nuevo.getRawValue().fechaInicio).toBe(enDias(2));
+
+    calendario.triggerEventHandler('seleccionLimpia', undefined);
+    await fixture.whenStable();
+
+    expect(componente.nuevo.getRawValue()).toEqual({ fechaInicio: '', fechaFin: '' });
+    expect(componente.sinCierre.value).toBe(false);
   });
 });

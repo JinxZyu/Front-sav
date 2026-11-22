@@ -88,6 +88,42 @@ describe('ListaPublicaciones (HU-014)', () => {
     expect(primera.textContent).toContain('Enviada a revisión el 12 de nov de 2026');
   });
 
+  it('muestra las publicaciones de a 10 por página y vuelve a la primera al cambiar de filtro', async () => {
+    const muchas = Array.from({ length: 23 }, (_, indice) =>
+      publicacionAdministrada({
+        idPublicacion: `p-${indice}`,
+        titulo: `Publicación ${String(indice).padStart(2, '0')}`,
+        estado: 'PENDIENTE_REVISION',
+        fechaActualizacion: `2026-11-${String(indice + 1).padStart(2, '0')}T10:00:00Z`,
+      }),
+    );
+    const paginacion = () =>
+      elemento().querySelector('nav.paginacion')?.textContent?.replace(/\s+/g, ' ').trim();
+    const siguiente = () =>
+      [...elemento().querySelectorAll<HTMLButtonElement>('nav.paginacion button')].find(
+        (item) => item.textContent?.trim() === 'Siguiente',
+      ) as HTMLButtonElement;
+    crear();
+    await listar(muchas);
+
+    expect(titulos()).toHaveLength(10);
+    expect(titulos()[0]).toBe('Publicación 00');
+    expect(paginacion()).toBe('AnteriorPágina 1 de 3 Siguiente');
+
+    siguiente().click();
+    await actualizar();
+    expect(titulos()[0]).toBe('Publicación 10');
+
+    siguiente().click();
+    await actualizar();
+    expect(titulos()).toHaveLength(3);
+
+    boton('Todas').click();
+    await actualizar();
+    expect(titulos()[0]).toContain('Publicación');
+    expect(paginacion()).toContain('Página 1 de 3');
+  });
+
   it('muestra todas las publicaciones con su estado salvo los borradores del anfitrión', async () => {
     crear();
     await listar();

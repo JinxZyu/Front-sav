@@ -119,6 +119,18 @@
   outline-offset: 2px;
 }
 
+@media (width >= 56rem) {
+  /* La imagen se ajusta a la ventana y no a la altura de la columna: así no se amplía al pasar a registro. */
+  .foto {
+    background-attachment: fixed;
+  }
+
+  .lema {
+    position: sticky;
+    bottom: 3rem;
+  }
+}
+
 @media (width < 56rem) {
   :host {
     grid-template-columns: minmax(0, 1fr);

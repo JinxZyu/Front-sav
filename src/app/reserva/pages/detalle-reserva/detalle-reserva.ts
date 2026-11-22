@@ -14,6 +14,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Observable, Subscription, finalize, map } from 'rxjs';
 import { formatearPorcentaje } from '../../../alojamiento/models/alojamiento.models';
 import { formatearFechaHora, formatearPesos } from '../../../alojamiento/utils/formato';
+import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { FormularioResena } from '../../../resena/components/formulario-resena/formulario-resena';
 import { EncabezadoReserva } from '../../components/encabezado-reserva/encabezado-reserva';
@@ -37,6 +38,8 @@ import { estadoDeConsulta } from '../../utils/consulta-reserva';
 export class DetalleReserva {
   private readonly servicio = inject(ReservaService);
   private readonly ruta = inject(ActivatedRoute);
+  private readonly avisos = inject(AvisosService);
+  private ultimoAviso: string | null = null;
 
   private readonly idReserva = toSignal(
     this.ruta.paramMap.pipe(map((parametros) => parametros.get('idReserva') ?? '')),
@@ -146,6 +149,18 @@ export class DetalleReserva {
         this.formularioCancelacion.reset();
       });
     });
+    // Los resultados se avisan en la esquina y desaparecen solos, igual que el resto de avisos.
+    effect(() => {
+      const aviso = this.aviso();
+      untracked(() => {
+        if (!aviso) {
+          this.ultimoAviso = null;
+        } else if (`${aviso.tono}|${aviso.texto}` !== this.ultimoAviso) {
+          this.ultimoAviso = `${aviso.tono}|${aviso.texto}`;
+          this.avisos.mostrar(aviso.texto, null, aviso.tono);
+        }
+      });
+    });
   }
 
   protected pagar(): void {
@@ -185,13 +200,20 @@ export class DetalleReserva {
       this.servicio.cancelar(this.idReserva(), this.motivo.value.trim()),
       (resultado) => {
         this.cerrarCancelacion();
+        this.aplicarEstado(resultado.estadoFinal);
         this.devolucion.set(resultado);
         this.resultado.set({ tono: 'info', texto: resultado.mensaje });
       },
     );
   }
 
+  /** Muestra el estado nuevo de inmediato, sin esperar a que termine de recargarse la reserva. */
+  private aplicarEstado(estado: string): void {
+    this.consulta.update((reserva) => (reserva ? { ...reserva, estado } : reserva));
+  }
+
   private alPagar(pago: PagoReserva): void {
+    this.aplicarEstado(pago.estadoReserva);
     this.pagoEnProceso.set(pago.estadoPago === 'PENDIENTE');
     if (pago.estadoReserva === 'CONFIRMADA') {
       this.resultado.set({ tono: 'exito', texto: '¡Pago aprobado! Tu reserva está confirmada.' });

@@ -165,3 +165,132 @@ h1 {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resumen li {
+  display: flex;
+}
+
+/* Cada tarjeta es un botón: al pulsarla se filtran las publicaciones de ese estado. */
+.resumen button {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgb(226 232 240 / 90%);
+  border-radius: 1rem;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.resumen button:hover {
+  border-color: #818cf8;
+}
+
+.resumen button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.resumen button.activo {
+  border-color: transparent;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+}
+
+.resumen .cifra {
+  color: #1e1b4b;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.resumen .activo .cifra {
+  color: #fff;
+}
+
+.resumen .rotulo {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.resumen .activo .rotulo {
+  color: #e0e7ff;
+}
+
+.herramientas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1.25rem;
+}
+
+.buscador {
+  display: flex;
+  flex: 1 1 16rem;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 24rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.buscador:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 18%);
+}
+
+.buscador svg {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: #64748b;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.buscador input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: #1e1b4b;
+  font: inherit;
+  outline: none;
+}
+
+.sin-resultados {
+  margin-top: 1.25rem;
+}
+
+.secundario {
+  padding: 0.55rem 1.2rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  background: #fff;
+  color: #4338ca;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secundario:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}

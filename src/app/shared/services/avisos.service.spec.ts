@@ -19,4 +19,16 @@ describe('AvisosService', () => {
     vi.advanceTimersByTime(DURACION_AVISO);
     expect(avisos.avisos()).toEqual([]);
   });
+
+  it('los avisos son de éxito por defecto y los de error también desaparecen solos', () => {
+    vi.useFakeTimers();
+    const avisos = TestBed.inject(AvisosService);
+
+    avisos.mostrar('Guardado');
+    avisos.mostrar('No pudimos agregar el periodo.', 'Se superpone con otro periodo.', 'error');
+    expect(avisos.avisos().map((aviso) => aviso.tipo)).toEqual(['exito', 'error']);
+
+    vi.advanceTimersByTime(DURACION_AVISO);
+    expect(avisos.avisos()).toEqual([]);
+  });
 });

@@ -1,8 +1,32 @@
-import { formatearEspacios, formatearFecha, formatearPesos } from './formato';
+import { formatearEspacios, formatearFecha, formatearPesos, formatearPesosCortos } from './formato';
 
 describe('formato', () => {
   it('muestra los precios en pesos sin decimales', () => {
     expect(formatearPesos(250000).replaceAll(/\s/g, ' ')).toBe('$ 250.000');
+  });
+
+  describe('pesos cortos', () => {
+    const limpio = (texto: string) => texto.replaceAll(/\s/g, ' ');
+
+    it('deja la cifra completa mientras cabe en la tarjeta', () => {
+      expect(limpio(formatearPesosCortos(0))).toBe('$ 0');
+      expect(limpio(formatearPesosCortos(273998))).toBe('$ 273.998');
+      expect(limpio(formatearPesosCortos(15250000))).toBe('$ 15.250.000');
+    });
+
+    it('con una cifra muy grande usa la forma corta con millones', () => {
+      expect(limpio(formatearPesosCortos(120000000))).toBe('$120 M');
+      expect(limpio(formatearPesosCortos(98765432100))).toContain('M');
+      expect(formatearPesosCortos(98765432100).length).toBeLessThanOrEqual(12);
+    });
+
+    it('también acorta los valores negativos grandes', () => {
+      expect(limpio(formatearPesosCortos(-120000000))).toBe('-$120 M');
+    });
+
+    it('el límite se puede ajustar según el ancho disponible', () => {
+      expect(limpio(formatearPesosCortos(120000000, 14))).toBe('$ 120.000.000');
+    });
   });
 
   it('muestra la fecha corta y tolera valores vacíos o inválidos', () => {

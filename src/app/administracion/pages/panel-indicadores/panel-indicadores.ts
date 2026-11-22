@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { formatearFechaHora, formatearPesos } from '../../../alojamiento/utils/formato';
+import { formatearFechaHora, formatearPesos, formatearPesosCortos } from '../../../alojamiento/utils/formato';
 import { estadoReserva } from '../../../reserva/models/reserva.models';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { BarrasIndicador } from '../../components/barras-indicador/barras-indicador';
@@ -26,10 +26,13 @@ export class PanelIndicadores {
 
   protected readonly saludo = computed(() => {
     const nombre = this.cuenta.hasValue() ? this.cuenta.value()?.nombre : null;
-    const dia = DIA.format(new Date());
-    const fecha = dia.charAt(0).toUpperCase() + dia.slice(1);
-    return nombre ? `Hola, ${nombre} · ${fecha}` : fecha;
+    return nombre ? `Hola, ${nombre}` : null;
   });
+
+  protected readonly hoy = (() => {
+    const dia = DIA.format(new Date());
+    return dia.charAt(0).toUpperCase() + dia.slice(1);
+  })();
 
   protected readonly datos = computed(() =>
     this.consulta.hasValue() ? this.consulta.value() : null,
@@ -64,6 +67,7 @@ export class PanelIndicadores {
   );
 
   protected readonly pesos = formatearPesos;
+  protected readonly pesosCortos = formatearPesosCortos;
   protected readonly fecha = formatearFechaHora;
 
   protected numero(valor: number): string {

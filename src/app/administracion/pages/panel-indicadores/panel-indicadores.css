@@ -28,6 +28,25 @@
   font-weight: 600;
 }
 
+.banda .lado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.banda .fecha-hoy {
+  margin: 0;
+  color: #e0e7ff;
+  font-weight: 600;
+}
+
+.desglose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .actualizar {
   padding: 0.6rem 1.2rem;
   border: 0;
@@ -44,21 +63,48 @@
   cursor: progress;
 }
 
+/* Las seis tarjetas van en una sola fila; en pantallas más angostas pasan a 3, 2 y 1 por fila. */
 .cifras {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.7rem;
   margin: -4rem 1.2rem 1.2rem;
   padding: 0;
   list-style: none;
 }
 
+@media (max-width: 72rem) {
+  .cifras {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .cifras {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 26rem) {
+  .cifras {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cifras li:not(.esqueleto) {
+  padding: 0.85rem 0.9rem;
+  border-radius: 1rem;
+}
+
 .cifras li:not(.esqueleto),
 .tarjeta {
-  padding: 1rem 1.2rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 1.2rem;
   background: #fff;
+}
+
+.tarjeta {
+  padding: 1rem 1.2rem;
 }
 
 .cifras li:not(.esqueleto) {
@@ -107,6 +153,16 @@
   --tinta: #6d28d9;
 }
 
+.comision {
+  --fondo: #fae8ff;
+  --tinta: #a21caf;
+}
+
+.ganancias {
+  --fondo: #cffafe;
+  --tinta: #0e7490;
+}
+
 .cifras li:not(.esqueleto) {
   display: flex;
   flex-direction: column;
@@ -114,17 +170,27 @@
 }
 
 .nombre {
+  /* Reserva dos líneas para que las cifras queden alineadas aunque un nombre sea más largo. */
+  min-height: 2.4em;
   color: #64748b;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .cifra {
   color: #1e1b4b;
-  font-size: 1.9rem;
+  font-size: 1.5rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
+  /* Una cifra nunca se parte en dos líneas: si aun así no cabe, se corta con "…" (el valor completo está en el título). */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cifras .detalle {
+  font-size: 0.78rem;
 }
 
 .detalle,

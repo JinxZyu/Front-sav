@@ -1,7 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Observable, finalize } from 'rxjs';
 import { SesionService } from '../../../config/auth/sesion.service';
+import { Paginador, paginar } from '../../../shared/components/paginador/paginador';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { FormularioDocumento } from '../../components/formulario-documento/formulario-documento';
@@ -25,7 +26,7 @@ interface AccionEnCurso {
 
 @Component({
   selector: 'app-gestion-usuarios',
-  imports: [FormularioMotivo, FormularioDocumento],
+  imports: [FormularioMotivo, FormularioDocumento, Paginador],
   templateUrl: './gestion-usuarios.html',
   styleUrls: ['../../styles/pagina-administracion.css', './gestion-usuarios.css'],
 })
@@ -67,6 +68,16 @@ export class GestionUsuarios {
         (!texto || normalizar(`${nombreCompleto(usuario)} ${usuario.correo}`).includes(texto)),
     );
   });
+
+  protected readonly porPagina = 10;
+  /** Página actual; al cambiar la búsqueda o el filtro se vuelve a la primera. */
+  protected readonly pagina = linkedSignal<readonly [string, boolean], number>({
+    source: () => [this.busqueda(), this.soloRestringidos()] as const,
+    computation: () => 0,
+  });
+  protected readonly visibles = computed(() =>
+    paginar(this.usuarios() ?? [], this.pagina(), this.porPagina),
+  );
 
   protected readonly error = computed(() =>
     this.consulta.status() === 'error'

@@ -1,0 +1,35 @@
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.paginacion button {
+  padding: 0.45rem 1rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.paginacion button:hover:not(:disabled) {
+  border-color: #818cf8;
+}
+
+.paginacion button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.paginacion button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

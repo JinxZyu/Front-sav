@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { crearToken } from '../../../config/auth/sesion.testing';
 import { notificacion } from '../../models/notificacion.testing';
+import { NotificacionService } from '../../services/notificacion.service';
 import { CampanaNotificaciones } from './campana-notificaciones';
 
 describe('CampanaNotificaciones (HU-038)', () => {
@@ -62,6 +63,26 @@ describe('CampanaNotificaciones (HU-038)', () => {
     backend.verify();
   });
 
+  it('consulta de inmediato cuando otra pantalla pide actualizar (por ejemplo, un reporte listo)', async () => {
+    await crear(0);
+
+    TestBed.inject(NotificacionService).pedirActualizacion();
+    backend.expectOne(url).flush(lista(2));
+    await fixture.whenStable();
+
+    expect(enlace().getAttribute('aria-label')).toBe('Notificaciones, 2 nuevas');
+  });
+
+  it('consulta de inmediato al volver a ver la pestaña', async () => {
+    await crear(0);
+
+    document.dispatchEvent(new Event('visibilitychange'));
+    backend.expectOne(url).flush(lista(1));
+    await fixture.whenStable();
+
+    expect(enlace().getAttribute('aria-label')).toBe('Notificaciones, 1 nueva');
+  });
+
   it('sin notificaciones nuevas no muestra contador', async () => {
     await crear(0);
     expect(enlace().getAttribute('aria-label')).toBe('Notificaciones');
@@ -103,7 +124,7 @@ describe('CampanaNotificaciones (HU-038)', () => {
     const items = [...(panel()?.querySelectorAll('li') ?? [])];
     expect(items).toHaveLength(5);
     expect(items.every((item) => item.classList.contains('nueva'))).toBe(true);
-    expect(items[0].textContent).toContain('Tu reserva cambió de estado');
+    expect(items[0].textContent).toContain('Tu reserva fue confirmada.');
     expect(items[0].querySelector('a')?.getAttribute('href')).toBe('/reservas/r-1');
     const todas = panel()?.querySelector('a.todas') as HTMLAnchorElement;
     expect(todas.getAttribute('href')).toBe('/notificaciones');

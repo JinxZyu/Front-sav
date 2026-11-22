@@ -1,8 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { estadoPublicacion } from '../../../alojamiento/models/alojamiento.models';
 import { formatearFecha } from '../../../alojamiento/utils/formato';
+import { Paginador, paginar } from '../../../shared/components/paginador/paginador';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { normalizar } from '../../utils/texto';
 import {
@@ -17,7 +18,7 @@ type Filtro = 'revision' | 'bloqueadas' | 'todas';
 
 @Component({
   selector: 'app-lista-publicaciones',
-  imports: [RouterLink],
+  imports: [RouterLink, Paginador],
   templateUrl: './lista-publicaciones.html',
   styleUrls: ['../../styles/pagina-administracion.css', './lista-publicaciones.css'],
 })
@@ -62,6 +63,16 @@ export class ListaPublicaciones {
       ? base.filter((publicacion) => normalizar(publicacion.titulo).includes(texto))
       : base;
   });
+
+  protected readonly porPagina = 10;
+  /** Página actual; al cambiar el filtro o la búsqueda se vuelve a la primera. */
+  protected readonly pagina = linkedSignal<readonly [Filtro, string], number>({
+    source: () => [this.filtro(), this.busqueda()] as const,
+    computation: () => 0,
+  });
+  protected readonly visibles = computed(() =>
+    paginar(this.publicaciones() ?? [], this.pagina(), this.porPagina),
+  );
 
   protected readonly error = computed(() =>
     this.consulta.status() === 'error'

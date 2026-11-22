@@ -29,6 +29,22 @@ export function formatearPesos(valor: number): string {
   return PESOS.format(valor);
 }
 
+const PESOS_CORTOS = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+/**
+ * Pesos completos si caben en `maximo` caracteres; si no, en forma corta ("$120 M"), para que una cifra muy grande
+ * no desborde su tarjeta. Quien lo use debe mostrar el valor completo (por ejemplo, en el título del elemento).
+ */
+export function formatearPesosCortos(valor: number, maximo = 12): string {
+  const completo = PESOS.format(valor);
+  return completo.length <= maximo ? completo : PESOS_CORTOS.format(valor);
+}
+
 export function formatearFecha(valor: string | null): string {
   if (!valor) {
     return '';

@@ -1,7 +1,9 @@
 <section class="contenedor" aria-labelledby="titulo-indicadores">
   <div class="banda">
     <div>
-      <p class="saludo">{{ saludo() }}</p>
+      @if (saludo(); as saludo) {
+        <p class="saludo">{{ saludo }}</p>
+      }
       <h1 id="titulo-indicadores">Indicadores</h1>
       <p class="subtitulo">
         @if (datos(); as datos) {
@@ -11,14 +13,17 @@
         }
       </p>
     </div>
-    <button
-      type="button"
-      class="actualizar"
-      [disabled]="consulta.isLoading()"
-      (click)="consulta.reload()"
-    >
-      {{ consulta.isLoading() ? 'Actualizando…' : 'Actualizar' }}
-    </button>
+    <div class="lado">
+      <p class="fecha-hoy">{{ hoy }}</p>
+      <button
+        type="button"
+        class="actualizar"
+        [disabled]="consulta.isLoading()"
+        (click)="consulta.reload()"
+      >
+        {{ consulta.isLoading() ? 'Actualizando…' : 'Actualizar' }}
+      </button>
+    </div>
   </div>
 
   @if (error(); as error) {
@@ -39,10 +44,10 @@
         </span>
         <span class="nombre">Usuarios</span>
         <span class="cifra">{{ numero(datos.usuarios.total) }}</span>
-        <span class="detalle">
-          {{ contar(datos.usuarios.activos, 'activo', 'activos') }} ·
-          {{ contar(datos.usuarios.huespedes, 'huésped', 'huéspedes') }} ·
-          {{ contar(datos.usuarios.anfitriones, 'anfitrión', 'anfitriones') }}
+        <span class="detalle desglose">
+          <span>{{ contar(datos.usuarios.activos, 'activo', 'activos') }}</span>
+          <span>{{ contar(datos.usuarios.huespedes, 'huésped', 'huéspedes') }}</span>
+          <span>{{ contar(datos.usuarios.anfitriones, 'anfitrión', 'anfitriones') }}</span>
         </span>
       </li>
       <li class="publicaciones">
@@ -72,9 +77,38 @@
             />
           </svg>
         </span>
-        <span class="nombre">Ingresos estimados</span>
-        <span class="cifra">{{ pesos(datos.ingresosEstimados) }}</span>
-        <span class="detalle">Suma de los pagos aprobados</span>
+        <span class="nombre">Pagado por huéspedes</span>
+        <span class="cifra" [title]="pesos(datos.finanzas.pagadoPorHuespedes)">{{
+          pesosCortos(datos.finanzas.pagadoPorHuespedes)
+        }}</span>
+        <span class="detalle desglose">
+          <span>Devoluciones {{ pesos(datos.finanzas.devoluciones) }}</span>
+          <span>Neto {{ pesos(datos.finanzas.ingresosNetos) }}</span>
+        </span>
+      </li>
+      <li class="comision">
+        <span class="icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 19 19 5M7.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM16.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+          </svg>
+        </span>
+        <span class="nombre">Comisión de la plataforma</span>
+        <span class="cifra" [title]="pesos(datos.finanzas.comisionPlataforma)">{{
+          pesosCortos(datos.finanzas.comisionPlataforma)
+        }}</span>
+        <span class="detalle">Después de devoluciones</span>
+      </li>
+      <li class="ganancias">
+        <span class="icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 11 12 4l9 7M5 10v10h14V10M10 20v-6h4v6" />
+          </svg>
+        </span>
+        <span class="nombre">Ganancias de los anfitriones</span>
+        <span class="cifra" [title]="pesos(datos.finanzas.gananciasAnfitriones)">{{
+          pesosCortos(datos.finanzas.gananciasAnfitriones)
+        }}</span>
+        <span class="detalle">Después de devoluciones</span>
       </li>
     </ul>
 

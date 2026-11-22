@@ -160,6 +160,17 @@ export class DisponibilidadAlojamiento {
     this.botonAgregar()?.nativeElement.focus();
   }
 
+  /** Se desmarcó el rango en el calendario: se vacía también el formulario que ese rango había llenado. */
+  limpiarSeleccion(): void {
+    if (this.procesando()) {
+      return;
+    }
+    this.nuevo.reset();
+    this.sinCierre.setValue(false);
+    this.intentoNuevo.set(false);
+    this.limpiarMensajes();
+  }
+
   reintentar(): void {
     if (this.publicacion.status() === 'error') {
       this.publicacion.reload();
@@ -291,7 +302,11 @@ export class DisponibilidadAlojamiento {
           this.actualizacion.update((valor) => valor + 1);
           this.avisos.mostrar('Disponibilidad actualizada', exito);
         },
-        error: (error: unknown) => this.error.set(mensajeDeError(error, falla)),
+        error: (error: unknown) => {
+          // El error se avisa en la esquina y desaparece solo, igual que los avisos de éxito.
+          const mensaje = mensajeDeError(error, falla);
+          this.avisos.mostrar(falla, mensaje === falla ? null : mensaje, 'error');
+        },
       });
   }
 

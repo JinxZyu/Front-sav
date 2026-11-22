@@ -19,6 +19,12 @@ export const routes: Routes = [
       import('./alojamiento/alojamiento.routes').then((m) => m.ALOJAMIENTO_ROUTES),
   },
   {
+    path: 'ingresos',
+    title: 'Ingresos',
+    canMatch: [rolGuard('ANFITRION')],
+    loadComponent: () => import('./alojamiento/pages/ingresos/ingresos').then((m) => m.Ingresos),
+  },
+  {
     path: 'disponibilidad',
     canMatch: [rolGuard('ANFITRION')],
     loadChildren: () =>

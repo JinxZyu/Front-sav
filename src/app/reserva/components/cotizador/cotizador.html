@@ -98,7 +98,7 @@
 }
 
 @if (cotizacion(); as cotizacion) {
-  <dl class="desglose" aria-label="Desglose del precio">
+  <dl class="desglose" aria-label="Desglose del precio" [class.actualizando]="calculando()" [attr.aria-busy]="calculando()">
     <div>
       <dt>
         {{ pesos(cotizacion.precioPorNoche) }} × {{ cotizacion.noches }}
@@ -142,11 +142,13 @@
     <button
       type="button"
       class="principal"
-      [disabled]="reservando()"
+      [disabled]="reservando() || calculando()"
       (click)="reservar(cotizacion)"
     >
       @if (reservando()) {
         Enviando…
+      } @else if (calculando()) {
+        Actualizando precio…
       } @else {
         {{ requiereAprobacion() ? 'Solicitar reserva' : 'Reservar' }}
       }

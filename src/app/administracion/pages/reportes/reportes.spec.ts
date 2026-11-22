@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { environment } from '../../../../environments/environment';
+import { NotificacionService } from '../../../notificacion/services/notificacion.service';
 import { simularUrlsDeObjeto } from '../../../shared/utils/url-objeto.testing';
 import { ExportacionReporte, INTERVALO_CONSULTA_REPORTE } from '../../models/reporte.models';
 import { Reportes } from './reportes';
@@ -155,6 +156,37 @@ describe('Reportes (HU-044)', () => {
     } finally {
       restaurar();
     }
+  });
+
+  it('pide revisar las notificaciones cuando el reporte ya llega terminado en la primera consulta', async () => {
+    await abrir('/administracion/reportes/e-1');
+    const pedir = vi.spyOn(TestBed.inject(NotificacionService), 'pedirActualizacion');
+    vi.useFakeTimers();
+
+    await responder(exportacion({ estado: 'COMPLETADO', urlDescarga: '/archivo' }));
+    expect(pedir).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(pedir).toHaveBeenCalledTimes(1);
+
+    // No se repite por el mismo reporte.
+    await vi.advanceTimersByTimeAsync(INTERVALO_CONSULTA_REPORTE * 3);
+    expect(pedir).toHaveBeenCalledTimes(1);
+  });
+
+  it('pide revisar las notificaciones cuando el reporte termina mientras se espera', async () => {
+    await abrir('/administracion/reportes/e-1');
+    const pedir = vi.spyOn(TestBed.inject(NotificacionService), 'pedirActualizacion');
+    vi.useFakeTimers();
+
+    await responder(exportacion({ estado: 'EN_PROCESO' }));
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(pedir).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(INTERVALO_CONSULTA_REPORTE);
+    await responder(exportacion({ estado: 'COMPLETADO', urlDescarga: '/archivo' }));
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(pedir).toHaveBeenCalledTimes(1);
   });
 
   it('avisa si el archivo ya no está disponible', async () => {
