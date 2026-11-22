@@ -2,10 +2,28 @@ import { formatearFechaHora } from '../../alojamiento/utils/formato';
 import { mensajeLegible } from './mensaje-notificacion';
 
 describe('mensajeLegible', () => {
-  it('traduce los estados de reservas y publicaciones', () => {
+  it('dice lo que le pasó a la reserva en una frase, no como "A → B"', () => {
+    expect(mensajeLegible('Tu reserva cambió de estado: PENDIENTE_PAGO → CONFIRMADA.')).toBe(
+      'Tu reserva fue confirmada.',
+    );
     expect(
       mensajeLegible('Tu reserva cambió de estado: PENDIENTE_APROBACION → PENDIENTE_PAGO.'),
-    ).toBe('Tu reserva cambió de estado: Esperando aprobación → Pendiente de pago.');
+    ).toBe('Tu reserva quedó pendiente de pago.');
+    expect(
+      mensajeLegible('Una reserva de tu alojamiento cambió de estado: CONFIRMADA → CANCELADA.'),
+    ).toBe('Una reserva de tu alojamiento fue cancelada.');
+    expect(mensajeLegible('Tu reserva cambió de estado: PENDIENTE_PAGO → EXPIRADA.')).toBe(
+      'Tu reserva venció.',
+    );
+  });
+
+  it('si el estado nuevo no se conoce, deja la frase original con los estados traducidos', () => {
+    expect(mensajeLegible('Tu reserva cambió de estado: CONFIRMADA → EN_DISPUTA.')).toBe(
+      'Tu reserva cambió de estado: Confirmada → EN_DISPUTA.',
+    );
+  });
+
+  it('traduce los estados de las publicaciones', () => {
     expect(mensajeLegible('El estado de tu publicación cambió de ACTIVA a PAUSADA.')).toBe(
       'El estado de tu publicación cambió de Publicada a Pausada.',
     );

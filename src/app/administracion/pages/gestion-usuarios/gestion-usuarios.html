@@ -40,7 +40,7 @@
 
     @if (usuarios.length > 0) {
       <ul class="lista">
-        @for (usuario of usuarios; track usuario.idUsuario) {
+        @for (usuario of visibles(); track usuario.idUsuario) {
           <li class="usuario" [class.restringido]="usuario.restringido">
             <div class="cabecera">
               <div class="identidad">
@@ -146,6 +146,12 @@
           </li>
         }
       </ul>
+      <app-paginador
+        [total]="usuarios.length"
+        [porPagina]="porPagina"
+        [(pagina)]="pagina"
+        etiqueta="Páginas de usuarios"
+      />
     } @else {
       <div class="vacio">
         <h2>No hay usuarios que coincidan</h2>

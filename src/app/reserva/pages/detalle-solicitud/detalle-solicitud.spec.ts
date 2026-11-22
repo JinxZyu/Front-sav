@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { environment } from '../../../../environments/environment';
+import { AvisosService } from '../../../shared/services/avisos.service';
 import { reservaDeAlojamiento } from '../../models/reserva.testing';
 import { DetalleSolicitud } from './detalle-solicitud';
 
@@ -38,7 +39,8 @@ describe('DetalleSolicitud del anfitrión (HU-032 y HU-035)', () => {
     [...elemento().querySelectorAll<HTMLButtonElement>('button')].find((actual) =>
       actual.textContent?.trim().startsWith(texto),
     );
-  const aviso = () => elemento().querySelector('.aviso')?.textContent?.trim();
+  // El resultado de la decisión sale como aviso flotante (en la esquina), no dentro de la página.
+  const aviso = () => TestBed.inject(AvisosService).avisos().at(-1)?.titulo;
 
   afterEach(() => backend.verify());
 
@@ -105,7 +107,9 @@ describe('DetalleSolicitud del anfitrión (HU-032 y HU-035)', () => {
     );
     await responder(consulta, reservaDeAlojamiento({ estado: 'RECHAZADA' }));
 
-    expect(elemento().querySelector('[role="alert"]')?.textContent).toContain('ya fue resuelta');
+    const resultado = TestBed.inject(AvisosService).avisos().at(-1);
+    expect(resultado?.tipo).toBe('error');
+    expect(resultado?.titulo).toContain('ya fue resuelta');
   });
 
   it('informa cuando la reserva no es de sus alojamientos', async () => {
@@ -131,14 +135,12 @@ describe('DetalleSolicitud del anfitrión (HU-032 y HU-035)', () => {
     expect(boton('Aprobar solicitud')?.disabled).toBe(false);
   });
 
-  it('mantiene bloqueadas las decisiones mientras se recarga la solicitud', async () => {
+  it('mantiene bloqueadas las decisiones mientras se envía la decisión', async () => {
     await abrir();
     await responder(consulta, reservaDeAlojamiento());
 
     boton('Aprobar solicitud')!.click();
-    backend
-      .expectOne(`${api}/r-1/aprobar`)
-      .flush({ estado: 'PENDIENTE_PAGO', mensaje: 'Solicitud aprobada.' });
+    const decision = backend.expectOne(`${api}/r-1/aprobar`);
     await new Promise((resolver) => setTimeout(resolver));
     harness.detectChanges();
 
@@ -146,8 +148,31 @@ describe('DetalleSolicitud del anfitrión (HU-032 y HU-035)', () => {
     expect(aprobando.disabled).toBe(true);
     aprobando.click();
     backend.expectNone(`${api}/r-1/aprobar`);
+
+    decision.flush({ estado: 'PENDIENTE_PAGO', mensaje: 'Solicitud aprobada.' });
+    await new Promise((resolver) => setTimeout(resolver));
+    harness.detectChanges();
     await responder(consulta, reservaDeAlojamiento({ estado: 'PENDIENTE_PAGO' }));
     expect(boton('Aprobar solicitud')).toBeUndefined();
+  });
+
+  it('al aprobar muestra el estado nuevo de inmediato, sin esperar la recarga', async () => {
+    await abrir();
+    await responder(consulta, reservaDeAlojamiento());
+
+    boton('Aprobar solicitud')!.click();
+    backend
+      .expectOne(`${api}/r-1/aprobar`)
+      .flush({ estado: 'PENDIENTE_PAGO', mensaje: 'Solicitud aprobada.', retencionHasta: null });
+    await new Promise((resolver) => setTimeout(resolver));
+    harness.detectChanges();
+
+    // La recarga todavía no respondió, pero el estado, los botones y el aviso ya cambiaron.
+    expect(elemento().textContent).toContain('Pendiente de pago');
+    expect(boton('Aprobar solicitud')).toBeUndefined();
+    expect(boton('Aprobando')).toBeUndefined();
+    expect(aviso()).toBe('Solicitud aprobada.');
+    await responder(consulta, reservaDeAlojamiento({ estado: 'PENDIENTE_PAGO' }));
   });
 
   it('HU-040: explica que una estadía completada ya puede calificarse', async () => {

@@ -47,7 +47,7 @@
 
     @if (publicaciones.length > 0) {
       <ul class="lista">
-        @for (publicacion of publicaciones; track publicacion.idPublicacion) {
+        @for (publicacion of visibles(); track publicacion.idPublicacion) {
           <li>
             <a class="publicacion" [routerLink]="publicacion.idPublicacion">
               <span class="datos">
@@ -61,6 +61,12 @@
           </li>
         }
       </ul>
+      <app-paginador
+        [total]="publicaciones.length"
+        [porPagina]="porPagina"
+        [(pagina)]="pagina"
+        etiqueta="Páginas de publicaciones"
+      />
     } @else if (busqueda().trim()) {
       <div class="vacio">
         <h2>No hay publicaciones con ese título</h2>

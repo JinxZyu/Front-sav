@@ -73,6 +73,28 @@ describe('App', () => {
     const reservas = elemento(fixture).querySelector('nav > a.opcional') as HTMLAnchorElement;
     expect(reservas.textContent?.trim()).toBe('Reservas');
     expect(reservas.getAttribute('href')).toBe('/reservas/alojamientos');
+    const ingresos = [...elemento(fixture).querySelectorAll('nav > a')].find(
+      (opcion) => opcion.getAttribute('href') === '/ingresos',
+    );
+    expect(ingresos?.textContent?.trim()).toBe('Ingresos');
+  });
+
+  it('solo el anfitrión ve el enlace de ingresos', async () => {
+    TestBed.inject(SesionService).iniciar(
+      crearToken({
+        sub: 'hugo@correo.com',
+        role: 'HUESPED',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne((peticion) => peticion.url.endsWith('/usuarios/mi_cuenta'))
+      .flush({ nombre: 'Hugo', apellido: 'Díaz' });
+    await fixture.whenStable();
+
+    expect(elemento(fixture).querySelector('nav > a[href="/ingresos"]')).toBeNull();
   });
 
   it('al huésped la barra le lleva al listado general de alojamientos', async () => {

@@ -135,8 +135,10 @@ describe('Cotizador (HU-027 y HU-028)', () => {
 
     elemento().querySelector<HTMLInputElement>('.adicional input')!.click();
     fixture.detectChanges();
-    expect(elemento().querySelector('.desglose')).toBeNull();
-    enviar();
+    // El desglose no desaparece ni hay que volver a calcular: se actualiza solo, y mientras tanto no se puede reservar.
+    expect(elemento().querySelector('.desglose')).not.toBeNull();
+    expect(elemento().querySelector('.desglose.actualizando')).not.toBeNull();
+    expect(elemento().querySelector('button[type="submit"]')).toBeNull();
 
     const peticion = await responder(
       cotizacion({
@@ -156,6 +158,33 @@ describe('Cotizador (HU-027 y HU-028)', () => {
     expect(peticion.request.body.idsAdicionales).toEqual(['ad-1']);
     expect(elemento().querySelector('.desglose')?.textContent).toContain('Desayuno');
     expect(elemento().querySelector('.total')?.textContent).toContain('649.000');
+    expect(elemento().querySelector('.desglose.actualizando')).toBeNull();
+  });
+
+  it('si falla al actualizar por un servicio adicional, no deja el precio viejo a la vista', async () => {
+    crear({ llegada, salida });
+    backend.expectOne(url).flush(cotizacion());
+    await fixture.whenStable();
+
+    elemento().querySelector<HTMLInputElement>('.adicional input')!.click();
+    fixture.detectChanges();
+    await responder({ mensaje: 'Falla' }, { status: 500, statusText: 'Error' });
+
+    expect(elemento().querySelector('.desglose')).toBeNull();
+    expect(elemento().querySelector('[role="alert"]')).not.toBeNull();
+  });
+
+  it('cambiar las fechas sí descarta el precio anterior hasta calcular de nuevo', async () => {
+    crear({ llegada, salida });
+    backend.expectOne(url).flush(cotizacion());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    escribir('huespedes', '3');
+    fixture.detectChanges();
+
+    expect(elemento().querySelector('.desglose')).toBeNull();
+    expect(elemento().querySelector('button[type="submit"]')).not.toBeNull();
   });
 
   it('criterio 3: calcula de una vez con las fechas de la búsqueda', async () => {

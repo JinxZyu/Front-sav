@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { EMPTY, Subject, catchError, merge, switchMap, tap, timer } from 'rxjs';
+import { EMPTY, Subject, catchError, filter, fromEvent, merge, switchMap, tap, timer } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
 import { SesionService } from '../../../config/auth/sesion.service';
 import { Notificacion } from '../../models/notificacion.models';
@@ -18,7 +18,7 @@ import { NotificacionService } from '../../services/notificacion.service';
 import { EnlaceNotificacion, enlaceNotificacion } from '../../utils/enlace-notificacion';
 import { mensajeLegible } from '../../utils/mensaje-notificacion';
 
-const INTERVALO_MS = 60_000;
+const INTERVALO_MS = 15_000;
 const MAXIMO_VISIBLES = 5;
 
 @Component({
@@ -63,7 +63,16 @@ export class CampanaNotificaciones {
   protected readonly fecha = formatearFechaHora;
 
   constructor() {
-    const consulta = merge(timer(0, INTERVALO_MS), this.recarga)
+    // Los navegadores frenan los temporizadores de una pestaña en segundo plano: al volver a verla se consulta al instante.
+    const alVolver = fromEvent(document, 'visibilitychange').pipe(
+      filter(() => document.visibilityState === 'visible'),
+    );
+    const consulta = merge(
+      timer(0, INTERVALO_MS),
+      this.recarga,
+      this.servicio.actualizacionPedida$,
+      alVolver,
+    )
       .pipe(
         switchMap(() =>
           this.servicio.misNotificaciones().pipe(

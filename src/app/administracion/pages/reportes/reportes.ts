@@ -14,6 +14,7 @@ import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-int
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, defer, finalize, map, repeat, takeWhile } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
+import { NotificacionService } from '../../../notificacion/services/notificacion.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import {
   ESTADOS_EXPORTACION_EN_CURSO,
@@ -25,6 +26,9 @@ import {
   formatoReporte,
 } from '../../models/reporte.models';
 import { ReportesService } from '../../services/reportes.service';
+
+/** El estado del reporte cambia un instante antes de que se cree su notificación. */
+const ESPERA_NOTIFICACION_MS = 1500;
 
 const ERRORES_DESCARGA: Record<number, string> = {
   404: 'No encontramos el archivo de este reporte. Genera uno nuevo.',
@@ -42,6 +46,7 @@ export class Reportes {
   private readonly router = inject(Router);
   private readonly documento = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly notificaciones = inject(NotificacionService);
 
   private readonly idExportacion = toSignal(
     inject(ActivatedRoute).paramMap.pipe(
@@ -105,6 +110,17 @@ export class Reportes {
       untracked(() => this.descartarDescarga());
     });
     this.destroyRef.onDestroy(() => this.descartarDescarga());
+
+    // Cuando el reporte termina el sistema crea una notificación; se pide revisarla ya, sin esperar a la próxima consulta.
+    let estabaEnCurso = false;
+    effect(() => {
+      const enCurso = this.enCurso();
+      if (estabaEnCurso && !enCurso && this.exportacion()) {
+        const espera = setTimeout(() => this.notificaciones.pedirActualizacion(), ESPERA_NOTIFICACION_MS);
+        this.destroyRef.onDestroy(() => clearTimeout(espera));
+      }
+      estabaEnCurso = enCurso;
+    });
   }
 
   protected elegir(formato: FormatoReporte): void {

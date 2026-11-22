@@ -167,6 +167,41 @@ describe('SelectorFechas', () => {
     expect(elegidas).toEqual([{ llegada: dia(6), salida: '' }]);
   });
 
+  it('volver a pulsar la llegada elegida la desmarca', async () => {
+    crear({ llegada: dia(1) });
+    await responder(datos);
+
+    expect(celda(1).disabled).toBe(false);
+    celda(1).click();
+    expect(elegidas).toEqual([{ llegada: '', salida: '' }]);
+  });
+
+  it('con la llegada y la salida elegidas, pulsar la llegada limpia ambas', async () => {
+    crear({ llegada: dia(1), salida: dia(3) });
+    await responder(datos);
+
+    celda(1).click();
+    expect(elegidas).toEqual([{ llegada: '', salida: '' }]);
+  });
+
+  it('volver a pulsar la salida elegida la desmarca y conserva la llegada', async () => {
+    crear({ llegada: dia(1), salida: dia(3) });
+    await responder(datos);
+
+    celda(3).click();
+    expect(elegidas).toEqual([{ llegada: dia(1), salida: '' }]);
+  });
+
+  it('una salida elegida cuya noche no está libre igual se puede desmarcar', async () => {
+    // dia(10) es donde termina el primer periodo: sirve como salida, pero esa noche ya no está disponible.
+    crear({ llegada: dia(8), salida: dia(10) });
+    await responder(datos);
+
+    expect(celda(10).disabled).toBe(false);
+    celda(10).click();
+    expect(elegidas).toEqual([{ llegada: dia(8), salida: '' }]);
+  });
+
   it('si falla la consulta permite reintentar', async () => {
     crear();
     await responder({ mensaje: 'Error' }, { status: 500, statusText: 'Error' });

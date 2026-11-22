@@ -1,0 +1,76 @@
+<section
+  class="ingresos"
+  [class.sin-titulo]="!mostrarTitulo()"
+  [attr.aria-labelledby]="mostrarTitulo() ? 'titulo-ingresos' : null"
+  [attr.aria-label]="mostrarTitulo() ? null : 'Lo que has generado'"
+>
+  @if (mostrarTitulo()) {
+    <h2 id="titulo-ingresos">Lo que has generado</h2>
+  }
+
+  @if (datos(); as datos) {
+    @if (datos.resumen.reservasConPago === 0) {
+      <p class="nota">
+        Aún no tienes reservas pagadas. Cuando un huésped pague, aquí verás cuánto te corresponde.
+      </p>
+    } @else {
+      <p class="nota">
+        Es lo que te queda después de la comisión de la plataforma y de las devoluciones por
+        cancelaciones, según la política de cada publicación.
+      </p>
+      <ul class="cifras">
+        <li class="principal">
+          <span class="rotulo">Tus ganancias</span>
+          <span class="cifra" [title]="pesos(datos.resumen.gananciasAnfitriones)">{{
+            pesosCortos(datos.resumen.gananciasAnfitriones)
+          }}</span>
+          <span class="detalle">
+            {{ datos.resumen.reservasConPago }}
+            {{ datos.resumen.reservasConPago === 1 ? 'reserva pagada' : 'reservas pagadas' }}
+          </span>
+        </li>
+        <li>
+          <span class="rotulo">Pagado por huéspedes</span>
+          <span class="cifra" [title]="pesos(datos.resumen.pagadoPorHuespedes)">{{
+            pesosCortos(datos.resumen.pagadoPorHuespedes)
+          }}</span>
+        </li>
+        <li>
+          <span class="rotulo">Devoluciones por cancelaciones</span>
+          <span class="cifra" [title]="pesos(datos.resumen.devoluciones)">{{
+            pesosCortos(datos.resumen.devoluciones)
+          }}</span>
+        </li>
+        <li>
+          <span class="rotulo">Comisión de la plataforma</span>
+          <span class="cifra" [title]="pesos(datos.resumen.comisionPlataforma)">{{
+            pesosCortos(datos.resumen.comisionPlataforma)
+          }}</span>
+        </li>
+      </ul>
+
+      @if (datos.publicaciones.length > 1) {
+        <details class="desglose" [open]="desgloseAbierto()">
+          <summary>Ver por alojamiento</summary>
+          <ul>
+            @for (publicacion of datos.publicaciones; track publicacion.idPublicacion) {
+              <li>
+                <span class="titulo">{{ publicacion.titulo }}</span>
+                <span class="monto">{{ pesos(publicacion.ganancias) }}</span>
+                <span class="reservas">
+                  {{ publicacion.reservasConPago }}
+                  {{ publicacion.reservasConPago === 1 ? 'reserva' : 'reservas' }}
+                </span>
+              </li>
+            }
+          </ul>
+        </details>
+      }
+    }
+  } @else if (falla()) {
+    <p class="nota" role="alert">
+      No pudimos consultar tus ingresos.
+      <button type="button" class="texto" (click)="reintentar()">Reintentar</button>
+    </p>
+  }
+</section>

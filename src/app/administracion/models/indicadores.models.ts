@@ -10,11 +10,22 @@ export interface DemandaCiudad {
   solicitudesCotizacion: number;
 }
 
+/** Lo que pagaron los huéspedes, lo devuelto por cancelaciones y cómo se reparte entre la plataforma y los anfitriones. */
+export interface ResumenFinanciero {
+  pagadoPorHuespedes: number;
+  devoluciones: number;
+  ingresosNetos: number;
+  comisionPlataforma: number;
+  gananciasAnfitriones: number;
+  reservasConPago: number;
+}
+
 export interface IndicadoresDashboard {
   usuarios: IndicadoresUsuarios;
   publicacionesActivas: number;
   reservasPorEstado: Record<string, number>;
   ingresosEstimados: number;
+  finanzas: ResumenFinanciero;
   ciudadesConMayorDemanda: DemandaCiudad[];
   fechaCorteDatos: string;
 }

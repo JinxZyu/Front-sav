@@ -116,10 +116,17 @@ describe('MisPublicaciones (HU-011)', () => {
     await responder({ mensaje: 'No tienes publicaciones registradas.', publicaciones: [] });
 
     expect(tarjetas()).toHaveLength(0);
-    expect(elemento().querySelector('.vacio')?.textContent).toContain(
-      'Todavía no tienes publicaciones',
-    );
+    expect(elemento().querySelector('.vacio')?.textContent).toContain('Aún no tienes alojamientos');
+    expect(elemento().querySelector('.resumen')).toBeNull();
     expect(elemento().querySelector('.vacio a')?.getAttribute('href')).toBe('/nuevo');
+  });
+
+  it('ya no muestra los ingresos aquí: tienen su propio apartado', async () => {
+    crear();
+    await responder({ mensaje: '', publicaciones: [publicacion()] });
+
+    expect(elemento().querySelector('app-resumen-ingresos')).toBeNull();
+    expect(elemento().textContent).not.toContain('Lo que has generado');
   });
 
   it('siempre ofrece publicar un alojamiento nuevo', async () => {
@@ -146,6 +153,123 @@ describe('MisPublicaciones (HU-011)', () => {
     await responder({ mensaje: '', publicaciones: [publicacion()] });
     expect(elemento().querySelector('[role="alert"]')).toBeNull();
     expect(tarjetas()).toHaveLength(1);
+  });
+
+  describe('resumen, búsqueda y filtros', () => {
+    const lista = [
+      publicacion({ idPublicacion: 'p-1', titulo: 'Cabaña frente al lago', estado: 'ACTIVA' }),
+      publicacion({
+        idPublicacion: 'p-2',
+        titulo: 'Loft en el centro',
+        ciudad: 'Bogotá',
+        tipoAlojamiento: 'Apartamento',
+        estado: 'ACTIVA',
+      }),
+      publicacion({
+        idPublicacion: 'p-3',
+        titulo: 'Finca cafetera',
+        ciudad: 'Armenia',
+        tipoAlojamiento: 'Finca',
+        estado: 'BORRADOR',
+      }),
+      publicacion({
+        idPublicacion: 'p-4',
+        titulo: 'Casa de playa',
+        ciudad: 'Cartagena',
+        tipoAlojamiento: 'Casa',
+        estado: 'PAUSADA',
+      }),
+    ];
+    const titulos = () =>
+      [...elemento().querySelectorAll('a.tarjeta .titulo')].map((nodo) => nodo.textContent?.trim());
+    // Las tarjetas del resumen son los filtros: al pulsar una se filtra por ese estado.
+    const boton = (texto: string) =>
+      [...elemento().querySelectorAll<HTMLButtonElement>('.resumen button')].find(
+        (actual) => actual.querySelector('.rotulo')?.textContent?.trim() === texto,
+      )!;
+    const buscar = async (texto: string) => {
+      const campo = elemento().querySelector<HTMLInputElement>('.buscador input')!;
+      campo.value = texto;
+      campo.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+
+    it('resume cuántas publicaciones hay en total y por estado', async () => {
+      crear();
+      await responder({ mensaje: '', publicaciones: lista });
+
+      // No hay una segunda fila de filtros repitiendo lo mismo.
+      expect(elemento().querySelector('.filtros')).toBeNull();
+      const cifras = [...elemento().querySelectorAll('.resumen li')].map(
+        (nodo) =>
+          `${nodo.querySelector('.cifra')?.textContent} ${nodo.querySelector('.rotulo')?.textContent}`,
+      );
+      expect(cifras).toEqual([
+        '4 Total',
+        '2 Publicadas',
+        '0 En revisión',
+        '1 Pausadas',
+        '1 Borrador',
+      ]);
+    });
+
+    it('filtra por estado y marca el filtro activo', async () => {
+      crear();
+      await responder({ mensaje: '', publicaciones: lista });
+
+      boton('Publicadas').click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(titulos()).toEqual(['Cabaña frente al lago', 'Loft en el centro']);
+      expect(boton('Publicadas').getAttribute('aria-pressed')).toBe('true');
+      expect(boton('Total').getAttribute('aria-pressed')).toBe('false');
+      expect(elemento().querySelector('.conteo')?.textContent).toContain('Mostrando 2 de 4');
+    });
+
+    it('busca por nombre, ciudad o tipo sin importar tildes ni mayúsculas', async () => {
+      crear();
+      await responder({ mensaje: '', publicaciones: lista });
+
+      await buscar('CABANA');
+      expect(titulos()).toEqual(['Cabaña frente al lago']);
+
+      await buscar('bogota');
+      expect(titulos()).toEqual(['Loft en el centro']);
+
+      await buscar('apartamento');
+      expect(titulos()).toEqual(['Loft en el centro']);
+    });
+
+    it('combina la búsqueda con el filtro de estado', async () => {
+      crear();
+      await responder({ mensaje: '', publicaciones: lista });
+
+      boton('Publicadas').click();
+      await buscar('loft');
+
+      expect(titulos()).toEqual(['Loft en el centro']);
+    });
+
+    it('si nada coincide lo explica y permite limpiar los filtros', async () => {
+      crear();
+      await responder({ mensaje: '', publicaciones: lista });
+
+      await buscar('xyz');
+      expect(tarjetas()).toHaveLength(0);
+      expect(elemento().querySelector('.sin-resultados')?.textContent).toContain(
+        'No encontramos alojamientos con ese filtro',
+      );
+
+      elemento().querySelector<HTMLButtonElement>('.sin-resultados button')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(tarjetas()).toHaveLength(4);
+      expect(elemento().querySelector<HTMLInputElement>('.buscador input')!.value).toBe('');
+      expect(boton('Total').getAttribute('aria-pressed')).toBe('true');
+    });
   });
 
   it('tolera una respuesta sin lista de publicaciones', async () => {

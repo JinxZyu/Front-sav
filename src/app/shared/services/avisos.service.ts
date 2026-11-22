@@ -4,6 +4,7 @@ export interface Aviso {
   id: number;
   titulo: string;
   detalle: string | null;
+  tipo: 'exito' | 'info' | 'error';
 }
 
 export const DURACION_AVISO = 10000;
@@ -15,8 +16,8 @@ export class AvisosService {
 
   readonly avisos = this.lista.asReadonly();
 
-  mostrar(titulo: string, detalle: string | null = null): void {
-    const aviso: Aviso = { id: ++this.siguiente, titulo, detalle };
+  mostrar(titulo: string, detalle: string | null = null, tipo: Aviso['tipo'] = 'exito'): void {
+    const aviso: Aviso = { id: ++this.siguiente, titulo, detalle, tipo };
     this.lista.update((avisos) => [...avisos, aviso]);
     setTimeout(() => this.cerrar(aviso.id), DURACION_AVISO);
   }

@@ -164,6 +164,53 @@ describe('GestionUsuarios (HU-009)', () => {
     expect(elemento().textContent).toContain('No hay usuarios que coincidan');
   });
 
+  it('muestra los usuarios de a 10 por página y vuelve a la primera al buscar', async () => {
+    const muchos = Array.from({ length: 25 }, (_, indice) =>
+      usuarioAdministrado({
+        idUsuario: `u-${indice}`,
+        nombre: `Persona ${String(indice).padStart(2, '0')}`,
+        apellido: 'Prueba',
+        correo: `persona${indice}@test.co`,
+      }),
+    );
+    const nombres = () => tarjetas().map((item) => item.querySelector('h2')?.textContent?.trim());
+    const paginacion = () =>
+      elemento().querySelector('nav.paginacion')?.textContent?.replace(/\s+/g, ' ').trim();
+    const siguiente = () =>
+      [...elemento().querySelectorAll<HTMLButtonElement>('nav.paginacion button')].find(
+        (item) => item.textContent?.trim() === 'Siguiente',
+      ) as HTMLButtonElement;
+    crear();
+    await listar(muchos);
+
+    expect(tarjetas()).toHaveLength(10);
+    expect(nombres()[0]).toBe('Persona 00 Prueba');
+    expect(paginacion()).toBe('AnteriorPágina 1 de 3 Siguiente');
+
+    siguiente().click();
+    await actualizar();
+    expect(nombres()[0]).toBe('Persona 10 Prueba');
+    expect(paginacion()).toContain('Página 2 de 3');
+
+    siguiente().click();
+    await actualizar();
+    expect(tarjetas()).toHaveLength(5);
+
+    const buscador = elemento().querySelector('input[type="search"]') as HTMLInputElement;
+    buscador.value = 'persona 1';
+    buscador.dispatchEvent(new Event('input'));
+    await actualizar();
+    expect(nombres()[0]).toBe('Persona 10 Prueba');
+    expect(paginacion()).toBeUndefined();
+  });
+
+  it('con 10 usuarios o menos no muestra la paginación', async () => {
+    crear();
+    await listar();
+
+    expect(elemento().querySelector('nav.paginacion')).toBeNull();
+  });
+
   it('filtra solo las cuentas restringidas', async () => {
     crear();
     await listar();

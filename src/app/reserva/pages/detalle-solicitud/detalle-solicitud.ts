@@ -11,6 +11,7 @@ import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription, finalize, map } from 'rxjs';
 import { formatearFechaHora } from '../../../alojamiento/utils/formato';
+import { AvisosService } from '../../../shared/services/avisos.service';
 import { mensajeDeError } from '../../../shared/utils/mensaje-error';
 import { EncabezadoReserva } from '../../components/encabezado-reserva/encabezado-reserva';
 import { ResumenReserva } from '../../components/resumen-reserva/resumen-reserva';
@@ -37,6 +38,8 @@ const EXPLICACIONES: Record<string, string> = {
 })
 export class DetalleSolicitud {
   private readonly servicio = inject(ReservaService);
+  private readonly avisos = inject(AvisosService);
+  private ultimoAviso: string | null = null;
 
   private readonly idReserva = toSignal(
     inject(ActivatedRoute).paramMap.pipe(map((parametros) => parametros.get('idReserva') ?? '')),
@@ -92,6 +95,18 @@ export class DetalleSolicitud {
       this.idReserva();
       untracked(() => this.decision?.unsubscribe());
     });
+    // El resultado de la decisión se avisa en la esquina y desaparece solo, igual que el resto de avisos.
+    effect(() => {
+      const aviso = this.aviso();
+      untracked(() => {
+        if (!aviso) {
+          this.ultimoAviso = null;
+        } else if (`${aviso.tono}|${aviso.texto}` !== this.ultimoAviso) {
+          this.ultimoAviso = `${aviso.tono}|${aviso.texto}`;
+          this.avisos.mostrar(aviso.texto, null, aviso.tono);
+        }
+      });
+    });
   }
 
   protected decidir(aprobar: boolean): void {
@@ -113,8 +128,15 @@ export class DetalleSolicitud {
         }),
       )
       .subscribe({
-        next: (decision) =>
-          this.aviso.set({ tono: aprobar ? 'exito' : 'info', texto: decision.mensaje }),
+        next: (decision) => {
+          // Se muestra el estado nuevo de inmediato, sin esperar a que se recargue la reserva.
+          this.consulta.update((reserva) =>
+            reserva
+              ? { ...reserva, estado: decision.estado, retencionHasta: decision.retencionHasta }
+              : reserva,
+          );
+          this.aviso.set({ tono: aprobar ? 'exito' : 'info', texto: decision.mensaje });
+        },
         error: (error: unknown) =>
           this.aviso.set({
             tono: 'error',

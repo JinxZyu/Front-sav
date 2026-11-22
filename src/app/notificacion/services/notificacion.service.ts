@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { SesionService } from '../../config/auth/sesion.service';
 import { environment } from '../../../environments/environment';
 import { Notificacion } from '../models/notificacion.models';
@@ -38,6 +38,16 @@ export class NotificacionService {
     return recibidas.notificaciones.filter((notificacion) => esNueva(notificacion, vistasHasta))
       .length;
   });
+
+  private readonly pedidas = new Subject<void>();
+
+  /** Cada vez que alguien pide revisar ya mismo si hay notificaciones nuevas (sin esperar la próxima consulta). */
+  readonly actualizacionPedida$ = this.pedidas.asObservable();
+
+  /** Para cuando la pantalla sabe que acaba de pasar algo que genera una notificación, como un reporte listo. */
+  pedirActualizacion(): void {
+    this.pedidas.next();
+  }
 
   misNotificaciones(): Observable<Notificacion[]> {
     const usuario = this.usuario();

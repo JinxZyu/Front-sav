@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { environment } from '../../../../environments/environment';
+import { AvisosService } from '../../../shared/services/avisos.service';
 import { reservaPropia } from '../../models/reserva.testing';
 import { DetalleReserva } from './detalle-reserva';
 
@@ -43,7 +44,8 @@ describe('DetalleReserva del huésped', () => {
     [...elemento().querySelectorAll<HTMLButtonElement>('button')].find((actual) =>
       actual.textContent?.trim().startsWith(texto),
     );
-  const aviso = () => elemento().querySelector('.aviso')?.textContent?.trim();
+  // Los resultados salen como avisos flotantes (en la esquina), no dentro de la página.
+  const aviso = () => TestBed.inject(AvisosService).avisos().at(-1)?.titulo;
 
   afterEach(() => backend.verify());
 
@@ -237,7 +239,26 @@ describe('DetalleReserva del huésped', () => {
     expect(aviso()).toBeUndefined();
   });
 
-  it('mantiene bloqueado el pago mientras se recarga la reserva', async () => {
+  it('mantiene bloqueado el pago mientras se procesa y mientras se recarga la reserva', async () => {
+    await abrir();
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+
+    boton('Pagar $')!.click();
+    const pago = backend.expectOne(`${api}/r-1/pago-simulado`);
+    await refrescar();
+    const procesando = boton('Procesando')!;
+    expect(procesando.disabled).toBe(true);
+    procesando.click();
+    backend.expectNone(`${api}/r-1/pago-simulado`);
+
+    // El pago sigue en proceso: la reserva no cambia de estado, y el botón sigue bloqueado durante la recarga.
+    pago.flush({ estadoReserva: 'PENDIENTE_PAGO', estadoPago: 'PENDIENTE' });
+    await refrescar();
+    expect(boton('Procesando')!.disabled).toBe(true);
+    await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
+  });
+
+  it('al aprobarse el pago muestra la reserva confirmada de inmediato, sin esperar la recarga', async () => {
     await abrir();
     await responder(consulta, reservaPropia({ retencionHasta: enDiezMinutos() }));
 
@@ -247,10 +268,11 @@ describe('DetalleReserva del huésped', () => {
       .flush({ estadoReserva: 'CONFIRMADA', estadoPago: 'PAGADO' });
     await refrescar();
 
-    const enProceso = boton('Procesando')!;
-    expect(enProceso.disabled).toBe(true);
-    enProceso.click();
-    backend.expectNone(`${api}/r-1/pago-simulado`);
+    // La recarga de la reserva todavía no respondió, pero el estado y el aviso ya cambiaron.
+    expect(elemento().textContent).toContain('Confirmada');
+    expect(boton('Pagar')).toBeUndefined();
+    expect(boton('Procesando')).toBeUndefined();
+    expect(aviso()).toBe('¡Pago aprobado! Tu reserva está confirmada.');
     await responder(consulta, reservaPropia({ estado: 'CONFIRMADA' }));
     expect(boton('Pagar')).toBeUndefined();
   });

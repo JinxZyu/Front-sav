@@ -13,6 +13,14 @@ export const indicadores = (cambios: Partial<IndicadoresDashboard> = {}): Indica
     EXPIRADA: 0,
   },
   ingresosEstimados: 15250000,
+  finanzas: {
+    pagadoPorHuespedes: 15250000,
+    devoluciones: 1250000,
+    ingresosNetos: 14000000,
+    comisionPlataforma: 1100000,
+    gananciasAnfitriones: 12900000,
+    reservasConPago: 38,
+  },
   ciudadesConMayorDemanda: [
     { ciudad: 'Bogotá', solicitudesCotizacion: 30 },
     { ciudad: 'Medellín', solicitudesCotizacion: 12 },

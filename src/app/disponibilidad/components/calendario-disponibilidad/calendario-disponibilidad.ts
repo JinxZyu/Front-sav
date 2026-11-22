@@ -36,6 +36,8 @@ export class CalendarioDisponibilidad {
   readonly actualizacion = input(0);
   readonly bloqueado = input(false);
   readonly seleccion = output<NuevoPeriodo>();
+  /** Se emite cuando se desmarca un rango que ya se había entregado, para que quien lo usó lo limpie. */
+  readonly seleccionLimpia = output<void>();
 
   readonly desde = linkedSignal<number, string | null>({
     source: this.actualizacion,
@@ -107,6 +109,16 @@ export class CalendarioDisponibilidad {
 
   elegir(celda: DiaCalendario): void {
     if (!celda.seleccionable || this.bloqueado()) {
+      return;
+    }
+    // Volver a pulsar un día ya elegido desmarca la selección.
+    if (this.seleccionado(celda.dia)) {
+      const habiaRango = !!this.hasta();
+      this.desde.set(null);
+      this.hasta.set(null);
+      if (habiaRango) {
+        this.seleccionLimpia.emit();
+      }
       return;
     }
     const desde = this.desde();

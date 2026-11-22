@@ -81,9 +81,18 @@ export class Cotizador {
   private activo = true;
 
   constructor() {
-    this.formulario.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe(() => this.descartarCotizacion());
+    let anterior = this.clave();
+    this.formulario.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      const actual = this.clave();
+      const soloCambiaronLosAdicionales = actual === anterior;
+      anterior = actual;
+      if (soloCambiaronLosAdicionales && this.cotizacion() && this.formulario.valid) {
+        // Agregar o quitar un servicio no cambia las fechas: el desglose se queda en pantalla y solo se actualiza.
+        this.cotizar();
+        return;
+      }
+      this.descartarCotizacion();
+    });
     inject(DestroyRef).onDestroy(() => {
       this.activo = false;
       this.solicitud?.unsubscribe();
@@ -117,6 +126,12 @@ export class Cotizador {
     if (this.formulario.valid) {
       this.cotizar();
     }
+  }
+
+  /** Lo que, si cambia, obliga a calcular de nuevo desde cero (todo menos los servicios adicionales). */
+  private clave(): string {
+    const { llegada, salida, huespedes } = this.formulario.getRawValue();
+    return `${llegada}|${salida}|${huespedes}`;
   }
 
   private descartarCotizacion(): void {
@@ -167,8 +182,11 @@ export class Cotizador {
       .pipe(finalize(() => this.calculando.set(false)))
       .subscribe({
         next: (cotizacion) => this.cotizacion.set(cotizacion),
-        error: (error: unknown) =>
-          this.error.set(mensajeDeError(error, 'No pudimos calcular el precio.')),
+        error: (error: unknown) => {
+          // Si falla al actualizar, no se deja un precio viejo a la vista.
+          this.cotizacion.set(null);
+          this.error.set(mensajeDeError(error, 'No pudimos calcular el precio.'));
+        },
       });
   }
 

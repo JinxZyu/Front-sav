@@ -64,7 +64,7 @@ describe('MisNotificaciones (HU-039)', () => {
     ]);
 
     expect(items().length).toBe(2);
-    expect(items()[0].textContent).toContain('Pendiente de pago → Confirmada');
+    expect(items()[0].textContent).toContain('Tu reserva fue confirmada.');
     expect(items()[0].querySelector('time')?.textContent).toContain('18 de nov');
     expect(items()[0].querySelector('a')?.getAttribute('href')).toBe('/reservas/r-1');
     expect(items()[1].querySelector('a')?.getAttribute('href')).toBe('/publicaciones/p-1');

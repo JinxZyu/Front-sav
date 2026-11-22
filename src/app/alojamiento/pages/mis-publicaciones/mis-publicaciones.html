@@ -30,26 +30,72 @@
       <span class="icono" aria-hidden="true">
         <svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></svg>
       </span>
-      <h2>Todavía no tienes publicaciones</h2>
-      <p>Cuando publiques un alojamiento lo vas a ver aquí con su estado.</p>
+      <h2>Aún no tienes alojamientos</h2>
+      <p>
+        Publica el primero y aquí verás su estado, las reservas que reciba y cuándo está disponible.
+      </p>
       <a routerLink="nuevo" class="principal">Publicar mi primer alojamiento</a>
     </div>
   } @else {
-    <p class="conteo" aria-live="polite">
-      {{ publicaciones().length }}
-      {{ publicaciones().length === 1 ? 'publicación' : 'publicaciones' }}
-    </p>
-    <ul class="lista">
-      @for (publicacion of publicaciones(); track publicacion.idPublicacion) {
+    <ul class="resumen" role="group" aria-label="Resumen de tus publicaciones. Elige un estado para filtrar">
+      @for (opcion of filtros(); track opcion.clave) {
         <li>
-          <app-tarjeta-publicacion
-            [publicacion]="publicacion"
-            [enlace]="publicacion.idPublicacion"
-            [mostrarEstado]="true"
-            [detalle]="'Creada el ' + fecha(publicacion.fechaCreacion)"
-          />
+          <button
+            type="button"
+            [class.activo]="filtro() === opcion.clave"
+            [attr.aria-pressed]="filtro() === opcion.clave"
+            (click)="elegirFiltro(opcion.clave)"
+          >
+            <span class="cifra">{{ opcion.cantidad }}</span>
+            <span class="rotulo">{{ opcion.clave === 'todas' ? 'Total' : opcion.etiqueta }}</span>
+          </button>
         </li>
       }
     </ul>
+
+    <div class="herramientas">
+      <label class="buscador">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+        <input
+          type="search"
+          placeholder="Buscar por nombre, ciudad o tipo"
+          aria-label="Buscar entre mis alojamientos"
+          [value]="busqueda()"
+          (input)="escribir($event)"
+        />
+      </label>
+    </div>
+
+    @if (visibles().length === 0) {
+      <div class="vacio sin-resultados" role="status">
+        <h2>No encontramos alojamientos con ese filtro</h2>
+        <p>Prueba con otra palabra o con otro estado.</p>
+        <button type="button" class="secundario" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+    } @else {
+      <p class="conteo" aria-live="polite">
+        @if (hayFiltros()) {
+          Mostrando {{ visibles().length }} de {{ publicaciones().length }}
+        } @else {
+          {{ publicaciones().length }}
+          {{ publicaciones().length === 1 ? 'publicación' : 'publicaciones' }}
+        }
+      </p>
+      <ul class="lista">
+        @for (publicacion of visibles(); track publicacion.idPublicacion) {
+          <li>
+            <app-tarjeta-publicacion
+              [publicacion]="publicacion"
+              [enlace]="publicacion.idPublicacion"
+              [mostrarEstado]="true"
+              [detalle]="'Creada el ' + fecha(publicacion.fechaCreacion)"
+            />
+          </li>
+        }
+      </ul>
+    }
   }
 </section>

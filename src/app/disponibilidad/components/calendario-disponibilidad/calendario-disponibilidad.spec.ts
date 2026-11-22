@@ -157,6 +157,53 @@ describe('CalendarioDisponibilidad (HU-023)', () => {
     expect(dia(21)?.classList.contains('elegido')).toBe(false);
   });
 
+  it('volver a pulsar el primer día lo desmarca sin entregar ni limpiar nada', async () => {
+    await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    const eventos: string[] = [];
+    fixture.componentInstance.seleccion.subscribe(() => eventos.push('seleccion'));
+    fixture.componentInstance.seleccionLimpia.subscribe(() => eventos.push('limpia'));
+
+    dia(21)?.click();
+    await fixture.whenStable();
+    expect(dia(21)?.getAttribute('aria-pressed')).toBe('true');
+
+    dia(21)?.click();
+    await fixture.whenStable();
+    expect(dia(21)?.getAttribute('aria-pressed')).toBe('false');
+    expect(fixture.componentInstance.desde()).toBeNull();
+    expect(eventos).toEqual([]);
+  });
+
+  it('pulsar un día del rango ya entregado lo desmarca y avisa para limpiar el formulario', async () => {
+    await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: [] });
+    const eventos: string[] = [];
+    fixture.componentInstance.seleccion.subscribe(() => eventos.push('seleccion'));
+    fixture.componentInstance.seleccionLimpia.subscribe(() => eventos.push('limpia'));
+
+    dia(21)?.click();
+    dia(25)?.click();
+    await fixture.whenStable();
+    expect([21, 23, 25].map((numero) => dia(numero)?.classList.contains('elegido'))).toEqual([
+      true,
+      true,
+      true,
+    ]);
+
+    dia(23)?.click();
+    await fixture.whenStable();
+    expect([21, 23, 25].map((numero) => dia(numero)?.classList.contains('elegido'))).toEqual([
+      false,
+      false,
+      false,
+    ]);
+    expect(eventos).toEqual(['seleccion', 'limpia']);
+
+    // Después se puede empezar otra selección desde cero.
+    dia(27)?.click();
+    await fixture.whenStable();
+    expect(dia(27)?.getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('no deja elegir días pasados aunque estén ocupados ni elegir mientras está bloqueado', async () => {
     await crear({ idAlojamiento: 'a-1', periodos: [], nochesOcupadas: ['2026-11-10'] });
     const elegidos: object[] = [];
