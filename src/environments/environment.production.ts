@@ -1,4 +1,4 @@
 export const environment = {
-  apiUrl: 'https://trailers-hart-squad-highest.trycloudflare.com',
+  apiUrl: 'https://orlando-tone-firms-clean.trycloudflare.com',
 };
 
